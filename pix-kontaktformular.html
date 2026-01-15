@@ -64,11 +64,11 @@
         .close-success-btn:hover { color: #333; }
     </style>
     <div id="form-content">
-        <div class="form-header"><h2>Anfrage senden</h2></div>
+        <div class="form-header"><h2>Betreuung anfragen</h2></div>
         <form id="bookingForm">
             <!-- WICHTIG: Captcha deaktiviert (false) -->
             <input type="hidden" name="_captcha" value="false"> 
-            <input type="hidden" name="_subject" value="Neue Fotoshooting Anfrage">
+            <input type="hidden" name="_subject" value="Neue Betreuungs-Anfrage">
             <!-- Ersetze mit deiner URL -->
             <input type="hidden" name="_url" value="https://deine-homepage.de/seite.html"> 
             <input type="text" name="_honey" style="display:none">
@@ -76,16 +76,16 @@
                 <input type="text" name="Name" required placeholder="Ihr Name">
             </div>
             <div class="form-group">
-                <input type="email" name="email" required placeholder="name@beispiel.de"> 
+                <input type="email" name="email" required placeholder="beispiel@email.de"> 
             </div>
             <div class="form-group">
                 <select name="Paket" id="subjectField" required>
-                    <option value="" disabled selected>Gewünschtes Paket wählen...</option>
-                    <option value="Paket S">Paket S: Basis</option>
-                    <option value="Paket M">Paket M: Karriere</option>
-                    <option value="Paket L">Paket L: Executive</option>
-                    <option value="B2B / Firmenanfrage">B2B / Firmenanfrage</option>
-                    <option value="Individuelles Fotoshooting">Individuelles Fotoshooting</option>
+                    <option value="" disabled selected>Gewünschte Unterstützung wählen...</option>
+                    <option value="Paket: Besuch">Paket: Besuch</option>
+                    <option value="Paket: Alltagshilfe">Paket: Alltagshilfe</option>
+                    <option value="Paket: Intensiv">Paket: Intensiv</option>
+                    <option value="Anfrage für Angehörige">Anfrage für Angehörige</option>
+                    <option value="Demenzbetreuung">Demenzbetreuung</option>
                 </select>
             </div>
             <div class="form-group">
@@ -93,7 +93,7 @@
             </div>
             <div class="form-group">
                 <select name="Uhrzeit" required>
-                    <option value="" disabled selected>Uhrzeit wählen...</option>
+                    <option value="" disabled selected>Bevorzugte Uhrzeit...</option>
                     <option value="09:00">09:00 Uhr</option>
                     <option value="10:00">10:00 Uhr</option>
                     <option value="11:00">11:00 Uhr</option>
@@ -108,10 +108,10 @@
                 </select>
             </div>
             <div class="form-group">
-                <textarea name="Nachricht" placeholder="Ihre Nachricht an uns..."></textarea>
+                <textarea name="Nachricht" placeholder="Ihre Nachricht / Wünsche..."></textarea>
             </div>
-            <button type="submit" id="submitBtn">Termin anfragen</button>
-            <div class="disclaimer">Termine können jederzeit kostenlos storniert werden.</div>
+            <button type="submit" id="submitBtn">Anfrage senden</button>
+            <div class="disclaimer">Das Erstgespräch ist unverbindlich und kostenlos.</div>
         </form>
     </div>
     <div id="success-message">
@@ -178,7 +178,7 @@
                     console.error('Error:', error); 
                     alert("Es gab einen Fehler beim Senden: " + error.message + ". Bitte versuchen Sie es erneut.");
                     btn.disabled = false;
-                    btn.innerHTML = "Termin anfragen";
+                    btn.innerHTML = "Anfrage senden";
                     formContent.style.display = 'block';
                     successMsg.style.display = 'none';
                 });
