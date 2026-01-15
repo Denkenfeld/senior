@@ -1,0 +1,11 @@
+<!-- Speichern als favicon.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Hintergrund: Warmes Dunkelgrau der Website -->
+  <rect x="0" y="0" width="64" height="64" rx="12" fill="#4A4036"/>
+  
+  <!-- Buchstabe P: Weiß/Off-White für maximalen Kontrast -->
+  <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="36" fill="#F4F4F2">P</text>
+  
+  <!-- Focus Ecken: Dein Terracotta-Akzent -->
+  <path d="M10 20 V10 H20 M44 10 H54 V20 M54 44 V54 H44 M20 54 H10 V44" stroke="#D96C4A" stroke-width="4" fill="none"/>
+</svg>
