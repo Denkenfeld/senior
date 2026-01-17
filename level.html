@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitaKreis Node Editor - MLM Business Modelling</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --firma: #4A4036;
+            --teamleiterplus: #B8452E;
+            --teamleiter: #D96C4A;
+            --betreuer: #8AB661;
+            --kunde: #5B9BD5;
+            --custom: #888;
+            --accent: #C6A87C;
+            --bg: #2B2B2B;
+            --panel: #1E1E1E;
+            --text: #E0E0E0;
+            --text-dark: #333;
+            --border: #3A3A3A;
+            --grid: #333;
+            --connection: #C6A87C;
+            --provision-1: #D96C4A;
+            --provision-2: #8AB661;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            grid-template-rows: 50px 1fr 40px;
+            height: 100vh;
+        }
+        
+        .header {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+        }
+        
+        .logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: var(--border);
+            border-color: var(--accent);
+        }
+        
+        .btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--text-dark);
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .btn.active {
+            background: var(--accent);
+            color: var(--text-dark);
+        }
+        
+        .left-sidebar {
+            background: var(--panel);
+            border-right: 2px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .sidebar-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .node-palette {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .palette-node {
+            background: linear-gradient(135deg, var(--node-color) 0%, var(--node-color-dark) 100%);
+            border: 2px solid var(--node-color);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: grab;
+            transition: all 0.2s;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            user-select: none;
+        }
+        
+        .palette-node:active {
+            cursor: grabbing;
+        }
+        
+        .palette-node:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .palette-node.firma { --node-color: #4A4036; --node-color-dark: #3A3026; }
+        .palette-node.teamleiterplus { --node-color: #B8452E; --node-color-dark: #A8351E; }
+        .palette-node.teamleiter { --node-color: #D96C4A; --node-color-dark: #C95C3A; }
+        .palette-node.betreuer { --node-color: #8AB661; --node-color-dark: #7AA551; }
+        .palette-node.kunde { --node-color: #5B9BD5; --node-color-dark: #4B8BC5; }
+        .palette-node.custom { --node-color: #888; --node-color-dark: #666; }
+        
+        .palette-node-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .palette-node-desc {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #999;
+        }
+        
+        .control-value {
+            font-weight: bold;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: var(--border);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+        }
+        
+        .canvas-container {
+            position: relative;
+            overflow: auto;
+            background: var(--bg);
+        }
+        
+        .canvas-wrapper {
+            position: relative;
+            width: 8000px;
+            height: 8000px;
+            background-image: 
+                linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 20px 20px;
+            transform-origin: 0 0;
+        }
+        
+        .canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        .canvas.connecting {
+            cursor: crosshair;
+        }
+        
+        .group-frame {
+            position: absolute;
+            border: 3px dashed var(--accent);
+            background: rgba(198, 168, 124, 0.05);
+            border-radius: 15px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .group-label {
+            position: absolute;
+            top: -25px;
+            left: 10px;
+            background: var(--accent);
+            color: var(--text-dark);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .group-duplicate-btn, .group-delete-btn {
+            position: absolute;
+            top: -25px;
+            background: var(--accent);
+            color: var(--text-dark);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            pointer-events: all;
+            transition: all 0.2s;
+        }
+        
+        .group-duplicate-btn {
+            right: 50px;
+        }
+        
+        .group-delete-btn {
+            right: 10px;
+            background: #E97C5A;
+        }
+        
+        .group-duplicate-btn:hover {
+            background: var(--teamleiter);
+            transform: scale(1.05);
+        }
+        
+        .group-delete-btn:hover {
+            background: #D96C4A;
+            transform: scale(1.05);
+        }
+        
+        .node {
+            position: absolute;
+            background: linear-gradient(135deg, var(--node-color) 0%, var(--node-color-dark) 100%);
+            border: 2px solid var(--node-color-border);
+            border-radius: 10px;
+            min-width: 220px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            cursor: move;
+            transition: box-shadow 0.2s;
+            color: white;
+            z-index: 10;
+        }
+        
+        .node:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
+        
+        .node.selected {
+            border-color: var(--accent);
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(198, 168, 124, 0.3);
+        }
+        
+        .node.firma { 
+            --node-color: #4A4036; 
+            --node-color-dark: #3A3026; 
+            --node-color-border: #6B5D4F;
+            min-width: 280px;
+        }
+        .node.teamleiterplus { --node-color: #B8452E; --node-color-dark: #A8351E; --node-color-border: #C8553E; }
+        .node.teamleiter { --node-color: #D96C4A; --node-color-dark: #C95C3A; --node-color-border: #E97C5A; }
+        .node.betreuer { --node-color: #8AB661; --node-color-dark: #7AA551; --node-color-border: #9AC671; }
+        .node.kunde { --node-color: #5B9BD5; --node-color-dark: #4B8BC5; --node-color-border: #6BABE5; }
+        .node.custom { --node-color: #888; --node-color-dark: #666; --node-color-border: #AAA; }
+        
+        .port-top, .port-bottom {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            border: 2px solid white;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        
+        .port-top {
+            top: -7px;
+            background: var(--betreuer);
+        }
+        
+        .port-bottom {
+            bottom: -7px;
+            background: var(--provision-1);
+        }
+        
+        .port-top:hover, .port-bottom:hover {
+            transform: translateX(-50%) scale(1.4);
+            box-shadow: 0 0 15px rgba(255,255,255,0.9);
+        }
+        
+        .port-top.magnetic, .port-bottom.magnetic {
+            transform: translateX(-50%) scale(1.6);
+            box-shadow: 0 0 25px var(--accent), 0 0 35px var(--accent);
+            background: var(--accent);
+            animation: pulse 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: translateX(-50%) scale(1.6); }
+            to { transform: translateX(-50%) scale(1.8); }
+        }
+        
+        .node-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .node-header-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .node-close, .node-duplicate {
+            width: 22px;
+            height: 22px;
+            border: none;
+            background: rgba(0,0,0,0.3);
+            color: white;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        
+        .node-close:hover {
+            background: rgba(255,0,0,0.7);
+        }
+        
+        .node-duplicate:hover {
+            background: rgba(0,150,255,0.7);
+        }
+        
+        .node-body {
+            padding: 14px;
+        }
+        
+        .node-field {
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .node-field label {
+            display: block;
+            opacity: 0.7;
+            margin-bottom: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .node-field input[type="number"],
+        .node-field input[type="text"] {
+            width: 100%;
+            padding: 6px 8px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .node-field input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .node-field input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .checkbox-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        
+        .checkbox-field input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .checkbox-field label {
+            margin: 0;
+            opacity: 1 !important;
+            cursor: pointer;
+            text-transform: none !important;
+            font-size: 0.85rem !important;
+        }
+        
+        .node-summary {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.85rem;
+        }
+        
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+        
+        .summary-label {
+            opacity: 0.7;
+        }
+        
+        .summary-value {
+            font-weight: bold;
+        }
+        
+        .summary-value.positive {
+            color: #9AC671;
+        }
+        
+        .summary-value.negative {
+            color: #E97C5A;
+        }
+        
+        .summary-total {
+            font-size: 1.1rem;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .summary-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+            margin: 8px 0;
+        }
+        
+        .connections-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8000px;
+            height: 8000px;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .connection-line {
+            stroke: var(--connection);
+            stroke-width: 3;
+            fill: none;
+            filter: drop-shadow(0 0 3px rgba(198, 168, 124, 0.5));
+            pointer-events: stroke;
+            cursor: pointer;
+            transition: stroke-width 0.2s;
+        }
+        
+        .connection-line:hover {
+            stroke-width: 5;
+        }
+        
+        .temp-connection {
+            stroke: var(--accent);
+            stroke-width: 2;
+            stroke-dasharray: 5, 5;
+            fill: none;
+            animation: dash 20s linear infinite;
+        }
+        
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+        
+        .right-sidebar {
+            background: var(--panel);
+            border-left: 2px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .analytics-card {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .analytics-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .metric {
+            margin-bottom: 15px;
+        }
+        
+        .metric-label {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .metric-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .metric-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--betreuer), var(--accent));
+            transition: width 0.5s ease;
+        }
+        
+        .flow-list {
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .flow-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 10px;
+        }
+        
+        .flow-item:last-child {
+            border-bottom: none;
+        }
+        
+        .flow-from {
+            color: #999;
+            flex: 1;
+            font-size: 0.8rem;
+        }
+        
+        .flow-amount {
+            font-weight: bold;
+            color: var(--betreuer);
+        }
+        
+        .flow-level {
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        .footer {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            border-top: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .context-menu {
+            position: fixed;
+            background: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1000;
+            min-width: 180px;
+            display: none;
+        }
+        
+        .context-menu.active {
+            display: block;
+        }
+        
+        .context-menu-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.85rem;
+        }
+        
+        .context-menu-item:hover {
+            background: var(--border);
+        }
+        
+        .context-menu-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 25px;
+            min-width: 350px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+        
+        .modal-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .modal-field {
+            margin-bottom: 15px;
+        }
+        
+        .modal-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #999;
+        }
+        
+        .modal-field input,
+        .modal-field select {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+        
+        .modal-field input:focus,
+        .modal-field select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-buttons .btn {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <div class="logo">🌟 VitaKreis MLM Node Editor</div>
+        <div class="header-actions">
+            <button class="btn" onclick="clearCanvas()">🗑️ Clear</button>
+            <button class="btn" onclick="autoLayout()">📐 Auto Layout</button>
+            <button class="btn" id="snapGridBtn" onclick="toggleSnapToGrid()">📌 Snap: OFF</button>
+            <button class="btn" id="groupBtn" onclick="groupSelected()" disabled>🔲 Group</button>
+            <button class="btn" id="ungroupBtn" onclick="ungroupSelected()" disabled>⬚ Ungroup</button>
+            <button class="btn" onclick="exportGraph()">💾 Export</button>
+            <button class="btn primary" onclick="calculateAll()">⚡ Calculate</button>
+        </div>
+    </div>
+    
+    <div class="left-sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">📦 Node Palette</div>
+            <div class="node-palette">
+                <div class="palette-node firma" draggable="true" data-node-type="firma">
+                    <div class="palette-node-title">🏢 Firma</div>
+                    <div class="palette-node-desc">Zentrale Einheit</div>
+                </div>
+                <div class="palette-node teamleiterplus" draggable="true" data-node-type="teamleiterplus">
+                    <div class="palette-node-title">👑 Teamleiter Plus</div>
+                    <div class="palette-node-desc">Oberste Ebene</div>
+                </div>
+                <div class="palette-node teamleiter" draggable="true" data-node-type="teamleiter">
+                    <div class="palette-node-title">👤 Teamleiter</div>
+                    <div class="palette-node-desc">Hat Downlines</div>
+                </div>
+                <div class="palette-node betreuer" draggable="true" data-node-type="betreuer">
+                    <div class="palette-node-title">👥 Betreuer</div>
+                    <div class="palette-node-desc">Basis-Helfer</div>
+                </div>
+                <div class="palette-node kunde" draggable="true" data-node-type="kunde">
+                    <div class="palette-node-title">💰 Kunde</div>
+                    <div class="palette-node-desc">Zahlt für Service</div>
+                </div>
+                <div class="palette-node custom" draggable="true" data-node-type="custom">
+                    <div class="palette-node-title">⚙️ Custom</div>
+                    <div class="palette-node-desc">Frei konfigurierbar</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="sidebar-title">⚙️ Global Settings</div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Grid Size</span>
+                    <span class="control-value"><span id="displayGridSize">20</span>px</span>
+                </div>
+                <input type="range" id="gridSize" min="10" max="50" value="20" step="5" oninput="updateDisplay();">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Stundensatz Kunde</span>
+                    <span class="control-value"><span id="displayStundensatz">35</span>€</span>
+                </div>
+                <input type="range" id="stundensatz" min="0" max="60" value="35" step="1" oninput="updateDisplay(); syncGlobalValues(); calculateAll();">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Kundenstunden/Monat</span>
+                    <span class="control-value"><span id="displayKundenStunden">5</span> Std</span>
+                </div>
+                <input type="range" id="kundenStunden" min="0" max="40" value="5" step="1" oninput="updateDisplay(); syncGlobalValues(); calculateAll();">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Firmenmarge</span>
+                    <span class="control-value"><span id="displayMarge">20</span>%</span>
+                </div>
+                <input type="range" id="marge" min="0" max="35" value="20" step="1" oninput="updateDisplay(); syncGlobalValues(); calculateAll();">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Provision Ebene 1</span>
+                    <span class="control-value"><span id="displayLevel1">15</span>%</span>
+                </div>
+                <input type="range" id="level1" min="0" max="25" value="15" step="1" oninput="updateDisplay(); calculateAll();">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Provision Ebene 2</span>
+                    <span class="control-value"><span id="displayLevel2">7</span>%</span>
+                </div>
+                <input type="range" id="level2" min="0" max="15" value="7" step="1" oninput="updateDisplay(); calculateAll();">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Magnetic Radius</span>
+                    <span class="control-value"><span id="displayMagnetic">50</span>px</span>
+                </div>
+                <input type="range" id="magneticRadius" min="20" max="100" value="50" step="5" oninput="document.getElementById('displayMagnetic').textContent = this.value;">
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="sidebar-title">📋 Templates</div>
+            <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="loadTemplate1()">🎯 Template 1: Simple</button>
+            <button class="btn" style="width: 100%;" onclick="loadTemplateLarge()">🚀 Vitakreis-1MA Plus</button>
+        </div>
+    </div>
+    
+    <div class="canvas-container" id="canvasContainer">
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <svg class="connections-layer" id="connectionsLayer"></svg>
+            <div class="canvas" id="canvas"></div>
+        </div>
+    </div>
+    
+    <div class="right-sidebar">
+        <div class="analytics-card">
+            <div class="analytics-title">📊 Live Analytics</div>
+            <div class="metric">
+                <div class="metric-label">Gesamt-Umsatz (Monat)</div>
+                <div class="metric-value" id="analyticsUmsatz">€0</div>
+                <div class="metric-bar">
+                    <div class="metric-bar-fill" id="barUmsatz" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Firmen-Einkommen</div>
+                <div class="metric-value" id="analyticsFirma">€0</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Operating Margin</div>
+                <div class="metric-value" id="analyticsMargin">0%</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Helfer-Basis (gesamt)</div>
+                <div class="metric-value" id="analyticsHelfer">€0</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Provisionen (gesamt)</div>
+                <div class="metric-value" id="analyticsProvisionen">€0</div>
+            </div>
+        </div>
+        
+        <div class="analytics-card">
+            <div class="analytics-title">⏱️ Stunden-Übersicht</div>
+            <div style="font-size: 0.85rem;">
+                <div style="margin-bottom: 10px;">
+                    <strong>Basis-Stunden:</strong> <span id="statHoursBasis">0</span> Std
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>Ebene 1 Stunden:</strong> <span id="statHoursLevel1">0</span> Std
+                </div>
+                <div>
+                    <strong>Ebene 2 Stunden:</strong> <span id="statHoursLevel2">0</span> Std
+                </div>
+            </div>
+        </div>
+        
+        <div class="analytics-card">
+            <div class="analytics-title">💸 Cashflow Details</div>
+            <div class="flow-list" id="flowList">
+                <div class="flow-item">
+                    <span class="flow-from">Keine Verbindungen</span>
+                    <span class="flow-amount">€0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="analytics-card">
+            <div class="analytics-title">📈 Statistiken</div>
+            <div style="font-size: 0.85rem;">
+                <div style="margin-bottom: 10px;">
+                    <strong>Nodes:</strong> <span id="statNodes">0</span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>Selected:</strong> <span id="statSelected">0</span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>Connections:</strong> <span id="statConnections">0</span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>Aktive Helfer:</strong> <span id="statHelfer">0</span>
+                </div>
+                <div>
+                    <strong>Kunden:</strong> <span id="statKunden">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div>
+            <span id="statusText">Bereit | Strg+Click = Multi-Select | Doppelklick Node = Edit | G = Snap Toggle</span>
+        </div>
+        <div class="zoom-controls">
+            <button class="btn" onclick="zoomOut()">−</button>
+            <span id="zoomLevel">100%</span>
+            <button class="btn" onclick="zoomIn()">+</button>
+            <button class="btn" onclick="resetZoom()">Reset</button>
+        </div>
+    </div>
+</div>
+
+<div class="context-menu" id="contextMenu">
+    <div class="context-menu-item" onclick="duplicateNode()">📋 Duplicate</div>
+    <div class="context-menu-item" id="duplicateGroupItem" onclick="duplicateGroup()" class="disabled">📋 Duplicate Group</div>
+    <div class="context-menu-item" onclick="deleteNode()">🗑️ Delete</div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <div class="modal-title">Node bearbeiten</div>
+        <div class="modal-field">
+            <label>Name</label>
+            <input type="text" id="modalName" placeholder="Node Name">
+        </div>
+        <div class="modal-field" id="modalTypeField">
+            <label>Typ</label>
+            <select id="modalType">
+                <option value="betreuer">👥 Betreuer (Grün)</option>
+                <option value="teamleiter">👤 Teamleiter (Orange)</option>
+                <option value="teamleiterplus">👑 Teamleiter Plus (Dunkelrot)</option>
+            </select>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn" onclick="closeModal()">Abbrechen</button>
+            <button class="btn primary" onclick="saveModal()">Speichern</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let nodes=[], connections=[], groups=[];
+let nodeIdCounter=0, groupIdCounter=0, selectedNodes=[], contextNode=null;
+let isDragging=false, isConnecting=false, connectingFrom=null, tempLine=null, hoveredPort=null, editingNodeId=null;
+let snapToGrid=false, currentZoom=1, draggedNodeType=null;
+let draggedNode=null, dragStartX=0, dragStartY=0, nodeStartX=0, nodeStartY=0, multiDragOffsets=[];
+
+const canvas=document.getElementById('canvas');
+const canvasContainer=document.getElementById('canvasContainer');
+const canvasWrapper=document.getElementById('canvasWrapper');
+const connectionsLayer=document.getElementById('connectionsLayer');
+
+window.onload=function(){setupEventListeners();loadTemplate1();updateDisplay();syncGlobalValues();calculateAll();setTimeout(()=>{canvasContainer.scrollLeft=50;canvasContainer.scrollTop=0;redrawConnections();},100);};
+
+function setupEventListeners(){
+    document.querySelectorAll('.palette-node').forEach(n=>n.addEventListener('dragstart',handlePaletteDragStart));
+    canvasWrapper.addEventListener('dragover',handleDragOver);canvasWrapper.addEventListener('drop',handleDrop);
+    document.addEventListener('mousemove',handleMouseMove);document.addEventListener('mouseup',handleMouseUp);
+    document.addEventListener('keydown',handleKeyDown);canvasContainer.addEventListener('wheel',handleWheel,{passive:false});
+    canvasWrapper.addEventListener('contextmenu',showContextMenu);
+    document.addEventListener('click',()=>document.getElementById('contextMenu').classList.remove('active'));
+    canvasContainer.addEventListener('scroll',redrawConnections);
+    document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target.id==='modalOverlay')closeModal();});
+    canvas.addEventListener('mousedown',e=>{if(e.target===canvas&&!e.ctrlKey&&!e.metaKey)deselectAll();});
+}
+
+function handlePaletteDragStart(e){draggedNodeType=e.currentTarget.dataset.nodeType;e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain',draggedNodeType);}
+function handleDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='copy';}
+
+function handleDrop(e){
+    e.preventDefault();if(!draggedNodeType)return;
+    const rect=canvasWrapper.getBoundingClientRect();
+    let x=(e.clientX-rect.left)/currentZoom,y=(e.clientY-rect.top)/currentZoom;
+    if(snapToGrid){const gs=parseInt(document.getElementById('gridSize').value);x=Math.round(x/gs)*gs;y=Math.round(y/gs)*gs;}
+    createNode(draggedNodeType,x,y);draggedNodeType=null;setStatus('Node erstellt ✓');
+}
+
+function toggleSnapToGrid(){
+    snapToGrid=!snapToGrid;const btn=document.getElementById('snapGridBtn');
+    if(snapToGrid){btn.textContent='📌 Snap: ON';btn.classList.add('active');}
+    else{btn.textContent='📌 Snap: OFF';btn.classList.remove('active');}
+}
+
+function handleKeyDown(e){
+    if((e.key==='Delete'||e.key==='Backspace')&&selectedNodes.length>0){e.preventDefault();deleteSelectedNodes();}
+    if(e.key==='Escape')deselectAll();
+    if((e.ctrlKey||e.metaKey)&&e.key==='d'&&selectedNodes.length>0){e.preventDefault();duplicateGroup();}
+    if(e.key==='g'||e.key==='G')toggleSnapToGrid();
+}
+
+function handleWheel(e){
+    if(e.ctrlKey||e.metaKey){
+        e.preventDefault();
+        const delta=e.deltaY>0?-0.05:0.05;
+        setZoom(Math.min(Math.max(currentZoom+delta,0.5),2));
+    }
+}
+
+function setZoom(z){
+    currentZoom=z;canvasWrapper.style.transform=`scale(${z})`;canvasWrapper.style.transformOrigin='0 0';
+    document.getElementById('zoomLevel').textContent=Math.round(z*100)+'%';redrawConnections();
+}
+
+function zoomIn(){setZoom(Math.min(currentZoom+0.1,2));}
+function zoomOut(){setZoom(Math.max(currentZoom-0.1,0.5));}
+function resetZoom(){setZoom(1);}
+
+function updateDisplay(){
+    document.getElementById('displayGridSize').textContent=document.getElementById('gridSize').value;
+    document.getElementById('displayStundensatz').textContent=document.getElementById('stundensatz').value;
+    document.getElementById('displayKundenStunden').textContent=document.getElementById('kundenStunden').value;
+    document.getElementById('displayMarge').textContent=document.getElementById('marge').value;
+    document.getElementById('displayLevel1').textContent=document.getElementById('level1').value;
+    document.getElementById('displayLevel2').textContent=document.getElementById('level2').value;
+}
+
+function syncGlobalValues(){
+    const st=parseFloat(document.getElementById('stundensatz').value);
+    const ks=parseFloat(document.getElementById('kundenStunden').value);
+    const mg=parseFloat(document.getElementById('marge').value)/100;
+    const hs=st*(1-mg);
+    nodes.forEach(n=>{
+        if((n.type==='betreuer'||n.type==='teamleiter'||n.type==='teamleiterplus')&&n.data.useGlobalValues){
+            n.data.lohnProStunde=hs;
+            const inp=document.querySelector(`#${n.id} input[data-field="lohnProStunde"]`);
+            if(inp)inp.value=hs.toFixed(2);
+        }
+        if(n.type==='kunde'&&n.data.useGlobalValues){
+            n.data.stunden=ks;
+            const inp=document.querySelector(`#${n.id} input[data-field="stunden"]`);
+            if(inp)inp.value=ks;
+        }
+    });
+}
+
+function createNode(type,x,y,data={}){
+    const nodeId=`node-${++nodeIdCounter}`;
+    const st=parseFloat(document.getElementById('stundensatz').value);
+    const ks=parseFloat(document.getElementById('kundenStunden').value);
+    const mg=parseFloat(document.getElementById('marge').value)/100;
+    const hs=st*(1-mg);
+    const defData={
+        firma:{name:'VitaKreis'},
+        teamleiterplus:{name:`TL+ ${nodeIdCounter}`,stunden:0,lohnProStunde:hs,useGlobalValues:true},
+        teamleiter:{name:`TL ${nodeIdCounter}`,stunden:0,lohnProStunde:hs,useGlobalValues:true},
+        betreuer:{name:`Betreuer ${nodeIdCounter}`,stunden:0,lohnProStunde:hs,useGlobalValues:true},
+        kunde:{name:`Kunde ${nodeIdCounter}`,stunden:ks,useGlobalValues:true},
+        custom:{name:`Custom ${nodeIdCounter}`,wert:0,formel:'wert * 1'}
+    };
+    const nodeData={...defData[type],...data};
+    const node=document.createElement('div');
+    node.className=`node ${type}`;node.id=nodeId;
+    node.innerHTML=generateNodeHTML(type,nodeData,nodeId);
+    node.style.left=x+'px';node.style.top=y+'px';
+    node.addEventListener('mousedown',startDragNode);
+    node.addEventListener('dblclick',e=>{
+        if(!e.target.classList.contains('port-top')&&!e.target.classList.contains('port-bottom')&&
+            e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')openEditModal(nodeId);
+    });
+    const tp=node.querySelector('.port-top'),bp=node.querySelector('.port-bottom');
+    if(tp)tp.addEventListener('mousedown',startConnection);
+    if(bp)bp.addEventListener('mousedown',startConnection);
+    const sc=node.querySelector('input[data-field="useGlobalValues"]');
+    if(sc){
+        sc.addEventListener('change',e=>{
+            if(node.classList.contains('kunde')){
+                const si=node.querySelector('input[data-field="stunden"]');
+                if(si)si.disabled=e.target.checked;
+            }else{
+                const li=node.querySelector('input[data-field="lohnProStunde"]');
+                if(li)li.disabled=e.target.checked;
+            }
+            updateNodeData(nodeId);syncGlobalValues();calculateAll();
+        });
+    }
+    node.querySelectorAll('input[data-field]').forEach(inp=>{
+        if(inp.type!=='checkbox')inp.addEventListener('change',()=>{updateNodeData(nodeId);calculateAll();});
+        inp.addEventListener('click',e=>e.stopPropagation());
+        inp.addEventListener('mousedown',e=>e.stopPropagation());
+    });
+    canvas.appendChild(node);
+    nodes.push({id:nodeId,type:type,x:x,y:y,data:nodeData,groupId:null,
+        calculated:{basis:0,level1:0,level2:0,total:0,umsatz:0,helferAuszahlung:0,provisionen:0,provision1:0,provision2:0,netto:0,level1Hours:0,level2Hours:0,basisHours:0}
+    });
+    updateStats();return nodeId;
+}
+
+function generateNodeHTML(type,data,nodeId){
+    let h='';
+    if(type!=='firma')h+=`<div class="port-top" data-node="${nodeId}" data-port="top"></div>`;
+    h+=`<div class="node-header"><span>${getIcon(type)} ${data.name}</span><div class="node-header-buttons">
+        <button class="node-duplicate" onclick="event.stopPropagation(); duplicateNodeById('${nodeId}')">📋</button>
+        <button class="node-close" onclick="event.stopPropagation(); deleteNodeById('${nodeId}')">×</button>
+    </div></div><div class="node-body">`;
+    if(type==='firma'){
+        h+=`<div class="node-summary">
+            <div class="summary-line"><span class="summary-label">Gesamt-Umsatz:</span><span class="summary-value positive">€<span id="umsatz-${nodeId}">0</span></span></div>
+            <div class="summary-line"><span class="summary-label">Basis-Std:</span><span class="summary-value"><span id="basis-hours-${nodeId}">0</span> Std</span></div>
+            <div class="summary-line"><span class="summary-label">L1 Std:</span><span class="summary-value"><span id="level1-hours-${nodeId}">0</span> Std</span></div>
+            <div class="summary-line"><span class="summary-label">L2 Std:</span><span class="summary-value"><span id="level2-hours-${nodeId}">0</span> Std</span></div>
+            <div class="summary-divider"></div>
+            <div class="summary-line"><span class="summary-label">Helfer-Basis:</span><span class="summary-value negative">−€<span id="helfer-${nodeId}">0</span></span></div>
+            <div class="summary-line"><span class="summary-label">Prov Ebene 1:</span><span class="summary-value negative">−€<span id="provision1-${nodeId}">0</span></span></div>
+            <div class="summary-line"><span class="summary-label">Prov Ebene 2:</span><span class="summary-value negative">−€<span id="provision2-${nodeId}">0</span></span></div>
+            <div class="summary-line"><span class="summary-label">Prov Gesamt:</span><span class="summary-value negative">−€<span id="provisionen-${nodeId}">0</span></span></div>
+            <div class="summary-divider"></div>
+            <div class="summary-line summary-total"><span>Netto-Gewinn:</span><span class="summary-value positive">€<span id="total-${nodeId}">0</span></span></div>
+        </div>`;
+    }else if(type==='kunde'){
+        const ug=data.useGlobalValues!==undefined?data.useGlobalValues:true;
+        h+=`<div class="checkbox-field"><input type="checkbox" id="sync-${nodeId}" data-field="useGlobalValues" ${ug?'checked':''}>
+            <label for="sync-${nodeId}">🔗 Globale Werte</label></div>
+            <div class="node-field"><label>Stunden/Monat</label>
+            <input type="number" value="${data.stunden}" data-field="stunden" min="0" max="200" ${ug?'disabled':''}></div>
+            <div class="node-summary"><div class="summary-line summary-total"><span>Zahlt:</span><span class="summary-value">€<span id="total-${nodeId}">0</span></span></div></div>`;
+    }else if(type==='custom'){
+        h+=`<div class="node-field"><label>Wert</label><input type="number" value="${data.wert}" data-field="wert" min="0" max="10000"></div>
+            <div class="node-field"><label>Formel</label><input type="text" value="${data.formel}" data-field="formel"></div>
+            <div class="node-summary"><div class="summary-line summary-total"><span>Ergebnis:</span><span class="summary-value">€<span id="total-${nodeId}">0</span></span></div></div>`;
+    }else{
+        const ug=data.useGlobalValues!==undefined?data.useGlobalValues:true;
+        h+=`<div class="checkbox-field"><input type="checkbox" id="sync-${nodeId}" data-field="useGlobalValues" ${ug?'checked':''}>
+            <label for="sync-${nodeId}">🔗 Globale Werte</label></div>
+            <div class="node-field"><label>Kundenstunden (auto)</label><input type="number" value="${data.stunden}" data-field="stunden" disabled style="opacity:0.7;"></div>
+            <div class="node-field"><label>Lohn/Std (€)</label><input type="number" value="${data.lohnProStunde.toFixed(2)}" data-field="lohnProStunde" min="10" max="100" step="0.5" ${ug?'disabled':''}></div>
+            <div class="node-summary">
+                <div class="summary-line"><span class="summary-label">Basis:</span><span class="summary-value">€<span id="basis-${nodeId}">0</span></span></div>
+                <div class="summary-line"><span class="summary-label">Ebene 1:</span><span class="summary-value"><span id="level1hours-${nodeId}">0</span> Std | €<span id="level1-${nodeId}">0</span></span></div>
+                <div class="summary-line"><span class="summary-label">Ebene 2:</span><span class="summary-value"><span id="level2hours-${nodeId}">0</span> Std | €<span id="level2-${nodeId}">0</span></span></div>
+                <div class="summary-line summary-total"><span>Gesamt:</span><span class="summary-value">€<span id="total-${nodeId}">0</span></span></div>
+            </div>`;
+    }
+    h+=`</div>`;
+    if(type!=='kunde')h+=`<div class="port-bottom" data-node="${nodeId}" data-port="bottom"></div>`;
+    return h;
+}
+
+function getIcon(t){
+    const icons={firma:'🏢',teamleiterplus:'👑',teamleiter:'👤',betreuer:'👥',kunde:'💰',custom:'⚙️'};
+    return icons[t]||'📦';
+}
+
+function updateNodeData(nid){
+    const ne=document.getElementById(nid),nd=nodes.find(n=>n.id===nid);
+    if(!nd||!ne)return;
+    ne.querySelectorAll('input[data-field]').forEach(inp=>{
+        const f=inp.dataset.field;
+        if(inp.type==='checkbox')nd.data[f]=inp.checked;
+        else if(f!=='stunden'||nd.type==='kunde')nd.data[f]=inp.type==='number'?parseFloat(inp.value)||0:inp.value;
+    });
+}
+
+function toggleNodeSelection(nid,e){
+    const ne=document.getElementById(nid);if(!ne)return;
+    if(e&&(e.ctrlKey||e.metaKey)){
+        if(selectedNodes.includes(nid)){selectedNodes=selectedNodes.filter(id=>id!==nid);ne.classList.remove('selected');}
+        else{selectedNodes.push(nid);ne.classList.add('selected');}
+    }else{
+        deselectAll();selectedNodes=[nid];ne.classList.add('selected');
+    }
+    updateSelectionUI();
+}
+
+function deselectAll(){
+    selectedNodes.forEach(nid=>{const ne=document.getElementById(nid);if(ne)ne.classList.remove('selected');});
+    selectedNodes=[];updateSelectionUI();
+}
+
+function updateSelectionUI(){
+    document.getElementById('statSelected').textContent=selectedNodes.length;
+    document.getElementById('groupBtn').disabled=selectedNodes.length<2;
+    document.getElementById('ungroupBtn').disabled=selectedNodes.length===0;
+    const dgi=document.getElementById('duplicateGroupItem');
+    if(selectedNodes.length>1)dgi.classList.remove('disabled');else dgi.classList.add('disabled');
+}
+
+function groupSelected(){
+    if(selectedNodes.length<2)return;
+    const gid=`group-${++groupIdCounter}`;
+    selectedNodes.forEach(nid=>{const nd=nodes.find(n=>n.id===nid);if(nd)nd.groupId=gid;});
+    groups.push({id:gid,nodes:[...selectedNodes],name:`Gruppe ${groupIdCounter}`});
+    renderGroups();
+}
+
+function ungroupSelected(){
+    if(selectedNodes.length===0)return;
+    const gtr=new Set();
+    selectedNodes.forEach(nid=>{
+        const nd=nodes.find(n=>n.id===nid);
+        if(nd&&nd.groupId){gtr.add(nd.groupId);nd.groupId=null;}
+    });
+    groups=groups.filter(g=>!gtr.has(g.id));
+    renderGroups();
+}
+
+function renderGroups(){
+    document.querySelectorAll('.group-frame').forEach(f=>f.remove());
+    groups.forEach(g=>{
+        const gns=g.nodes.map(id=>nodes.find(n=>n.id===id)).filter(n=>n);
+        if(gns.length===0)return;
+        let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+        gns.forEach(nd=>{
+            const ne=document.getElementById(nd.id);if(!ne)return;
+            const w=ne.offsetWidth,h=ne.offsetHeight;
+            minX=Math.min(minX,nd.x);minY=Math.min(minY,nd.y);
+            maxX=Math.max(maxX,nd.x+w);maxY=Math.max(maxY,nd.y+h);
+        });
+        const p=20,f=document.createElement('div');
+        f.className='group-frame';
+        f.style.left=(minX-p)+'px';f.style.top=(minY-p)+'px';
+        f.style.width=(maxX-minX+p*2)+'px';f.style.height=(maxY-minY+p*2)+'px';
+        f.innerHTML=`<div class="group-label">${g.name}</div>
+            <button class="group-duplicate-btn" onclick="duplicateGroupById('${g.id}')">📋</button>
+            <button class="group-delete-btn" onclick="deleteGroupById('${g.id}')">×</button>`;
+        canvas.appendChild(f);
+    });
+}
+
+function duplicateGroupById(gid){
+    const g=groups.find(gr=>gr.id===gid);if(!g)return;
+    deselectAll();selectedNodes=[...g.nodes];
+    selectedNodes.forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('selected');});
+    duplicateGroup();
+}
+
+function deleteGroupById(gid){
+    const g=groups.find(gr=>gr.id===gid);if(!g)return;
+    if(!confirm(`Gruppe "${g.name}" mit ${g.nodes.length} Nodes löschen?`))return;
+    g.nodes.forEach(nid=>{const n=document.getElementById(nid);if(n)n.remove();});
+    nodes=nodes.filter(n=>!g.nodes.includes(n.id));
+    connections=connections.filter(c=>!g.nodes.includes(c.from)&&!g.nodes.includes(c.to));
+    selectedNodes=selectedNodes.filter(id=>!g.nodes.includes(id));
+    groups=groups.filter(gr=>gr.id!==gid);
+    redrawConnections();renderGroups();calculateAll();updateSelectionUI();setStatus(`Gruppe gelöscht ✓`);
+}
+
+function openEditModal(nid){
+    const nd=nodes.find(n=>n.id===nid);if(!nd)return;
+    editingNodeId=nid;
+    document.getElementById('modalName').value=nd.data.name||'';
+    const tf=document.getElementById('modalTypeField');
+    if(nd.type==='betreuer'||nd.type==='teamleiter'||nd.type==='teamleiterplus'){
+        tf.style.display='block';document.getElementById('modalType').value=nd.type;
+    }else tf.style.display='none';
+    document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal(){document.getElementById('modalOverlay').classList.remove('active');editingNodeId=null;}
+
+function saveModal(){
+    if(!editingNodeId)return;
+    const nd=nodes.find(n=>n.id===editingNodeId);if(!nd)return;
+    const nn=document.getElementById('modalName').value;
+    const nt=document.getElementById('modalType').value;
+    nd.data.name=nn;
+    const cct=['betreuer','teamleiter','teamleiterplus'].includes(nd.type);
+    if(cct&&nd.type!==nt){
+        nd.type=nt;
+        const ne=document.getElementById(editingNodeId);
+        const ox=nd.x,oy=nd.y;ne.remove();
+        const nne=document.createElement('div');
+        nne.className=`node ${nt}`;nne.id=editingNodeId;
+        nne.innerHTML=generateNodeHTML(nt,nd.data,editingNodeId);
+        nne.style.left=ox+'px';nne.style.top=oy+'px';
+        nne.addEventListener('mousedown',startDragNode);
+        nne.addEventListener('dblclick',e=>{
+            if(!e.target.classList.contains('port-top')&&!e.target.classList.contains('port-bottom')&&
+                e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')openEditModal(editingNodeId);
+        });
+        const tp=nne.querySelector('.port-top'),bp=nne.querySelector('.port-bottom');
+        if(tp)tp.addEventListener('mousedown',startConnection);
+        if(bp)bp.addEventListener('mousedown',startConnection);
+        const sc=nne.querySelector('input[data-field="useGlobalValues"]');
+        if(sc)sc.addEventListener('change',e=>{
+            const li=nne.querySelector('input[data-field="lohnProStunde"]');
+            if(li)li.disabled=e.target.checked;
+            updateNodeData(editingNodeId);syncGlobalValues();calculateAll();
+        });
+        nne.querySelectorAll('input[data-field]').forEach(inp=>{
+            if(inp.type!=='checkbox')inp.addEventListener('change',()=>{updateNodeData(editingNodeId);calculateAll();});
+            inp.addEventListener('click',e=>e.stopPropagation());
+            inp.addEventListener('mousedown',e=>e.stopPropagation());
+        });
+        canvas.appendChild(nne);
+    }else{
+        const h=document.querySelector(`#${editingNodeId} .node-header span`);
+        if(h)h.textContent=`${getIcon(nd.type)} ${nn}`;
+    }
+    closeModal();calculateAll();redrawConnections();
+}
+
+function startDragNode(e){
+    if(e.target.classList.contains('port-top')||e.target.classList.contains('port-bottom')||
+        e.target.tagName==='INPUT'||e.target.tagName==='BUTTON'||e.target.tagName==='LABEL')return;
+    draggedNode=e.currentTarget;
+    const nid=draggedNode.id;
+    if(e.ctrlKey||e.metaKey){toggleNodeSelection(nid,e);return;}
+    if(!selectedNodes.includes(nid))toggleNodeSelection(nid,e);
+    const nd=nodes.find(n=>n.id===draggedNode.id);if(!nd)return;
+    dragStartX=e.clientX;dragStartY=e.clientY;nodeStartX=nd.x;nodeStartY=nd.y;
+    multiDragOffsets=selectedNodes.map(id=>{
+        const n=nodes.find(node=>node.id===id);
+        return{id:id,offsetX:n.x-nd.x,offsetY:n.y-nd.y};
+    });
+    isDragging=true;draggedNode.style.cursor='grabbing';
+    e.stopPropagation();e.preventDefault();
+}
+
+function dragNode(e){
+    if(!isDragging||!draggedNode)return;
+    const dx=e.clientX-dragStartX,dy=e.clientY-dragStartY;
+    multiDragOffsets.forEach(({id,offsetX,offsetY})=>{
+        let nx=nodeStartX+dx+offsetX,ny=nodeStartY+dy+offsetY;
+        if(snapToGrid){const gs=parseInt(document.getElementById('gridSize').value);nx=Math.round(nx/gs)*gs;ny=Math.round(ny/gs)*gs;}
+        const el=document.getElementById(id);
+        if(el){el.style.left=nx+'px';el.style.top=ny+'px';}
+        const nd=nodes.find(n=>n.id===id);
+        if(nd){nd.x=nx;nd.y=ny;}
+    });
+    redrawConnections();renderGroups();
+}
+
+function endDragNode(){
+    if(draggedNode)draggedNode.style.cursor='move';
+    isDragging=false;draggedNode=null;
+}
+
+function startConnection(e){
+    e.stopPropagation();e.preventDefault();
+    isConnecting=true;
+    const p=e.target;
+    connectingFrom={nodeId:p.dataset.node,port:p.dataset.port,element:p};
+    canvas.classList.add('connecting');
+}
+
+function handleMouseMove(e){
+    if(isDragging)dragNode(e);
+    else if(isConnecting&&connectingFrom){drawTempConnection(e);checkMagneticSnap(e);}
+}
+
+function checkMagneticSnap(e){
+    const mr=parseFloat(document.getElementById('magneticRadius').value);
+    document.querySelectorAll('.port-top, .port-bottom').forEach(p=>p.classList.remove('magnetic'));
+    document.querySelectorAll('.port-top, .port-bottom').forEach(p=>{
+        if(p===connectingFrom.element)return;
+        const pr=p.getBoundingClientRect();
+        const pcx=pr.left+pr.width/2,pcy=pr.top+pr.height/2;
+        const d=Math.sqrt(Math.pow(e.clientX-pcx,2)+Math.pow(e.clientY-pcy,2));
+        if(d<mr){
+            const pt=p.dataset.port;
+            if(connectingFrom.port==='bottom'&&pt==='top'&&p.dataset.node!==connectingFrom.nodeId){
+                p.classList.add('magnetic');hoveredPort=p;
+            }
+        }
+    });
+}
+
+function drawTempConnection(e){
+    const pr=connectingFrom.element.getBoundingClientRect();
+    const wr=canvasWrapper.getBoundingClientRect();
+    const x1=(pr.left-wr.left)/currentZoom+pr.width/(2*currentZoom);
+    const y1=(pr.top-wr.top)/currentZoom+pr.height/(2*currentZoom);
+    let x2,y2;
+    if(hoveredPort&&hoveredPort.classList.contains('magnetic')){
+        const tr=hoveredPort.getBoundingClientRect();
+        x2=(tr.left-wr.left)/currentZoom+tr.width/(2*currentZoom);
+        y2=(tr.top-wr.top)/currentZoom+tr.height/(2*currentZoom);
+    }else{
+        x2=(e.clientX-wr.left)/currentZoom;
+        y2=(e.clientY-wr.top)/currentZoom;
+    }
+    if(tempLine)connectionsLayer.removeChild(tempLine);
+    tempLine=document.createElementNS('http://www.w3.org/2000/svg','path');
+    tempLine.setAttribute('d',createVerticalPath(x1,y1,x2,y2));
+    tempLine.setAttribute('class','temp-connection');
+    connectionsLayer.appendChild(tempLine);
+}
+
+function handleMouseUp(e){
+    if(isConnecting)endConnection(e);
+    else if(isDragging)endDragNode();
+}
+
+function endConnection(e){
+    if(!isConnecting)return;
+    if(hoveredPort&&hoveredPort.classList.contains('magnetic')){
+        const tnid=hoveredPort.dataset.node;
+        const tp=hoveredPort.dataset.port;
+        if(connectingFrom.port==='bottom'&&tp==='top'&&connectingFrom.nodeId!==tnid){
+            const ex=connections.find(c=>c.from===connectingFrom.nodeId&&c.to===tnid);
+            if(!ex){connections.push({from:connectingFrom.nodeId,to:tnid});redrawConnections();calculateAll();}
+        }
+    }
+    if(tempLine){connectionsLayer.removeChild(tempLine);tempLine=null;}
+    document.querySelectorAll('.port-top, .port-bottom').forEach(p=>p.classList.remove('magnetic'));
+    isConnecting=false;connectingFrom=null;hoveredPort=null;
+    canvas.classList.remove('connecting');
+}
+
+function redrawConnections(){
+    const tlb=tempLine;
+    connectionsLayer.innerHTML='';
+    if(tlb)connectionsLayer.appendChild(tlb);
+    connections.forEach((c,i)=>{
+        const fn=document.getElementById(c.from),tn=document.getElementById(c.to);
+        if(!fn||!tn)return;
+        const fd=nodes.find(n=>n.id===c.from),td=nodes.find(n=>n.id===c.to);
+        if(!fd||!td)return;
+        const fw=fn.offsetWidth,fh=fn.offsetHeight,tw=tn.offsetWidth;
+        const x1=fd.x+fw/2,y1=fd.y+fh,x2=td.x+tw/2,y2=td.y;
+        const path=createVerticalPath(x1,y1,x2,y2);
+        const line=document.createElementNS('http://www.w3.org/2000/svg','path');
+        line.setAttribute('d',path);
+        line.setAttribute('class','connection-line level-1');
+        line.dataset.connectionIndex=i;
+        line.dataset.fromNode=c.from;
+        line.dataset.toNode=c.to;
+        line.addEventListener('dblclick',()=>deleteConnection(i));
+        connectionsLayer.appendChild(line);
+    });
+    updateStats();
+}
+
+function createVerticalPath(x1,y1,x2,y2){
+    const dy=y2-y1,c=Math.abs(dy)*0.5;
+    return `M ${x1} ${y1} C ${x1} ${y1+c}, ${x2} ${y2-c}, ${x2} ${y2}`;
+}
+
+function deleteConnection(i){connections.splice(i,1);redrawConnections();calculateAll();}
+
+function calculateAll(){
+    const st=parseFloat(document.getElementById('stundensatz').value);
+    const mg=parseFloat(document.getElementById('marge').value)/100;
+    const provLevel1Pct=parseFloat(document.getElementById('level1').value)/100;
+    const provLevel2Pct=parseFloat(document.getElementById('level2').value)/100;
+    let tU=0,tF=0,tH=0,tP1=0,tP2=0,tP=0,tBH=0,tL1H=0,tL2H=0;
+    const hs=st*(1-mg);
+    nodes.forEach(n=>n.calculated={basis:0,level1:0,level2:0,total:0,umsatz:0,helferAuszahlung:0,provisionen:0,provision1:0,provision2:0,netto:0,level1Hours:0,level2Hours:0,basisHours:0});
+    nodes.forEach(n=>{
+        if(n.type==='kunde'){
+            const s=n.data.stunden||0,z=s*st;
+            tU+=z;n.calculated.total=z;
+            const e=document.getElementById(`total-${n.id}`);
+            if(e)e.textContent=z.toFixed(0);
+        }
+    });
+    nodes.forEach(n=>{
+        if(n.type==='betreuer'||n.type==='teamleiter'||n.type==='teamleiterplus'){
+            let dch=0;
+            const dc=connections.filter(c=>c.from===n.id);
+            dc.forEach(c=>{
+                const cn=nodes.find(nn=>nn.id===c.to);
+                if(cn&&cn.type==='kunde')dch+=cn.data.stunden||0;
+            });
+            n.data.stunden=dch;n.calculated.basisHours=dch;tBH+=dch;
+            const si=document.querySelector(`#${n.id} input[data-field="stunden"]`);
+            if(si)si.value=dch;
+        }
+    });
+    nodes.forEach(n=>{
+        if(n.type==='betreuer'||n.type==='teamleiter'||n.type==='teamleiterplus'){
+            const s=n.data.stunden||0,l=n.data.lohnProStunde||hs,b=s*l;
+            n.calculated.basis=b;tH+=b;
+            const l1d=connections.filter(c=>c.from===n.id);
+            let level1Prov=0,level1Hrs=0;
+            l1d.forEach(c=>{
+                const dn=nodes.find(nn=>nn.id===c.to);
+                if(dn&&(dn.type==='betreuer'||dn.type==='teamleiter'||dn.type==='teamleiterplus')){
+                    const ds=dn.data.stunden||0,dl=dn.data.lohnProStunde||hs;
+                    level1Prov+=ds*dl*provLevel1Pct;
+                    level1Hrs+=ds;
+                }
+            });
+            n.calculated.level1=level1Prov;n.calculated.level1Hours=level1Hrs;
+            tP1+=level1Prov;tL1H+=level1Hrs;
+            let level2Prov=0,level2Hrs=0;
+            l1d.forEach(c=>{
+                const l1n=nodes.find(nn=>nn.id===c.to);
+                if(l1n){
+                    const l2d=connections.filter(c2=>c2.from===l1n.id);
+                    l2d.forEach(c2=>{
+                        const l2n=nodes.find(nn=>nn.id===c2.to);
+                        if(l2n&&(l2n.type==='betreuer'||l2n.type==='teamleiter'||l2n.type==='teamleiterplus')){
+                            const l2s=l2n.data.stunden||0,l2l=l2n.data.lohnProStunde||hs;
+                            level2Prov+=l2s*l2l*provLevel2Pct;
+                            level2Hrs+=l2s;
+                        }
+                    });
+                }
+            });
+            n.calculated.level2=level2Prov;n.calculated.level2Hours=level2Hrs;
+            tP2+=level2Prov;tL2H+=level2Hrs;
+            n.calculated.total=b+level1Prov+level2Prov;
+            const be=document.getElementById(`basis-${n.id}`);
+            const l1he=document.getElementById(`level1hours-${n.id}`);
+            const l1e=document.getElementById(`level1-${n.id}`);
+            const l2he=document.getElementById(`level2hours-${n.id}`);
+            const l2e=document.getElementById(`level2-${n.id}`);
+            const te=document.getElementById(`total-${n.id}`);
+            if(be)be.textContent=b.toFixed(0);
+            if(l1he)l1he.textContent=level1Hrs;
+            if(l1e)l1e.textContent=level1Prov.toFixed(0);
+            if(l2he)l2he.textContent=level2Hrs;
+            if(l2e)l2e.textContent=level2Prov.toFixed(0);
+            if(te)te.textContent=n.calculated.total.toFixed(0);
+        }
+    });
+    nodes.forEach(n=>{
+        if(n.type==='custom'){
+            try{
+                const w=n.data.wert||0,f=n.data.formel||'wert',r=eval(f.replace(/wert/g,w));
+                n.calculated.total=r;
+                const e=document.getElementById(`total-${n.id}`);
+                if(e)e.textContent=r.toFixed(0);
+            }catch(e){
+                const el=document.getElementById(`total-${n.id}`);
+                if(el)el.textContent='Error';
+            }
+        }
+    });
+    tP=tP1+tP2;tF=tU-tH-tP;
+    const om=tU>0?(tF/tU*100):0;
+    nodes.forEach(n=>{
+        if(n.type==='firma'){
+            n.calculated.umsatz=tU;n.calculated.helferAuszahlung=tH;
+            n.calculated.provision1=tP1;n.calculated.provision2=tP2;
+            n.calculated.provisionen=tP;n.calculated.netto=tF;
+            n.calculated.basisHours=tBH;n.calculated.level1Hours=tL1H;n.calculated.level2Hours=tL2H;
+            const ue=document.getElementById(`umsatz-${n.id}`);
+            const he=document.getElementById(`helfer-${n.id}`);
+            const p1e=document.getElementById(`provision1-${n.id}`);
+            const p2e=document.getElementById(`provision2-${n.id}`);
+            const pe=document.getElementById(`provisionen-${n.id}`);
+            const te=document.getElementById(`total-${n.id}`);
+            const bhe=document.getElementById(`basis-hours-${n.id}`);
+            const l1he=document.getElementById(`level1-hours-${n.id}`);
+            const l2he=document.getElementById(`level2-hours-${n.id}`);
+            if(ue)ue.textContent=tU.toFixed(0);
+            if(he)he.textContent=tH.toFixed(0);
+            if(p1e)p1e.textContent=tP1.toFixed(0);
+            if(p2e)p2e.textContent=tP2.toFixed(0);
+            if(pe)pe.textContent=tP.toFixed(0);
+            if(te)te.textContent=tF.toFixed(0);
+            if(bhe)bhe.textContent=tBH;
+            if(l1he)l1he.textContent=tL1H;
+            if(l2he)l2he.textContent=tL2H;
+        }
+    });
+    document.getElementById('analyticsUmsatz').textContent='€'+tU.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,".");
+    document.getElementById('analyticsFirma').textContent='€'+tF.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,".");
+    document.getElementById('analyticsMargin').textContent=om.toFixed(1)+'%';
+    document.getElementById('analyticsHelfer').textContent='€'+tH.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,".");
+    document.getElementById('analyticsProvisionen').textContent='€'+tP.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,".");
+    document.getElementById('statHoursBasis').textContent=tBH;
+    document.getElementById('statHoursLevel1').textContent=tL1H;
+    document.getElementById('statHoursLevel2').textContent=tL2H;
+    const mu=100000;
+    document.getElementById('barUmsatz').style.width=Math.min((tU/mu)*100,100)+'%';
+    updateFlowList();
+}
+
+function updateFlowList(){
+    const fl=document.getElementById('flowList');
+    fl.innerHTML='';
+    if(connections.length===0){
+        fl.innerHTML='<div class="flow-item"><span class="flow-from">Keine Verbindungen</span><span class="flow-amount">€0</span></div>';
+        return;
+    }
+    connections.forEach(c=>{
+        const fn=nodes.find(n=>n.id===c.from),tn=nodes.find(n=>n.id===c.to);
+        if(!fn||!tn)return;
+        const it=document.createElement('div');
+        it.className='flow-item';
+        const tc=tn.calculated||{},a=tc.basis||0;
+        it.innerHTML=`<span class="flow-from">${fn.data.name} → ${tn.data.name}</span><span class="flow-level">L1</span><span class="flow-amount">€${a.toFixed(0)}</span>`;
+        fl.appendChild(it);
+    });
+}
+
+function showContextMenu(e){
+    e.preventDefault();
+    const t=e.target.closest('.node');if(!t)return;
+    contextNode=t.id;
+    const m=document.getElementById('contextMenu');
+    m.style.left=e.clientX+'px';m.style.top=e.clientY+'px';
+    m.classList.add('active');
+}
+
+function deleteNode(){
+    if(!contextNode)return;
+    deleteNodeById(contextNode);
+    document.getElementById('contextMenu').classList.remove('active');
+}
+
+function deleteNodeById(nid){
+    const n=document.getElementById(nid);if(n)n.remove();
+    nodes=nodes.filter(n=>n.id!==nid);
+    connections=connections.filter(c=>c.from!==nid&&c.to!==nid);
+    selectedNodes=selectedNodes.filter(id=>id!==nid);
+    redrawConnections();calculateAll();updateSelectionUI();
+}
+
+function deleteSelectedNodes(){
+    if(selectedNodes.length===0)return;
+    selectedNodes.forEach(nid=>{const n=document.getElementById(nid);if(n)n.remove();});
+    nodes=nodes.filter(n=>!selectedNodes.includes(n.id));
+    connections=connections.filter(c=>!selectedNodes.includes(c.from)&&!selectedNodes.includes(c.to));
+    selectedNodes=[];
+    redrawConnections();calculateAll();updateSelectionUI();
+}
+
+function duplicateNode(){
+    if(!contextNode)return;
+    duplicateNodeById(contextNode);
+    document.getElementById('contextMenu').classList.remove('active');
+}
+
+function duplicateNodeById(nid){
+    const o=nodes.find(n=>n.id===nid);if(!o)return;
+    const nnid=createNode(o.type,o.x+50,o.y+50,{...o.data});
+    connections.forEach(c=>{
+        if(c.from===nid)connections.push({from:nnid,to:c.to});
+        if(c.to===nid)connections.push({from:c.from,to:nnid});
+    });
+    redrawConnections();calculateAll();
+}
+
+function duplicateGroup(){
+    if(selectedNodes.length<2)return;
+    const im={},of=50,nni=[];
+    selectedNodes.forEach(oid=>{
+        const o=nodes.find(n=>n.id===oid);if(!o)return;
+        const nid=createNode(o.type,o.x+of,o.y+of,{...o.data});
+        im[oid]=nid;nni.push(nid);
+    });
+    connections.forEach(c=>{
+        if(im[c.from]&&im[c.to])connections.push({from:im[c.from],to:im[c.to]});
+    });
+    const sngids=new Set(selectedNodes.map(id=>nodes.find(n=>n.id===id)?.groupId).filter(g=>g!=null));
+    if(sngids.size>0){
+        const ngid=`group-${++groupIdCounter}`;
+        nni.forEach(nid=>{const nd=nodes.find(n=>n.id===nid);if(nd)nd.groupId=ngid;});
+        groups.push({id:ngid,nodes:nni,name:`Gruppe ${groupIdCounter}`});
+    }
+    deselectAll();selectedNodes=nni;
+    selectedNodes.forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('selected');});
+    redrawConnections();renderGroups();calculateAll();updateSelectionUI();
+}
+
+function updateStats(){
+    document.getElementById('statNodes').textContent=nodes.length;
+    document.getElementById('statConnections').textContent=connections.length;
+    document.getElementById('statHelfer').textContent=nodes.filter(n=>n.type==='betreuer'||n.type==='teamleiter'||n.type==='teamleiterplus').length;
+    document.getElementById('statKunden').textContent=nodes.filter(n=>n.type==='kunde').length;
+}
+
+function setStatus(t){document.getElementById('statusText').textContent=t;}
+
+function clearCanvas(){
+    if(!confirm('Wirklich alle Nodes löschen?'))return;
+    canvas.innerHTML='';
+    nodes=[];connections=[];groups=[];selectedNodes=[];
+    nodeIdCounter=0;groupIdCounter=0;
+    redrawConnections();calculateAll();updateSelectionUI();
+}
+
+function autoLayout(){
+    let y=100;
+    const fn=nodes.filter(n=>n.type==='firma');
+    const hn=nodes.filter(n=>n.type==='betreuer'||n.type==='teamleiter'||n.type==='teamleiterplus');
+    const kn=nodes.filter(n=>n.type==='kunde');
+    const cn=nodes.filter(n=>n.type==='custom');
+    fn.forEach(nd=>{
+        const n=document.getElementById(nd.id);
+        n.style.left='400px';n.style.top=y+'px';
+        nd.x=400;nd.y=y;y+=250;
+    });
+    y+=50;let x=100;
+    hn.forEach(nd=>{
+        const n=document.getElementById(nd.id);
+        n.style.left=x+'px';n.style.top=y+'px';
+        nd.x=x;nd.y=y;x+=250;
+        if(x>700){x=100;y+=350;}
+    });
+    y+=350;x=100;
+    kn.forEach(nd=>{
+        const n=document.getElementById(nd.id);
+        n.style.left=x+'px';n.style.top=y+'px';
+        nd.x=x;nd.y=y;x+=250;
+    });
+    x+=100;
+    cn.forEach(nd=>{
+        const n=document.getElementById(nd.id);
+        n.style.left=x+'px';n.style.top=y+'px';
+        nd.x=x;nd.y=y;x+=250;
+    });
+    redrawConnections();renderGroups();
+}
+
+function exportGraph(){
+    const d=JSON.stringify({nodes,connections,groups},null,2);
+    const b=new Blob([d],{type:'application/json'});
+    const u=URL.createObjectURL(b);
+    const a=document.createElement('a');
+    a.href=u;a.download='vitakreis-mlm-graph.json';a.click();
+}
+
+function loadTemplate1(){
+    clearCanvas();
+    const fid=createNode('firma',350,80,{name:'VitaKreis'});
+    const mid=createNode('teamleiterplus',350,450,{name:'Michael',stunden:0,lohnProStunde:28,useGlobalValues:true});
+    const maid=createNode('teamleiter',100,900,{name:'Maria',stunden:0,lohnProStunde:28,useGlobalValues:true});
+    const pid=createNode('teamleiter',600,900,{name:'Peter',stunden:0,lohnProStunde:28,useGlobalValues:true});
+    const aid=createNode('betreuer',50,1400,{name:'Anna',stunden:0,lohnProStunde:28,useGlobalValues:true});
+    const tid=createNode('betreuer',350,1400,{name:'Thomas',stunden:0,lohnProStunde:28,useGlobalValues:true});
+    const lid=createNode('betreuer',650,1400,{name:'Lisa',stunden:0,lohnProStunde:28,useGlobalValues:true});
+    const k1id=createNode('kunde',50,1850,{name:'Kunde A',stunden:5,useGlobalValues:true});
+    const k2id=createNode('kunde',350,1850,{name:'Kunde B',stunden:5,useGlobalValues:true});
+    const k3id=createNode('kunde',650,1850,{name:'Kunde C',stunden:5,useGlobalValues:true});
+    connections.push({from:fid,to:mid},{from:mid,to:maid},{from:mid,to:pid},{from:maid,to:aid},{from:maid,to:tid},{from:pid,to:lid},{from:aid,to:k1id},{from:tid,to:k2id},{from:lid,to:k3id});
+    setTimeout(()=>redrawConnections(),100);calculateAll();
+}
+
+function loadTemplateLarge(){
+    clearCanvas();
+    const fid=createNode('firma',2000,100,{name:'VitaKreis'});
+    const tlpid=createNode('teamleiterplus',2000,400,{name:'MA Plus',stunden:0,lohnProStunde:28,useGlobalValues:true});
+    connections.push({from:fid,to:tlpid});
+    for(let i=0;i<5;i++){
+        const kid=createNode('kunde',1500+i*200,700,{name:`K-TLP${i+1}`,stunden:5,useGlobalValues:true});
+        connections.push({from:tlpid,to:kid});
+    }
+    for(let t=0;t<5;t++){
+        const tlid=createNode('teamleiter',500+t*500,1100,{name:`TL${t+1}`,stunden:0,lohnProStunde:28,useGlobalValues:true});
+        connections.push({from:tlpid,to:tlid});
+        for(let k=0;k<5;k++){
+            const kid=createNode('kunde',300+t*500+k*40,1400,{name:`K-TL${t+1}-${k+1}`,stunden:5,useGlobalValues:true});
+            connections.push({from:tlid,to:kid});
+        }
+        for(let b=0;b<5;b++){
+            const bid=createNode('betreuer',300+t*500+b*40,1700,{name:`B${t+1}-${b+1}`,stunden:0,lohnProStunde:28,useGlobalValues:true});
+            connections.push({from:tlid,to:bid});
+            for(let k=0;k<5;k++){
+                const kid=createNode('kunde',280+t*500+b*40+k*8,2000,{name:`K-B${t+1}-${b+1}-${k+1}`,stunden:5,useGlobalValues:true});
+                connections.push({from:bid,to:kid});
+            }
+        }
+    }
+    setTimeout(()=>{redrawConnections();calculateAll();},200);
+    setStatus('Template "Vitakreis-1MA Plus" geladen ✓');
+}
+</script>
+</body>
+</html>
