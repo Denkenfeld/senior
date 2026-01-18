@@ -3,41 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VitaKreis Onboarding Planer V3.2</title>
+    <title>Vitakreis Onboarding Planer V3.6</title>
     <style>
         :root {
-            --primary: #2c7a7b; --primary-light: #e6fffa; --primary-dark: #234e52; --accent: #ed8936;
-            --bg: #f7fafc; --surface: #ffffff; --text: #2d3748; --border: #e2e8f0;
-            --success: #48bb78; --running: #4299e1; --gray: #a0aec0; --radius: 8px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --primary: #2c7a7b; 
+            --primary-light: #e6fffa; 
+            --primary-dark: #234e52; 
+            --accent: #ed8936;
+            --bg: #f7fafc; 
+            --surface: #ffffff; 
+            --text: #2d3748; 
+            --text-light: #718096; 
+            --border: #e2e8f0;
+            --success: #48bb78; 
+            --running: #4299e1; 
+            --gray: #a0aec0; 
+            --radius: 8px; 
+            --shadow: 0 4px 6px -1px rgba(44, 122, 123, 0.1);
         }
 
-        body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; transition: background-color 0.3s, color 0.3s; }
 
         /* --- SIDEBAR --- */
-        aside { width: 320px; min-width: 320px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; overflow-y: auto; z-index: 10; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        aside { width: 320px; min-width: 320px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; overflow-y: auto; z-index: 10; box-shadow: 2px 0 5px rgba(44, 122, 123, 0.05); transition: background-color 0.3s, border-color 0.3s; }
         aside h2 { font-size: 1.1rem; color: var(--primary); margin-top: 0; margin-bottom: 15px;}
-        aside h3 { font-size: 0.8rem; text-transform: uppercase; color: #718096; margin-top: 25px; margin-bottom: 10px; letter-spacing: 1px; font-weight: 700; border-bottom: 1px solid #edf2f7; padding-bottom: 5px;}
+        aside h3 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); margin-top: 25px; margin-bottom: 10px; letter-spacing: 1px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
 
         .draggable-item { background: var(--surface); border: 1px solid var(--border); padding: 10px; margin-bottom: 8px; border-radius: var(--radius); cursor: grab; font-size: 0.9rem; display: flex; align-items: center; transition: all 0.2s; }
-        .draggable-item:hover { border-color: var(--primary); transform: translateX(3px); box-shadow: var(--shadow); }
+        .draggable-item:hover { border-color: var(--accent); transform: translateX(3px); box-shadow: var(--shadow); }
 
-        .custom-input-wrapper { display: flex; align-items: center; margin-top: 5px; background: #f7fafc; border: 1px dashed var(--gray); border-radius: var(--radius); padding: 5px; }
+        .custom-input-wrapper { display: flex; align-items: center; margin-top: 5px; background: var(--primary-light); border: 1px dashed var(--gray); border-radius: var(--radius); padding: 5px; }
         .custom-input { border: none; background: transparent; width: 100%; padding: 5px; font-size: 0.85rem; outline: none; }
         .custom-drag-handle { cursor: grab; font-size: 1.2rem; color: var(--primary); padding: 0 8px; }
         
         /* Person Chips */
-        .person-chip { background: #edf2f7; border: 1px solid var(--border); padding: 5px 10px; border-radius: 20px; margin-bottom: 8px; cursor: grab; display: flex; align-items: center; font-weight: 500; font-size: 0.9rem; position: relative; }
+        .person-chip { 
+            background: #f5ede3; 
+            border: 1px solid var(--border); 
+            padding: 5px 10px; 
+            border-radius: 20px; 
+            margin-bottom: 8px; 
+            cursor: grab; 
+            display: flex; 
+            align-items: center; 
+            font-weight: 500; 
+            font-size: 0.9rem; 
+            position: relative; 
+        }
+        
+        .person-chip-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 8px;
+            border: 2px solid white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
         .person-name-input { border: none; background: transparent; font-weight: 500; font-size: 0.85rem; outline: none; flex: 1; padding: 2px 5px; }
-        .color-picker { width: 24px; height: 24px; border: none; padding: 0; background: transparent; cursor: pointer; margin-right: 8px; border-radius: 50%; overflow: hidden; }
-        .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-        .color-picker::-webkit-color-swatch { border: none; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #cbd5e0;}
-        .person-delete { color: #fc8181; cursor: pointer; font-size: 1.1rem; margin-left: 5px; visibility: hidden; }
+        .color-picker { 
+            width: 0;
+            height: 0;
+            border: none; 
+            padding: 0; 
+            background: transparent; 
+            cursor: pointer; 
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .person-delete { color: #d4866f; cursor: pointer; font-size: 1.1rem; margin-left: 5px; visibility: hidden; }
         .person-chip:hover .person-delete { visibility: visible; }
 
-        /* Restaurierter Style für Neuen Mitarbeiter Button */
         .add-person-btn {
             width: 100%;
-            border: 2px dashed #cbd5e0;
+            border: 2px dashed var(--gray);
             background-color: transparent;
             color: var(--primary);
             padding: 10px;
@@ -54,82 +100,273 @@
             background-color: var(--primary-light);
         }
 
+        /* Color Theme Selector */
+        .theme-selector {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+        }
+        .theme-selector h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin-top: 0;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        .theme-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .theme-btn {
+            flex: 1;
+            min-width: 55px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .theme-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .theme-btn.active {
+            border-width: 3px;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+        .theme-btn.default { background: linear-gradient(135deg, #2c7a7b 0%, #4299e1 100%); }
+        .theme-btn.creme { background: linear-gradient(135deg, #8b6f47 0%, #c8956b 100%); }
+        .theme-btn.gray { background: linear-gradient(135deg, #4a5568 0%, #a0aec0 100%); }
+        .theme-btn.dark { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); }
+        .theme-btn.rainbow { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 16%, #c44569 33%, #786fa6 50%, #4b7bec 66%, #26de81 83%, #fed330 100%); }
+        
+        .theme-label {
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.65rem;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            font-weight: 600;
+        }
+
         /* --- MAIN --- */
         main { flex: 1; display: flex; flex-direction: column; height: 100vh; min-width: 0; }
-        header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; z-index: 20; }
+        header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; z-index: 20; box-shadow: 0 1px 3px rgba(44, 122, 123, 0.05); transition: background-color 0.3s, border-color 0.3s; }
         .header-left h1 { margin: 0; font-size: 1.4rem; color: var(--primary-dark); }
         .header-left span { font-size: 0.85rem; color: var(--text-light); }
         .candidate-name { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 2rem; font-weight: 800; color: var(--primary); border-bottom: 2px dashed transparent; cursor: text; }
-        .candidate-name:focus { border-bottom-color: var(--primary); outline: none; }
+        .candidate-name:focus { border-bottom-color: var(--accent); outline: none; }
         .toolbar-actions { display: flex; gap: 10px; }
-        .toolbar-btn { background: white; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .toolbar-btn { background: white; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .toolbar-btn:hover { border-color: var(--accent); background: var(--primary-light); }
 
         /* Timeline Canvas */
-        #timeline-canvas { flex: 1; padding: 40px; overflow-y: auto; background-image: radial-gradient(#cbd5e0 1px, transparent 1px); background-size: 24px 24px; scroll-behavior: smooth; }
+        #timeline-canvas { flex: 1; padding: 40px; overflow-y: auto; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 24px 24px; scroll-behavior: smooth; transition: background-color 0.3s; }
         .timeline-container { max-width: 900px; margin: 0 auto; position: relative; padding-left: 20px; padding-bottom: 100px;}
-        .timeline-line { position: absolute; left: 45px; top: 0; bottom: 0; width: 4px; background: #e2e8f0; border-radius: 2px; }
+        .timeline-line { position: absolute; left: 45px; top: 0; bottom: 0; width: 4px; background: var(--border); border-radius: 2px; transition: background-color 0.3s; }
 
         .phase { margin-bottom: 50px; position: relative; z-index: 1; }
-        .phase-marker { position: absolute; left: 0; top: 0; width: 50px; height: 50px; background: var(--surface); border: 4px solid var(--primary); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; z-index: 2; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .phase-badge { display: none; position: absolute; right: -10px; top: -15px; background: #ecc94b; color: white; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transform: rotate(5deg); }
+        .phase-marker { position: absolute; left: 0; top: 0; width: 50px; height: 50px; background: var(--surface); border: 4px solid var(--primary); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; z-index: 2; box-shadow: 0 4px 6px rgba(44, 122, 123, 0.1); transition: all 0.3s; }
+        .phase-badge { display: none; position: absolute; right: -10px; top: -15px; background: var(--accent); color: white; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 4px 6px rgba(44, 122, 123, 0.15); transform: rotate(5deg); }
         .phase.completed .phase-badge { display: block; }
-        .phase-content { margin-left: 70px; background: var(--surface); border-radius: 12px; box-shadow: var(--shadow); padding: 25px; border: 1px solid var(--border); }
-        .phase.completed .phase-content { border: 2px solid #ecc94b; }
-        .phase-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; border-bottom: 1px solid #edf2f7; padding-bottom: 10px;}
-        .phase-title { font-size: 1.3rem; font-weight: 700; outline: none; }
-        .phase-duration { background: #edf2f7; padding: 4px 10px; border-radius: 6px; font-size: 0.9rem; color: #718096; outline: none;}
+        .phase-content { margin-left: 70px; background: var(--surface); border-radius: 12px; box-shadow: var(--shadow); padding: 25px; border: 1px solid var(--border); transition: all 0.3s; }
+        .phase.completed .phase-content { border: 2px solid var(--accent); }
+        .phase-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
+        .phase-title { font-size: 1.3rem; font-weight: 700; outline: none; color: var(--primary-dark); }
+        .phase-duration { background: var(--primary-light); padding: 4px 10px; border-radius: 6px; font-size: 0.9rem; color: var(--text-light); outline: none; transition: background-color 0.3s;}
 
         .drop-zone { min-height: 60px; }
-        .drop-zone.drag-over { background: #f0fff4; border: 2px dashed var(--success); border-radius: 8px;}
+        .drop-zone.drag-over { background: #f5f0e8; border: 2px dashed var(--accent); border-radius: 8px;}
 
-        .timeline-item { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; align-items: flex-start; justify-content: space-between; transition: all 0.2s; position: relative; }
-        /* Dezenten Hover-Effekt hinzugefügt */
-        .timeline-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); border-color: #cbd5e0; }
-        /* Markierung wenn bearbeitet wird */
-        .timeline-item:focus-within { border-color: var(--primary); background-color: var(--primary-light); box-shadow: 0 0 0 2px rgba(44, 122, 123, 0.2); }
+        /* NEUES MODUL-LAYOUT */
+        .timeline-item { 
+            background: white; 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            padding: 0;
+            margin-bottom: 12px; 
+            display: flex; 
+            flex-direction: column;
+            transition: all 0.2s; 
+            position: relative;
+            cursor: grab;
+        }
+        
+        .timeline-item:hover { 
+            box-shadow: 0 4px 12px rgba(44, 122, 123, 0.12); 
+            transform: translateY(-1px); 
+            border-color: var(--accent); 
+        }
+        
+        .timeline-item:focus-within { 
+            border-color: var(--primary); 
+            background-color: var(--primary-light); 
+            box-shadow: 0 0 0 2px rgba(44, 122, 123, 0.15); 
+        }
         
         .timeline-item.completed { border-left: 5px solid var(--success); }
-        .drag-handle { cursor: grab; color: #cbd5e0; margin-right: 12px; font-size: 1.2rem; margin-top: 5px; }
-        .item-main { flex: 1; display: flex; flex-direction: column; margin-right: 15px; min-width: 0;}
-        .item-text { outline: none; font-weight: 500; font-size: 0.95rem; margin-bottom: 8px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
         
-        .assignee-area { display: flex; gap: 5px; min-height: 26px; align-items: center; flex-wrap: wrap;}
-        .module-avatar { width: 26px; height: 26px; border-radius: 50%; color: white; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: default; position: relative; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
-        .module-avatar:hover::after { content: "×"; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-
-        /* Controls Update für Button Layout */
-        .item-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; min-width: 110px; }
-        .controls-top { display: flex; align-items: center; gap: 8px; width: 100%; justify-content: flex-end; }
-        
-        select.status-select { padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 0.8rem; outline: none; flex: 1; max-width: 90px;}
-        .status-open { color: #718096; background: #edf2f7; }
-        .status-running { color: white; background: var(--running); border-color: var(--running); }
-        .status-done { color: white; background: var(--success); border-color: var(--success); }
-        .delete-btn { color: #fc8181; cursor: pointer; font-size: 1.4rem; padding: 0 2px; line-height: 1; }
-
-        /* Der neue Dokumenten-Button */
-        .doc-btn {
-            width: 100%;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 15px;
-            padding: 4px 8px;
-            font-size: 0.75rem;
-            color: var(--text);
-            cursor: pointer;
-            text-align: center;
+        /* Obere Zeile: Titel links, Controls rechts */
+        .item-header {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 4px;
-            text-decoration: none;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            justify-content: space-between;
+            padding: 12px 15px;
+            gap: 15px;
+            border-bottom: 1px solid var(--primary-light);
         }
-        .doc-btn:hover { background: #f7fafc; border-color: var(--primary); color: var(--primary); }
+        
+        .item-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.95rem;
+            outline: none;
+            color: var(--text);
+            min-width: 0;
+        }
+        
+        .item-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .module-avatar { 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 50%; 
+            color: white; 
+            font-size: 11px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            cursor: default; 
+            position: relative; 
+            flex-shrink: 0; 
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(44, 122, 123, 0.2);
+        }
+        .module-avatar:hover::after { 
+            content: "×"; 
+            position: absolute; 
+            top:0; 
+            left:0; 
+            right:0; 
+            bottom:0; 
+            background: rgba(0,0,0,0.6); 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            font-size: 14px;
+        }
+        
+        .doc-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: var(--primary-light);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .doc-link:hover {
+            background: #f5ede3;
+            border-color: var(--accent);
+        }
+        
+        select.status-select { 
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            border: 1px solid var(--border); 
+            font-size: 0.8rem; 
+            outline: none; 
+            min-width: 85px;
+        }
+        .status-open { color: var(--text-light); background: var(--primary-light); }
+        .status-running { color: white; background: var(--running); border-color: var(--running); }
+        .status-done { color: white; background: var(--success); border-color: var(--success); }
+        
+        .delete-btn { 
+            color: #d4866f; 
+            cursor: pointer; 
+            font-size: 1.4rem; 
+            padding: 0 2px; 
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .delete-btn:hover {
+            color: #c06f56;
+        }
+        
+        /* Unterer Bereich: Textfeld */
+        .item-content {
+            padding: 12px 15px;
+        }
+        
+        .item-description {
+            min-height: 40px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fdfcfa;
+            outline: none;
+            font-size: 0.9rem;
+            color: #5d4a36;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            transition: all 0.2s;
+        }
+        
+        .item-description:hover {
+            border-color: var(--gray);
+            background: white;
+        }
+        
+        .item-description:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 2px rgba(44, 122, 123, 0.1);
+        }
+        
+        .item-description:empty:before {
+            content: "Beschreibung, Notizen, Checkliste...";
+            color: var(--gray);
+        }
+        
+        .assignee-drop-zone {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            min-width: 32px;
+            min-height: 32px;
+            padding: 2px 4px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        
+        .assignee-drop-zone.drag-over-person {
+            background: var(--primary-light);
+            outline: 2px dashed var(--accent);
+        }
 
         @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        @media print { aside, .toolbar-actions, .delete-btn, .add-person-btn, .drag-handle, .custom-input-wrapper, .doc-btn { display: none !important; } main { display: block; } .timeline-item { break-inside: avoid; border: 1px solid #ccc; } .phase-content { margin-left: 0; } }
+        @media print { aside, .toolbar-actions, .delete-btn, .add-person-btn, .custom-input-wrapper, .doc-link { display: none !important; } main { display: block; } .timeline-item { break-inside: avoid; border: 1px solid #ccc; } .phase-content { margin-left: 0; } }
     </style>
 </head>
 <body>
@@ -176,13 +413,15 @@
             <h3>Team & Zuständigkeit</h3>
             <div id="team-container">
                 <div class="person-chip" draggable="true" data-type="person" data-id="main">
-                    <input type="color" class="color-picker" value="#2c7a7b" oninput="syncTeamColor('main', this.value)" title="Farbe wählen">
-                    <span class="person-name-input" id="name-main-sidebar">Maria</span>
+                    <div class="person-chip-avatar" style="background-color: #2c7a7b;" onclick="this.nextElementSibling.click()">M</div>
+                    <input type="color" class="color-picker" value="#2c7a7b" oninput="updatePersonColor(this, 'main')" title="Farbe wählen">
+                    <span class="person-name-input" id="name-main-sidebar" contenteditable="true" oninput="updatePersonName(this, 'main')">M</span>
                 </div>
                 <div class="person-chip" draggable="true" data-type="person" data-id="p_default_1">
-                    <input type="color" class="color-picker" value="#805ad5" oninput="syncTeamColor('p_default_1', this.value)" title="Farbe wählen">
-                    <span class="person-name-input" contenteditable="true" oninput="syncTeamName('p_default_1', this.innerText)">Sebastian (Zentrale)</span>
-                    <span class="person-delete" onclick="this.parentElement.remove()">×</span>
+                    <div class="person-chip-avatar" style="background-color: #ed8936;" onclick="this.nextElementSibling.click()">S</div>
+                    <input type="color" class="color-picker" value="#ed8936" oninput="updatePersonColor(this, 'p_default_1')" title="Farbe wählen">
+                    <span class="person-name-input" contenteditable="true" oninput="updatePersonName(this, 'p_default_1')">S</span>
+                    <span class="person-delete" onclick="deletePerson(this)">×</span>
                 </div>
             </div>
             <button class="add-person-btn" onclick="addNewPerson()">+ Neuer Mitarbeiter</button>
@@ -200,11 +439,32 @@
                 <span class="custom-drag-handle" draggable="true" data-type="new-module-custom" ondragstart="dragCustomStart(event)">::</span>
             </div>
         </div>
+
+        <div class="theme-selector">
+            <h3>🎨 Farbschema</h3>
+            <div class="theme-options">
+                <div class="theme-btn default active" onclick="setTheme('default')" title="Standard Blau">
+                    <span class="theme-label">Blau</span>
+                </div>
+                <div class="theme-btn creme" onclick="setTheme('creme')" title="Warmes Creme">
+                    <span class="theme-label">Creme</span>
+                </div>
+                <div class="theme-btn gray" onclick="setTheme('gray')" title="Neutral Grau">
+                    <span class="theme-label">Grau</span>
+                </div>
+                <div class="theme-btn dark" onclick="setTheme('dark')" title="Dunkler Modus">
+                    <span class="theme-label">Dunkel</span>
+                </div>
+                <div class="theme-btn rainbow" onclick="setTheme('rainbow')" title="Farbenfroher Regenbogen">
+                    <span class="theme-label">Rainbow</span>
+                </div>
+            </div>
+        </div>
     </aside>
 
     <main>
         <header>
-            <div class="header-left"><h1>VitaKreis Onboarding</h1><span>Der Weg zum erfolgreichen VitaHelfer</span></div>
+            <div class="header-left"><h1>Vitakreis Onboarding</h1><span>Der Weg zum erfolgreichen VitaHelfer</span></div>
             <div class="candidate-name" contenteditable="true" id="header-name" oninput="syncCandidateName()">Maria</div>
             <div class="toolbar-actions">
                 <button class="toolbar-btn" onclick="clearTimeline()">🗑️ Reset</button>
@@ -221,13 +481,143 @@
     </main>
 
     <script>
+        const themes = {
+            default: {
+                primary: '#2c7a7b',
+                primaryLight: '#e6fffa',
+                primaryDark: '#234e52',
+                accent: '#ed8936',
+                bg: '#f7fafc',
+                surface: '#ffffff',
+                text: '#2d3748',
+                textLight: '#718096',
+                border: '#e2e8f0',
+                success: '#48bb78',
+                running: '#4299e1',
+                gray: '#a0aec0'
+            },
+            creme: {
+                primary: '#8b6f47',
+                primaryLight: '#faf8f5',
+                primaryDark: '#5d4a36',
+                accent: '#c8956b',
+                bg: '#faf8f3',
+                surface: '#ffffff',
+                text: '#3d3027',
+                textLight: '#8b7d6b',
+                border: '#e8dfd3',
+                success: '#7b9b6e',
+                running: '#a3b3c4',
+                gray: '#b8a999'
+            },
+            gray: {
+                primary: '#4a5568',
+                primaryLight: '#f7fafc',
+                primaryDark: '#2d3748',
+                accent: '#718096',
+                bg: '#edf2f7',
+                surface: '#ffffff',
+                text: '#1a202c',
+                textLight: '#718096',
+                border: '#cbd5e0',
+                success: '#68d391',
+                running: '#63b3ed',
+                gray: '#a0aec0'
+            },
+            dark: {
+                primary: '#90cdf4',
+                primaryLight: '#2d3748',
+                primaryDark: '#63b3ed',
+                accent: '#fbd38d',
+                bg: '#1a202c',
+                surface: '#2d3748',
+                text: '#f7fafc',
+                textLight: '#a0aec0',
+                border: '#4a5568',
+                success: '#68d391',
+                running: '#63b3ed',
+                gray: '#718096'
+            },
+            rainbow: {
+                primary: '#c44569',
+                primaryLight: '#fff5f7',
+                primaryDark: '#8e2f4d',
+                accent: '#4b7bec',
+                bg: '#fef5f8',
+                surface: '#ffffff',
+                text: '#2d3748',
+                textLight: '#718096',
+                border: '#ffd6e7',
+                success: '#26de81',
+                running: '#4b7bec',
+                gray: '#a0aec0'
+            }
+        };
+
+        function setTheme(themeName) {
+            const theme = themes[themeName];
+            const root = document.documentElement;
+            
+            root.style.setProperty('--primary', theme.primary);
+            root.style.setProperty('--primary-light', theme.primaryLight);
+            root.style.setProperty('--primary-dark', theme.primaryDark);
+            root.style.setProperty('--accent', theme.accent);
+            root.style.setProperty('--bg', theme.bg);
+            root.style.setProperty('--surface', theme.surface);
+            root.style.setProperty('--text', theme.text);
+            root.style.setProperty('--text-light', theme.textLight);
+            root.style.setProperty('--border', theme.border);
+            root.style.setProperty('--success', theme.success);
+            root.style.setProperty('--running', theme.running);
+            root.style.setProperty('--gray', theme.gray);
+            
+            // Update active button
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.theme-btn.${themeName}`).classList.add('active');
+            
+            localStorage.setItem('selectedTheme', themeName);
+        }
+
+        function updatePersonColor(colorInput, personId) {
+            const chip = colorInput.closest('.person-chip');
+            const avatar = chip.querySelector('.person-chip-avatar');
+            const color = colorInput.value;
+            
+            avatar.style.backgroundColor = color;
+            syncTeamColor(personId, color);
+        }
+
+        function updatePersonName(nameInput, personId) {
+            const chip = nameInput.closest('.person-chip');
+            const avatar = chip.querySelector('.person-chip-avatar');
+            const text = nameInput.innerText || nameInput.textContent;
+            const initial = text.charAt(0).toUpperCase();
+            
+            avatar.innerText = initial;
+            syncTeamName(personId, text);
+        }
+
+        function deletePerson(deleteBtn) {
+            deleteBtn.closest('.person-chip').remove();
+        }
+
         const defaultData = [
-            { title: "Phase 1: Foundation", duration: "Tag 1-14", items: [{ text: "📝 Gewerbeanmeldung", status: "done", assignees: ['main'] }, { text: "📸 Business-Foto", status: "open", assignees: ['main'] }] },
-            { title: "Phase 2: Sichtbarkeit", duration: "Tag 15-45", items: [{ text: "🏘️ Flyer-Aktion", status: "open", assignees: ['main'] }, { text: "💬 Google Profil", status: "open", assignees: ['p_default_1'] }] },
-            { title: "Phase 3: Community", duration: "Tag 46-90", items: [{ text: "👥 Erster Teampartner", status: "open", assignees: [] }] }
+            { title: "Phase 1: Foundation", duration: "Tag 1-14", items: [
+                { text: "📝 Gewerbeanmeldung", description: "", status: "done", assignees: ['main'] }, 
+                { text: "📸 Business-Foto", description: "", status: "open", assignees: ['main'] }
+            ]},
+            { title: "Phase 2: Sichtbarkeit", duration: "Tag 15-45", items: [
+                { text: "🏘️ Flyer-Aktion", description: "", status: "open", assignees: ['main'] }, 
+                { text: "💬 Google Profil", description: "", status: "open", assignees: ['p_default_1'] }
+            ]},
+            { title: "Phase 3: Community", duration: "Tag 46-90", items: [
+                { text: "👥 Erster Teampartner", description: "", status: "open", assignees: [] }
+            ]}
         ];
 
-        let draggedEl = null; let dragType = null; let dragData = null;
+        let draggedEl = null; 
+        let dragType = null; 
+        let dragData = null;
 
         function render(data) {
             const container = document.getElementById('timeline');
@@ -235,41 +625,55 @@
             data.forEach((phase, idx) => {
                 const phaseEl = document.createElement('div');
                 phaseEl.className = 'phase';
-                phaseEl.innerHTML = `<div class="phase-marker">${idx+1}</div><div class="phase-badge">🎉 Phase abgeschlossen! ⭐</div><div class="phase-content"><div class="phase-header"><div class="phase-title" contenteditable="true">${phase.title}</div><div class="phase-duration" contenteditable="true">${phase.duration}</div></div><div class="drop-zone" ondragover="e=>e.preventDefault()" ondrop="handleDrop(event)"></div></div>`;
+                phaseEl.innerHTML = `<div class="phase-marker">${idx+1}</div><div class="phase-badge">🎉 Phase abgeschlossen! ⭐</div><div class="phase-content"><div class="phase-header"><div class="phase-title" contenteditable="true">${phase.title}</div><div class="phase-duration" contenteditable="true">${phase.duration}</div></div><div class="drop-zone"></div></div>`;
                 const dz = phaseEl.querySelector('.drop-zone');
                 dz.addEventListener('dragover', handleDragOver);
-                phase.items.forEach(item => dz.appendChild(createModuleEl(item.text, item.status, item.assignees)));
+                dz.addEventListener('drop', handleDrop);
+                dz.addEventListener('dragleave', (e) => {
+                    if (e.target === dz) {
+                        dz.classList.remove('drag-over');
+                    }
+                });
+                phase.items.forEach(item => dz.appendChild(createModuleEl(item.text, item.description || "", item.status, item.assignees)));
                 container.appendChild(phaseEl);
             });
             checkAllPhases();
         }
 
-        function createModuleEl(text, status = "open", assigneeIds = []) {
+        function createModuleEl(text, description = "", status = "open", assigneeIds = []) {
             const el = document.createElement('div');
             el.className = `timeline-item ${status === 'done' ? 'completed' : ''}`;
             el.draggable = true;
             
-            // Neues Layout für Controls mit dem neuen Button
             el.innerHTML = `
-                <div class="drag-handle">⋮</div>
-                <div class="item-main">
-                    <div class="item-text" contenteditable="true">${text}</div>
-                    <div class="assignee-area" ondragover="allowDrop(event)" ondrop="handlePersonDrop(event, this)"></div>
-                </div>
-                <div class="item-controls">
-                    <div class="controls-top">
+                <div class="item-header">
+                    <div class="item-title" contenteditable="true">${text}</div>
+                    <div class="item-header-controls">
+                        <div class="assignee-drop-zone"></div>
+                        <a href="#" class="doc-link" onclick="alert('Dokumenten-Upload oder Link öffnen'); return false;">Dokumente ↗</a>
                         <select class="status-select ${getStatusClass(status)}" onchange="updateStatus(this)">
                             <option value="open" ${status==='open'?'selected':''}>Offen</option>
                             <option value="running" ${status==='running'?'selected':''}>Laufend</option>
                             <option value="done" ${status==='done'?'selected':''}>Erledigt</option>
                         </select>
-                        <span class="delete-btn" onclick="deleteModule(this)">×</span>
+                        <span class="delete-btn" onclick="confirmDelete(this)" title="Löschen">×</span>
                     </div>
-                    <a href="#" class="doc-btn" onclick="alert('Hier könnte sich ein Dokumenten-Upload oder Link öffnen!'); return false;">Dokumente ↗</a>
+                </div>
+                <div class="item-content">
+                    <div class="item-description" contenteditable="true">${description}</div>
                 </div>`;
             
-            const area = el.querySelector('.assignee-area');
-            assigneeIds.forEach(id => area.appendChild(createAvatar(id)));
+            const assigneeArea = el.querySelector('.assignee-drop-zone');
+            
+            assigneeArea.addEventListener('dragover', allowDropPerson);
+            assigneeArea.addEventListener('drop', handlePersonDrop);
+            assigneeArea.addEventListener('dragleave', (e) => {
+                e.stopPropagation();
+                assigneeArea.classList.remove('drag-over-person');
+            });
+            
+            assigneeIds.forEach(id => assigneeArea.appendChild(createAvatar(id)));
+            
             el.addEventListener('dragstart', handleDragStart);
             el.addEventListener('dragend', () => el.style.opacity = '1');
             return el;
@@ -287,7 +691,8 @@
         function updateAvatarStyle(avEl, id) {
             const sidebarPerson = document.querySelector(`.person-chip[data-id="${id}"]`);
             if (sidebarPerson) {
-                const name = sidebarPerson.querySelector('.person-name-input').innerText || sidebarPerson.querySelector('.person-name-input').value;
+                const nameEl = sidebarPerson.querySelector('.person-name-input');
+                const name = nameEl.innerText || nameEl.value || nameEl.textContent;
                 const color = sidebarPerson.querySelector('.color-picker').value;
                 avEl.innerText = (name || "?").charAt(0).toUpperCase();
                 avEl.style.backgroundColor = color;
@@ -296,7 +701,13 @@
 
         function syncCandidateName() {
             const val = document.getElementById('header-name').innerText;
-            document.getElementById('name-main-sidebar').innerText = val;
+            const nameEl = document.getElementById('name-main-sidebar');
+            const chip = nameEl.closest('.person-chip');
+            const avatar = chip.querySelector('.person-chip-avatar');
+            const initial = val.charAt(0).toUpperCase();
+            
+            nameEl.innerText = initial;
+            avatar.innerText = initial;
             syncTeamName('main', val);
         }
 
@@ -312,43 +723,91 @@
             });
         }
 
-        function handleDragStart(e) { dragType = "reorder-module"; draggedEl = this; setTimeout(() => this.style.opacity = '0.4', 0); }
-        function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-        function allowDrop(e) { e.preventDefault(); e.stopPropagation(); }
+        function handleDragStart(e) { 
+            dragType = "reorder-module"; 
+            draggedEl = this; 
+            setTimeout(() => this.style.opacity = '0.4', 0); 
+        }
+        
+        function handleDragOver(e) { 
+            e.preventDefault(); 
+            if (dragType !== 'person') {
+                e.currentTarget.classList.add('drag-over');
+            }
+        }
+        
+        function allowDrop(e) { 
+            e.preventDefault(); 
+            e.stopPropagation(); 
+        }
+        
+        function allowDropPerson(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (dragType === 'person') {
+                e.currentTarget.classList.add('drag-over-person');
+            }
+        }
 
         function handleDrop(e) {
-            e.preventDefault(); const dz = e.currentTarget; dz.classList.remove('drag-over');
+            e.preventDefault(); 
+            e.stopPropagation();
+            const dz = e.currentTarget; 
+            dz.classList.remove('drag-over');
+            
             if (dragType === 'new-module' || dragType === 'new-module-custom') {
-                dz.appendChild(createModuleEl(dragData, 'open', ['main']));
-            } else if (dragType === 'reorder-module') {
+                dz.appendChild(createModuleEl(dragData, "", 'open', ['main']));
+            } else if (dragType === 'reorder-module' && draggedEl) {
                 dz.appendChild(draggedEl);
             }
             checkAllPhases();
         }
 
-        function handlePersonDrop(e, area) {
-            e.preventDefault(); e.stopPropagation();
-            if (dragType === 'person' && !area.querySelector(`[data-id="${dragData}"]`)) {
-                area.appendChild(createAvatar(dragData));
+        function handlePersonDrop(e) {
+            e.preventDefault(); 
+            e.stopPropagation();
+            const area = e.currentTarget;
+            area.classList.remove('drag-over-person');
+            
+            if (dragType === 'person' && dragData) {
+                if (!area.querySelector(`[data-id="${dragData}"]`)) {
+                    area.appendChild(createAvatar(dragData));
+                }
             }
         }
 
         function dragCustomStart(e) {
             const input = e.target.previousElementSibling;
             if(!input.value) { e.preventDefault(); return; }
-            dragType = "new-module"; dragData = "📝 " + input.value;
+            dragType = "new-module"; 
+            dragData = "📝 " + input.value;
         }
 
         document.querySelectorAll('.draggable-item').forEach(item => {
-            item.ondragstart = (e) => { dragType = "new-module"; dragData = item.innerText; };
+            item.ondragstart = (e) => { 
+                dragType = "new-module"; 
+                dragData = item.innerText; 
+            };
         });
 
         document.addEventListener('dragstart', e => {
             const chip = e.target.closest('.person-chip');
-            if (chip) { dragType = "person"; dragData = chip.dataset.id; }
+            if (chip) { 
+                dragType = "person"; 
+                dragData = chip.dataset.id; 
+            }
+        });
+        
+        document.addEventListener('dragend', e => {
+            // Alle drag-over Klassen entfernen
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            document.querySelectorAll('.drag-over-person').forEach(el => el.classList.remove('drag-over-person'));
         });
 
-        function getStatusClass(s) { return s === 'done' ? 'status-done' : (s === 'running' ? 'status-running' : 'status-open'); }
+        function getStatusClass(s) { 
+            return s === 'done' ? 'status-done' : (s === 'running' ? 'status-running' : 'status-open'); 
+        }
+        
         function updateStatus(sel) { 
             const item = sel.closest('.timeline-item');
             sel.className = `status-select ${getStatusClass(sel.value)}`;
@@ -368,37 +827,71 @@
             const name = prompt("Name des Mitarbeiters:");
             if (!name) return;
             const id = 'p_' + Date.now();
+            const initial = name.charAt(0).toUpperCase();
+            const randomColors = ['#2c7a7b', '#ed8936', '#e53e3e', '#9f7aea', '#38b2ac', '#d69e2e'];
+            const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)];
+            
             const div = document.createElement('div');
-            div.className = 'person-chip'; div.draggable = true; div.dataset.id = id;
-            div.innerHTML = `<input type="color" class="color-picker" value="#ed8936" oninput="syncTeamColor('${id}', this.value)" title="Farbe wählen"><span class="person-name-input" contenteditable="true" oninput="syncTeamName('${id}', this.innerText)">${name}</span><span class="person-delete" onclick="this.parentElement.remove()">×</span>`;
+            div.className = 'person-chip'; 
+            div.draggable = true; 
+            div.dataset.id = id;
+            div.dataset.type = 'person';
+            div.innerHTML = `
+                <div class="person-chip-avatar" style="background-color: ${randomColor};" onclick="this.nextElementSibling.click()">${initial}</div>
+                <input type="color" class="color-picker" value="${randomColor}" oninput="updatePersonColor(this, '${id}')" title="Farbe wählen">
+                <span class="person-name-input" contenteditable="true" oninput="updatePersonName(this, '${id}')">${initial}</span>
+                <span class="person-delete" onclick="deletePerson(this)">×</span>`;
             document.getElementById('team-container').appendChild(div);
         }
 
-        function deleteModule(btn) { btn.closest('.timeline-item').remove(); checkAllPhases(); }
-        function clearTimeline() { if(confirm("Wirklich alles zurücksetzen?")) render(defaultData); }
+        function confirmDelete(btn) {
+            if (confirm("Möchten Sie dieses Modul wirklich löschen?")) {
+                deleteModule(btn);
+            }
+        }
+
+        function deleteModule(btn) { 
+            btn.closest('.timeline-item').remove(); 
+            checkAllPhases(); 
+        }
+        
+        function clearTimeline() { 
+            if(confirm("Wirklich alles zurücksetzen?")) render(defaultData); 
+        }
         
         function saveTimeline() {
             const phases = [...document.querySelectorAll('.phase')].map(p => ({
                 title: p.querySelector('.phase-title').innerText,
                 duration: p.querySelector('.phase-duration').innerText,
                 items: [...p.querySelectorAll('.timeline-item')].map(i => ({
-                    text: i.querySelector('.item-text').innerText,
+                    text: i.querySelector('.item-title').innerText,
+                    description: i.querySelector('.item-description').innerText,
                     status: i.querySelector('select').value,
                     assignees: [...i.querySelectorAll('.module-avatar')].map(av => av.dataset.id)
                 }))
             }));
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(phases));
-            const dl = document.createElement('a'); dl.href = dataStr; dl.download = "vitakreis_plan.json"; dl.click();
+            const dl = document.createElement('a'); 
+            dl.href = dataStr; 
+            dl.download = "vitakreis_plan.json"; 
+            dl.click();
         }
 
-        function loadTimelineInput() { document.getElementById('file-input').click(); }
+        function loadTimelineInput() { 
+            document.getElementById('file-input').click(); 
+        }
+        
         function loadTimelineFile(input) {
             const reader = new FileReader();
             reader.onload = e => render(JSON.parse(e.target.result));
             reader.readAsText(input.files[0]);
         }
 
-        window.onload = () => render(defaultData);
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+            setTheme(savedTheme);
+            render(defaultData);
+        };
     </script>
 </body>
 </html>
