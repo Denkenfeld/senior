@@ -429,26 +429,23 @@
 
 
 
-
-/* Logo Styling - Verhindert Beschneiden */
+/* Logo Styling - Exakte Größensteuerung */
 .hero-logo {
     display: block;
-    width: 75%;          /* Breite auf dem Handy */
-    height: auto;        /* WICHTIG: Erhält das Seitenverhältnis, verhindert Beschneiden */
-    object-fit: contain; /* Stellt sicher, dass das ganze Bild in den Rahmen passt */
-    margin-bottom: 15px; /* Abstand zum Badge/Text darunter */
-    align-self: flex-start; /* Stellt sicher, dass es linksbündig bleibt */
+    width: 75% !important;   /* Zwingt das Logo auf 75% Breite auf dem Handy */
+    max-width: 280px;        /* Verhindert, dass es auf großen Handys zu riesig wird */
+    height: auto;            /* Behält das Seitenverhältnis bei (kein Beschneiden) */
+    margin-bottom: 15px;     /* Abstand zum Text/Badge darunter */
+    object-fit: contain;     /* Garantierte Anzeige des gesamten Bildes */
 }
 
-/* Anpassung für Desktop-Bildschirme */
+/* Anpassung für Desktop (Bildschirme ab 900px Breite) */
 @media (min-width: 900px) {
     .hero-logo {
-        width: 25%;      /* Breite auf Desktop */
+        width: 25% !important; /* Zwingt das Logo auf 25% Breite auf dem Desktop */
+        max-width: 350px;      /* Maximale Breite für sehr große Monitore */
     }
 }
-
-
-
 
 
 
