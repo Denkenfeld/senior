@@ -4,766 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VitaKreis Node Editor - MLM Business Modelling</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         :root {
-            --firma: #4A4036;
-            --teamleiterplus: #B8452E;
-            --teamleiter: #D96C4A;
-            --betreuer: #8AB661;
-            --kunde: #5B9BD5;
-            --custom: #888;
-            --accent: #C6A87C;
-            --bg: #2B2B2B;
-            --panel: #1E1E1E;
-            --text: #E0E0E0;
-            --text-dark: #333;
-            --border: #3A3A3A;
-            --grid: #333;
-            --connection: #C6A87C;
-            --provision-1: #D96C4A;
-            --provision-2: #8AB661;
+            --firma: #4A4036; --teamleiterplus: #B8452E; --teamleiter: #D96C4A; --betreuer: #8AB661; --kunde: #5B9BD5; --custom: #888;
+            --accent: #C6A87C; --bg: #2B2B2B; --panel: #1E1E1E; --text: #E0E0E0; --text-dark: #333; --border: #3A3A3A; --grid: #333;
+            --connection: #C6A87C; --provision-1: #D96C4A; --provision-2: #8AB661;
         }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            overflow: hidden;
-            height: 100vh;
-        }
-        
-        .app-container {
-            display: grid;
-            grid-template-columns: 280px 1fr 320px;
-            grid-template-rows: 50px 1fr 40px;
-            height: 100vh;
-        }
-        
-        .header {
-            grid-column: 1 / -1;
-            background: var(--panel);
-            border-bottom: 2px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 100;
-        }
-        
-        .logo {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
-        
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn {
-            padding: 6px 14px;
-            border: 1px solid var(--border);
-            background: var(--panel);
-            color: var(--text);
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-        
-        .btn:hover {
-            background: var(--border);
-            border-color: var(--accent);
-        }
-        
-        .btn.primary {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: var(--text-dark);
-        }
-        
-        .btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        
-        .btn.active {
-            background: var(--accent);
-            color: var(--text-dark);
-        }
-        
-        .left-sidebar {
-            background: var(--panel);
-            border-right: 2px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        
-        .sidebar-section {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .sidebar-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #888;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        .node-palette {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .palette-node {
-            background: linear-gradient(135deg, var(--node-color) 0%, var(--node-color-dark) 100%);
-            border: 2px solid var(--node-color);
-            border-radius: 8px;
-            padding: 12px;
-            cursor: grab;
-            transition: all 0.2s;
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            user-select: none;
-        }
-        
-        .palette-node:active {
-            cursor: grabbing;
-        }
-        
-        .palette-node:hover {
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+        .app-container { display: grid; grid-template-columns: 280px 1fr 320px; grid-template-rows: 50px 1fr 40px; height: 100vh; }
+        .header { grid-column: 1 / -1; background: var(--panel); border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+        .header-actions { display: flex; gap: 10px; }
+        .btn { padding: 6px 14px; border: 1px solid var(--border); background: var(--panel); color: var(--text); border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .btn:hover { background: var(--border); border-color: var(--accent); }
+        .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--text-dark); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.active { background: var(--accent); color: var(--text-dark); }
+        .left-sidebar { background: var(--panel); border-right: 2px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar-section { padding: 20px; border-bottom: 1px solid var(--border); }
+        .sidebar-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 15px; font-weight: 600; }
+        .node-palette { display: flex; flex-direction: column; gap: 10px; }
+        .palette-node { background: linear-gradient(135deg, var(--node-color) 0%, var(--node-color-dark) 100%); border: 2px solid var(--node-color); border-radius: 8px; padding: 12px; cursor: grab; transition: all 0.2s; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3); user-select: none; }
+        .palette-node:active { cursor: grabbing; }
+        .palette-node:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .palette-node.firma { --node-color: #4A4036; --node-color-dark: #3A3026; }
         .palette-node.teamleiterplus { --node-color: #B8452E; --node-color-dark: #A8351E; }
         .palette-node.teamleiter { --node-color: #D96C4A; --node-color-dark: #C95C3A; }
         .palette-node.betreuer { --node-color: #8AB661; --node-color-dark: #7AA551; }
         .palette-node.kunde { --node-color: #5B9BD5; --node-color-dark: #4B8BC5; }
         .palette-node.custom { --node-color: #888; --node-color-dark: #666; }
-        
-        .palette-node-title {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .palette-node-desc {
-            font-size: 0.75rem;
-            opacity: 0.8;
-        }
-        
-        .control-group {
-            margin-bottom: 20px;
-        }
-        
-        .control-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-            color: #999;
-        }
-        
-        .control-value {
-            font-weight: bold;
-            color: var(--accent);
-            font-size: 1rem;
-        }
-        
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            border-radius: 5px;
-            background: var(--border);
-            outline: none;
-            -webkit-appearance: none;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: all 0.2s;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-            box-shadow: 0 0 10px var(--accent);
-        }
-        
-        input[type="range"]::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-            border: none;
-        }
-        
-        .canvas-container {
-            position: relative;
-            overflow: auto;
-            background: var(--bg);
-        }
-        
-        .canvas-wrapper {
-            position: relative;
-            width: 8000px;
-            height: 8000px;
-            background-image: 
-                linear-gradient(var(--grid) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-            background-size: 20px 20px;
-            transform-origin: 0 0;
-        }
-        
-        .canvas {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-        }
-        
-        .canvas.connecting {
-            cursor: crosshair;
-        }
-        
-        .group-frame {
-            position: absolute;
-            border: 3px dashed var(--accent);
-            background: rgba(198, 168, 124, 0.05);
-            border-radius: 15px;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .group-label {
-            position: absolute;
-            top: -25px;
-            left: 10px;
-            background: var(--accent);
-            color: var(--text-dark);
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-        
-        .group-duplicate-btn, .group-delete-btn {
-            position: absolute;
-            top: -25px;
-            background: var(--accent);
-            color: var(--text-dark);
-            border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            pointer-events: all;
-            transition: all 0.2s;
-        }
-        
-        .group-duplicate-btn {
-            right: 50px;
-        }
-        
-        .group-delete-btn {
-            right: 10px;
-            background: #E97C5A;
-        }
-        
-        .group-duplicate-btn:hover {
-            background: var(--teamleiter);
-            transform: scale(1.05);
-        }
-        
-        .group-delete-btn:hover {
-            background: #D96C4A;
-            transform: scale(1.05);
-        }
-        
-        .node {
-            position: absolute;
-            background: linear-gradient(135deg, var(--node-color) 0%, var(--node-color-dark) 100%);
-            border: 2px solid var(--node-color-border);
-            border-radius: 10px;
-            min-width: 220px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-            cursor: move;
-            transition: box-shadow 0.2s;
-            color: white;
-            z-index: 10;
-        }
-        
-        .node:hover {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-        }
-        
-        .node.selected {
-            border-color: var(--accent);
-            border-width: 3px;
-            box-shadow: 0 0 0 3px rgba(198, 168, 124, 0.3);
-        }
-        
-        .node.firma { 
-            --node-color: #4A4036; 
-            --node-color-dark: #3A3026; 
-            --node-color-border: #6B5D4F;
-            min-width: 280px;
-        }
+        .palette-node-title { font-weight: 600; margin-bottom: 4px; }
+        .palette-node-desc { font-size: 0.75rem; opacity: 0.8; }
+        .control-group { margin-bottom: 20px; }
+        .control-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; color: #999; }
+        .control-value { font-weight: bold; color: var(--accent); font-size: 1rem; }
+        input[type="range"] { width: 100%; height: 6px; border-radius: 5px; background: var(--border); outline: none; -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: all 0.2s; }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); box-shadow: 0 0 10px var(--accent); }
+        input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
+        .canvas-container { position: relative; overflow: auto; background: var(--bg); }
+        .canvas-wrapper { position: relative; width: 8000px; height: 8000px; background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 20px 20px; transform-origin: 0 0; }
+        .canvas { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+        .canvas.connecting { cursor: crosshair; }
+        .canvas.selecting { cursor: crosshair; }
+        .selection-box { position: absolute; border: 2px dashed var(--accent); background: rgba(198, 168, 124, 0.1); pointer-events: none; z-index: 999; }
+        .group-frame { position: absolute; border: 3px dashed var(--accent); background: rgba(198, 168, 124, 0.05); border-radius: 15px; pointer-events: all; z-index: 0; cursor: move; }
+        .group-label { position: absolute; top: -25px; left: 10px; background: var(--accent); color: var(--text-dark); padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; pointer-events: none; }
+        .group-duplicate-btn, .group-delete-btn { position: absolute; top: -25px; background: var(--accent); color: var(--text-dark); border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; pointer-events: all; transition: all 0.2s; }
+        .group-duplicate-btn { right: 50px; }
+        .group-delete-btn { right: 10px; background: #E97C5A; }
+        .group-duplicate-btn:hover { background: var(--teamleiter); transform: scale(1.05); }
+        .group-delete-btn:hover { background: #D96C4A; transform: scale(1.05); }
+        .node { position: absolute; background: linear-gradient(135deg, var(--node-color) 0%, var(--node-color-dark) 100%); border: 2px solid var(--node-color-border); border-radius: 10px; min-width: 220px; box-shadow: 0 5px 20px rgba(0,0,0,0.4); cursor: move; transition: box-shadow 0.2s; color: white; z-index: 10; }
+        .node:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.6); }
+        .node.selected { border-color: var(--accent); border-width: 3px; box-shadow: 0 0 0 3px rgba(198, 168, 124, 0.3); }
+        .node.firma { --node-color: #4A4036; --node-color-dark: #3A3026; --node-color-border: #6B5D4F; min-width: 280px; }
         .node.teamleiterplus { --node-color: #B8452E; --node-color-dark: #A8351E; --node-color-border: #C8553E; }
         .node.teamleiter { --node-color: #D96C4A; --node-color-dark: #C95C3A; --node-color-border: #E97C5A; }
         .node.betreuer { --node-color: #8AB661; --node-color-dark: #7AA551; --node-color-border: #9AC671; }
         .node.kunde { --node-color: #5B9BD5; --node-color-dark: #4B8BC5; --node-color-border: #6BABE5; }
         .node.custom { --node-color: #888; --node-color-dark: #666; --node-color-border: #AAA; }
-        
-        .port-top, .port-bottom {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            border: 2px solid white;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 10;
-        }
-        
-        .port-top {
-            top: -7px;
-            background: var(--betreuer);
-        }
-        
-        .port-bottom {
-            bottom: -7px;
-            background: var(--provision-1);
-        }
-        
-        .port-top:hover, .port-bottom:hover {
-            transform: translateX(-50%) scale(1.4);
-            box-shadow: 0 0 15px rgba(255,255,255,0.9);
-        }
-        
-        .port-top.magnetic, .port-bottom.magnetic {
-            transform: translateX(-50%) scale(1.6);
-            box-shadow: 0 0 25px var(--accent), 0 0 35px var(--accent);
-            background: var(--accent);
-            animation: pulse 0.5s ease-in-out infinite alternate;
-        }
-        
-        @keyframes pulse {
-            from { transform: translateX(-50%) scale(1.6); }
-            to { transform: translateX(-50%) scale(1.8); }
-        }
-        
-        .node-header {
-            padding: 12px 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-        
-        .node-header-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .node-close, .node-duplicate {
-            width: 22px;
-            height: 22px;
-            border: none;
-            background: rgba(0,0,0,0.3);
-            color: white;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            line-height: 1;
-            transition: all 0.2s;
-        }
-        
-        .node-close:hover {
-            background: rgba(255,0,0,0.7);
-        }
-        
-        .node-duplicate:hover {
-            background: rgba(0,150,255,0.7);
-        }
-        
-        .node-body {
-            padding: 14px;
-        }
-        
-        .node-field {
-            margin-bottom: 10px;
-            font-size: 0.8rem;
-        }
-        
-        .node-field label {
-            display: block;
-            opacity: 0.7;
-            margin-bottom: 4px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .node-field input[type="number"],
-        .node-field input[type="text"] {
-            width: 100%;
-            padding: 6px 8px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 4px;
-            color: white;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        
-        .node-field input:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: rgba(0,0,0,0.5);
-        }
-        
-        .node-field input:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .checkbox-field {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-            padding: 8px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-        }
-        
-        .checkbox-field input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
-        
-        .checkbox-field label {
-            margin: 0;
-            opacity: 1 !important;
-            cursor: pointer;
-            text-transform: none !important;
-            font-size: 0.85rem !important;
-        }
-        
-        .node-summary {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            font-size: 0.85rem;
-        }
-        
-        .summary-line {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-        }
-        
-        .summary-label {
-            opacity: 0.7;
-        }
-        
-        .summary-value {
-            font-weight: bold;
-        }
-        
-        .summary-value.positive {
-            color: #9AC671;
-        }
-        
-        .summary-value.negative {
-            color: #E97C5A;
-        }
-        
-        .summary-total {
-            font-size: 1.1rem;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 2px solid rgba(255,255,255,0.3);
-        }
-        
-        .summary-divider {
-            height: 1px;
-            background: rgba(255,255,255,0.2);
-            margin: 8px 0;
-        }
-        
-        .connections-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 8000px;
-            height: 8000px;
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        .connection-line {
-            stroke: var(--connection);
-            stroke-width: 3;
-            fill: none;
-            filter: drop-shadow(0 0 3px rgba(198, 168, 124, 0.5));
-            pointer-events: stroke;
-            cursor: pointer;
-            transition: stroke-width 0.2s;
-        }
-        
-        .connection-line:hover {
-            stroke-width: 5;
-        }
-        
-        .temp-connection {
-            stroke: var(--accent);
-            stroke-width: 2;
-            stroke-dasharray: 5, 5;
-            fill: none;
-            animation: dash 20s linear infinite;
-        }
-        
-        @keyframes dash {
-            to { stroke-dashoffset: -100; }
-        }
-        
-        .right-sidebar {
-            background: var(--panel);
-            border-left: 2px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        
-        .analytics-card {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .analytics-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #888;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        .metric {
-            margin-bottom: 15px;
-        }
-        
-        .metric-label {
-            font-size: 0.8rem;
-            color: #999;
-            margin-bottom: 5px;
-        }
-        
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
-        
-        .metric-bar {
-            height: 6px;
-            background: var(--border);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-        
-        .metric-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--betreuer), var(--accent));
-            transition: width 0.5s ease;
-        }
-        
-        .flow-list {
-            font-size: 0.85rem;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .flow-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-            gap: 10px;
-        }
-        
-        .flow-item:last-child {
-            border-bottom: none;
-        }
-        
-        .flow-from {
-            color: #999;
-            flex: 1;
-            font-size: 0.8rem;
-        }
-        
-        .flow-amount {
-            font-weight: bold;
-            color: var(--betreuer);
-        }
-        
-        .flow-level {
-            font-size: 0.7rem;
-            background: rgba(255,255,255,0.1);
-            padding: 2px 6px;
-            border-radius: 3px;
-        }
-        
-        .footer {
-            grid-column: 1 / -1;
-            background: var(--panel);
-            border-top: 2px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            font-size: 0.8rem;
-            color: #666;
-        }
-        
-        .zoom-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .context-menu {
-            position: fixed;
-            background: var(--panel);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 1000;
-            min-width: 180px;
-            display: none;
-        }
-        
-        .context-menu.active {
-            display: block;
-        }
-        
-        .context-menu-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-size: 0.85rem;
-        }
-        
-        .context-menu-item:hover {
-            background: var(--border);
-        }
-        
-        .context-menu-item.disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        
-        .modal-overlay.active {
-            display: flex;
-        }
-        
-        .modal {
-            background: var(--panel);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 25px;
-            min-width: 350px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-        }
-        
-        .modal-title {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            color: var(--accent);
-            font-weight: bold;
-        }
-        
-        .modal-field {
-            margin-bottom: 15px;
-        }
-        
-        .modal-field label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-            color: #999;
-        }
-        
-        .modal-field input,
-        .modal-field select {
-            width: 100%;
-            padding: 10px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            color: var(--text);
-            font-size: 1rem;
-        }
-        
-        .modal-field input:focus,
-        .modal-field select:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .modal-buttons .btn {
-            flex: 1;
-        }
+        .port-top, .port-bottom { position: absolute; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,0.3); border: 2px solid white; cursor: pointer; transition: all 0.2s; z-index: 10; }
+        .port-top { top: -7px; background: var(--betreuer); }
+        .port-bottom { bottom: -7px; background: var(--provision-1); }
+        .port-top:hover, .port-bottom:hover { transform: translateX(-50%) scale(1.4); box-shadow: 0 0 15px rgba(255,255,255,0.9); }
+        .port-top.magnetic, .port-bottom.magnetic { transform: translateX(-50%) scale(1.6); box-shadow: 0 0 25px var(--accent), 0 0 35px var(--accent); background: var(--accent); animation: pulse 0.5s ease-in-out infinite alternate; }
+        @keyframes pulse { from { transform: translateX(-50%) scale(1.6); } to { transform: translateX(-50%) scale(1.8); } }
+        .node-header { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.2); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; }
+        .node-header-buttons { display: flex; gap: 5px; }
+        .node-close, .node-duplicate { width: 22px; height: 22px; border: none; background: rgba(0,0,0,0.3); color: white; border-radius: 3px; cursor: pointer; font-size: 0.9rem; line-height: 1; transition: all 0.2s; }
+        .node-close:hover { background: rgba(255,0,0,0.7); }
+        .node-duplicate:hover { background: rgba(0,150,255,0.7); }
+        .node-body { padding: 14px; }
+        .node-field { margin-bottom: 10px; font-size: 0.8rem; }
+        .node-field label { display: block; opacity: 0.7; margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .node-field input[type="number"], .node-field input[type="text"] { width: 100%; padding: 6px 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; font-size: 0.9rem; font-weight: 600; }
+        .node-field input:focus { outline: none; border-color: var(--accent); background: rgba(0,0,0,0.5); }
+        .node-field input:disabled { opacity: 0.5; cursor: not-allowed; }
+        .checkbox-field { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px; }
+        .checkbox-field input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+        .checkbox-field label { margin: 0; opacity: 1 !important; cursor: pointer; text-transform: none !important; font-size: 0.85rem !important; }
+        .node-summary { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem; }
+        .summary-line { display: flex; justify-content: space-between; padding: 4px 0; }
+        .summary-label { opacity: 0.7; }
+        .summary-value { font-weight: bold; }
+        .summary-value.positive { color: #9AC671; }
+        .summary-value.negative { color: #E97C5A; }
+        .summary-total { font-size: 1.1rem; margin-top: 8px; padding-top: 8px; border-top: 2px solid rgba(255,255,255,0.3); }
+        .summary-divider { height: 1px; background: rgba(255,255,255,0.2); margin: 8px 0; }
+        .connections-layer { position: absolute; top: 0; left: 0; width: 8000px; height: 8000px; pointer-events: none; z-index: 1; }
+        .connection-line { stroke: var(--connection); stroke-width: 3; fill: none; filter: drop-shadow(0 0 3px rgba(198, 168, 124, 0.5)); pointer-events: stroke; cursor: pointer; transition: stroke-width 0.2s; }
+        .connection-line:hover { stroke-width: 5; }
+        .temp-connection { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5, 5; fill: none; animation: dash 20s linear infinite; }
+        @keyframes dash { to { stroke-dashoffset: -100; } }
+        .right-sidebar { background: var(--panel); border-left: 2px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+        .analytics-card { padding: 20px; border-bottom: 1px solid var(--border); }
+        .analytics-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 15px; font-weight: 600; }
+        .metric { margin-bottom: 15px; }
+        .metric-label { font-size: 0.8rem; color: #999; margin-bottom: 5px; }
+        .metric-value { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+        .metric-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+        .metric-bar-fill { height: 100%; background: linear-gradient(90deg, var(--betreuer), var(--accent)); transition: width 0.5s ease; }
+        .flow-list { font-size: 0.85rem; max-height: 300px; overflow-y: auto; }
+        .flow-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+        .flow-item:last-child { border-bottom: none; }
+        .flow-from { color: #999; flex: 1; font-size: 0.8rem; }
+        .flow-amount { font-weight: bold; color: var(--betreuer); }
+        .flow-level { font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; }
+        .footer { grid-column: 1 / -1; background: var(--panel); border-top: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-size: 0.8rem; color: #666; }
+        .zoom-controls { display: flex; gap: 10px; align-items: center; }
+        .context-menu { position: fixed; background: var(--panel); border: 2px solid var(--border); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; min-width: 180px; display: none; }
+        .context-menu.active { display: block; }
+        .context-menu-item { padding: 10px 15px; cursor: pointer; transition: background 0.2s; font-size: 0.85rem; }
+        .context-menu-item:hover { background: var(--border); }
+        .context-menu-item.disabled { opacity: 0.4; cursor: not-allowed; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--panel); border: 2px solid var(--border); border-radius: 10px; padding: 25px; min-width: 350px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
+        .modal-title { font-size: 1.2rem; margin-bottom: 20px; color: var(--accent); font-weight: bold; }
+        .modal-field { margin-bottom: 15px; }
+        .modal-field label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: #999; }
+        .modal-field input, .modal-field select { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-size: 1rem; }
+        .modal-field input:focus, .modal-field select:focus { outline: none; border-color: var(--accent); }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-buttons .btn { flex: 1; }
     </style>
 </head>
 <body>
-
 <div class="app-container">
     <div class="header">
         <div class="logo">🌟 VitaKreis MLM Node Editor</div>
@@ -773,195 +143,78 @@
             <button class="btn" id="snapGridBtn" onclick="toggleSnapToGrid()">📌 Snap: OFF</button>
             <button class="btn" id="groupBtn" onclick="groupSelected()" disabled>🔲 Group</button>
             <button class="btn" id="ungroupBtn" onclick="ungroupSelected()" disabled>⬚ Ungroup</button>
-            <button class="btn" onclick="exportGraph()">💾 Export</button>
+            <button class="btn" onclick="exportPDF()">📄 Export PDF</button>
             <button class="btn primary" onclick="calculateAll()">⚡ Calculate</button>
         </div>
     </div>
-    
     <div class="left-sidebar">
         <div class="sidebar-section">
             <div class="sidebar-title">📦 Node Palette</div>
             <div class="node-palette">
-                <div class="palette-node firma" draggable="true" data-node-type="firma">
-                    <div class="palette-node-title">🏢 Firma</div>
-                    <div class="palette-node-desc">Zentrale Einheit</div>
-                </div>
-                <div class="palette-node teamleiterplus" draggable="true" data-node-type="teamleiterplus">
-                    <div class="palette-node-title">👑 Teamleiter Plus</div>
-                    <div class="palette-node-desc">Oberste Ebene</div>
-                </div>
-                <div class="palette-node teamleiter" draggable="true" data-node-type="teamleiter">
-                    <div class="palette-node-title">👤 Teamleiter</div>
-                    <div class="palette-node-desc">Hat Downlines</div>
-                </div>
-                <div class="palette-node betreuer" draggable="true" data-node-type="betreuer">
-                    <div class="palette-node-title">👥 Betreuer</div>
-                    <div class="palette-node-desc">Basis-Helfer</div>
-                </div>
-                <div class="palette-node kunde" draggable="true" data-node-type="kunde">
-                    <div class="palette-node-title">💰 Kunde</div>
-                    <div class="palette-node-desc">Zahlt für Service</div>
-                </div>
-                <div class="palette-node custom" draggable="true" data-node-type="custom">
-                    <div class="palette-node-title">⚙️ Custom</div>
-                    <div class="palette-node-desc">Frei konfigurierbar</div>
-                </div>
+                <div class="palette-node firma" draggable="true" data-node-type="firma"><div class="palette-node-title">🏢 Firma</div><div class="palette-node-desc">Zentrale Einheit</div></div>
+                <div class="palette-node teamleiterplus" draggable="true" data-node-type="teamleiterplus"><div class="palette-node-title">👑 Teamleiter Plus</div><div class="palette-node-desc">Oberste Ebene</div></div>
+                <div class="palette-node teamleiter" draggable="true" data-node-type="teamleiter"><div class="palette-node-title">👤 Teamleiter</div><div class="palette-node-desc">Hat Downlines</div></div>
+                <div class="palette-node betreuer" draggable="true" data-node-type="betreuer"><div class="palette-node-title">👥 Betreuer</div><div class="palette-node-desc">Basis-Helfer</div></div>
+                <div class="palette-node kunde" draggable="true" data-node-type="kunde"><div class="palette-node-title">💰 Kunde</div><div class="palette-node-desc">Zahlt für Service</div></div>
+                <div class="palette-node custom" draggable="true" data-node-type="custom"><div class="palette-node-title">⚙️ Custom</div><div class="palette-node-desc">Frei konfigurierbar</div></div>
             </div>
         </div>
-        
         <div class="sidebar-section">
             <div class="sidebar-title">⚙️ Global Settings</div>
-            
-            <div class="control-group">
-                <div class="control-label">
-                    <span>Grid Size</span>
-                    <span class="control-value"><span id="displayGridSize">20</span>px</span>
-                </div>
-                <input type="range" id="gridSize" min="10" max="50" value="20" step="5" oninput="updateDisplay();">
-            </div>
-            
-            <div class="control-group">
-                <div class="control-label">
-                    <span>Stundensatz Kunde</span>
-                    <span class="control-value"><span id="displayStundensatz">35</span>€</span>
-                </div>
-                <input type="range" id="stundensatz" min="0" max="60" value="35" step="1" oninput="updateDisplay(); syncGlobalValues(); calculateAll();">
-            </div>
-            
-            <div class="control-group">
-                <div class="control-label">
-                    <span>Kundenstunden/Monat</span>
-                    <span class="control-value"><span id="displayKundenStunden">5</span> Std</span>
-                </div>
-                <input type="range" id="kundenStunden" min="0" max="40" value="5" step="1" oninput="updateDisplay(); syncGlobalValues(); calculateAll();">
-            </div>
-            
-            <div class="control-group">
-                <div class="control-label">
-                    <span>Firmenmarge</span>
-                    <span class="control-value"><span id="displayMarge">20</span>%</span>
-                </div>
-                <input type="range" id="marge" min="0" max="35" value="20" step="1" oninput="updateDisplay(); syncGlobalValues(); calculateAll();">
-            </div>
-            
-            <div class="control-group">
-                <div class="control-label">
-                    <span>Provision Ebene 1</span>
-                    <span class="control-value"><span id="displayLevel1">15</span>%</span>
-                </div>
-                <input type="range" id="level1" min="0" max="25" value="15" step="1" oninput="updateDisplay(); calculateAll();">
-            </div>
-            
-            <div class="control-group">
-                <div class="control-label">
-                    <span>Provision Ebene 2</span>
-                    <span class="control-value"><span id="displayLevel2">7</span>%</span>
-                </div>
-                <input type="range" id="level2" min="0" max="15" value="7" step="1" oninput="updateDisplay(); calculateAll();">
-            </div>
-            
-            <div class="control-group">
-                <div class="control-label">
-                    <span>Magnetic Radius</span>
-                    <span class="control-value"><span id="displayMagnetic">50</span>px</span>
-                </div>
-                <input type="range" id="magneticRadius" min="20" max="100" value="50" step="5" oninput="document.getElementById('displayMagnetic').textContent = this.value;">
-            </div>
+            <div class="control-group"><div class="control-label"><span>Grid Size</span><span class="control-value"><span id="displayGridSize">20</span>px</span></div><input type="range" id="gridSize" min="10" max="50" value="20" step="5" oninput="updateDisplay();"></div>
+            <div class="control-group"><div class="control-label"><span>Stundensatz Kunde</span><span class="control-value"><span id="displayStundensatz">35</span>€</span></div><input type="range" id="stundensatz" min="0" max="60" value="35" step="1" oninput="updateDisplay(); syncGlobalValues(); calculateAll();"></div>
+            <div class="control-group"><div class="control-label"><span>Kundenstunden/Monat</span><span class="control-value"><span id="displayKundenStunden">5</span> Std</span></div><input type="range" id="kundenStunden" min="0" max="40" value="5" step="1" oninput="updateDisplay(); syncGlobalValues(); calculateAll();"></div>
+            <div class="control-group"><div class="control-label"><span>Firmenmarge</span><span class="control-value"><span id="displayMarge">20</span>%</span></div><input type="range" id="marge" min="0" max="35" value="20" step="1" oninput="updateDisplay(); syncGlobalValues(); calculateAll();"></div>
+            <div class="control-group"><div class="control-label"><span>Provision Ebene 1</span><span class="control-value"><span id="displayLevel1">15</span>%</span></div><input type="range" id="level1" min="0" max="25" value="15" step="1" oninput="updateDisplay(); calculateAll();"></div>
+            <div class="control-group"><div class="control-label"><span>Provision Ebene 2</span><span class="control-value"><span id="displayLevel2">7</span>%</span></div><input type="range" id="level2" min="0" max="15" value="7" step="1" oninput="updateDisplay(); calculateAll();"></div>
+            <div class="control-group"><div class="control-label"><span>Magnetic Radius</span><span class="control-value"><span id="displayMagnetic">50</span>px</span></div><input type="range" id="magneticRadius" min="20" max="100" value="50" step="5" oninput="document.getElementById('displayMagnetic').textContent = this.value;"></div>
         </div>
-        
         <div class="sidebar-section">
             <div class="sidebar-title">📋 Templates</div>
             <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="loadTemplate1()">🎯 Template 1: Simple</button>
             <button class="btn" style="width: 100%;" onclick="loadTemplateLarge()">🚀 Vitakreis-1MA Plus</button>
         </div>
     </div>
-    
     <div class="canvas-container" id="canvasContainer">
         <div class="canvas-wrapper" id="canvasWrapper">
             <svg class="connections-layer" id="connectionsLayer"></svg>
             <div class="canvas" id="canvas"></div>
         </div>
     </div>
-    
-    <div class="right-sidebar">
+    <div class="right-sidebar" id="rightSidebar">
         <div class="analytics-card">
             <div class="analytics-title">📊 Live Analytics</div>
-            <div class="metric">
-                <div class="metric-label">Gesamt-Umsatz (Monat)</div>
-                <div class="metric-value" id="analyticsUmsatz">€0</div>
-                <div class="metric-bar">
-                    <div class="metric-bar-fill" id="barUmsatz" style="width: 0%"></div>
-                </div>
-            </div>
-            <div class="metric">
-                <div class="metric-label">Firmen-Einkommen</div>
-                <div class="metric-value" id="analyticsFirma">€0</div>
-            </div>
-            <div class="metric">
-                <div class="metric-label">Operating Margin</div>
-                <div class="metric-value" id="analyticsMargin">0%</div>
-            </div>
-            <div class="metric">
-                <div class="metric-label">Helfer-Basis (gesamt)</div>
-                <div class="metric-value" id="analyticsHelfer">€0</div>
-            </div>
-            <div class="metric">
-                <div class="metric-label">Provisionen (gesamt)</div>
-                <div class="metric-value" id="analyticsProvisionen">€0</div>
-            </div>
+            <div class="metric"><div class="metric-label">Gesamt-Umsatz (Monat)</div><div class="metric-value" id="analyticsUmsatz">€0</div><div class="metric-bar"><div class="metric-bar-fill" id="barUmsatz" style="width: 0%"></div></div></div>
+            <div class="metric"><div class="metric-label">Firmen-Einkommen</div><div class="metric-value" id="analyticsFirma">€0</div></div>
+            <div class="metric"><div class="metric-label">Operating Margin</div><div class="metric-value" id="analyticsMargin">0%</div></div>
+            <div class="metric"><div class="metric-label">Helfer-Basis (gesamt)</div><div class="metric-value" id="analyticsHelfer">€0</div></div>
+            <div class="metric"><div class="metric-label">Provisionen (gesamt)</div><div class="metric-value" id="analyticsProvisionen">€0</div></div>
         </div>
-        
         <div class="analytics-card">
             <div class="analytics-title">⏱️ Stunden-Übersicht</div>
             <div style="font-size: 0.85rem;">
-                <div style="margin-bottom: 10px;">
-                    <strong>Basis-Stunden:</strong> <span id="statHoursBasis">0</span> Std
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <strong>Ebene 1 Stunden:</strong> <span id="statHoursLevel1">0</span> Std
-                </div>
-                <div>
-                    <strong>Ebene 2 Stunden:</strong> <span id="statHoursLevel2">0</span> Std
-                </div>
+                <div style="margin-bottom: 10px;"><strong>Basis-Stunden:</strong> <span id="statHoursBasis">0</span> Std</div>
+                <div style="margin-bottom: 10px;"><strong>Ebene 1 Stunden:</strong> <span id="statHoursLevel1">0</span> Std</div>
+                <div><strong>Ebene 2 Stunden:</strong> <span id="statHoursLevel2">0</span> Std</div>
             </div>
         </div>
-        
         <div class="analytics-card">
             <div class="analytics-title">💸 Cashflow Details</div>
-            <div class="flow-list" id="flowList">
-                <div class="flow-item">
-                    <span class="flow-from">Keine Verbindungen</span>
-                    <span class="flow-amount">€0</span>
-                </div>
-            </div>
+            <div class="flow-list" id="flowList"><div class="flow-item"><span class="flow-from">Keine Verbindungen</span><span class="flow-amount">€0</span></div></div>
         </div>
-        
         <div class="analytics-card">
             <div class="analytics-title">📈 Statistiken</div>
             <div style="font-size: 0.85rem;">
-                <div style="margin-bottom: 10px;">
-                    <strong>Nodes:</strong> <span id="statNodes">0</span>
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <strong>Selected:</strong> <span id="statSelected">0</span>
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <strong>Connections:</strong> <span id="statConnections">0</span>
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <strong>Aktive Helfer:</strong> <span id="statHelfer">0</span>
-                </div>
-                <div>
-                    <strong>Kunden:</strong> <span id="statKunden">0</span>
-                </div>
+                <div style="margin-bottom: 10px;"><strong>Nodes:</strong> <span id="statNodes">0</span></div>
+                <div style="margin-bottom: 10px;"><strong>Selected:</strong> <span id="statSelected">0</span></div>
+                <div style="margin-bottom: 10px;"><strong>Connections:</strong> <span id="statConnections">0</span></div>
+                <div style="margin-bottom: 10px;"><strong>Aktive Helfer:</strong> <span id="statHelfer">0</span></div>
+                <div><strong>Kunden:</strong> <span id="statKunden">0</span></div>
             </div>
         </div>
     </div>
-    
     <div class="footer">
-        <div>
-            <span id="statusText">Bereit | Strg+Click = Multi-Select | Doppelklick Node = Edit | G = Snap Toggle</span>
-        </div>
+        <div><span id="statusText">Bereit | Strg+Click = Multi-Select | Shift+Drag = Lasso | Doppelklick Node = Edit</span></div>
         <div class="zoom-controls">
             <button class="btn" onclick="zoomOut()">−</button>
             <span id="zoomLevel">100%</span>
@@ -970,101 +223,215 @@
         </div>
     </div>
 </div>
-
 <div class="context-menu" id="contextMenu">
     <div class="context-menu-item" onclick="duplicateNode()">📋 Duplicate</div>
     <div class="context-menu-item" id="duplicateGroupItem" onclick="duplicateGroup()" class="disabled">📋 Duplicate Group</div>
     <div class="context-menu-item" onclick="deleteNode()">🗑️ Delete</div>
 </div>
-
 <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
         <div class="modal-title">Node bearbeiten</div>
-        <div class="modal-field">
-            <label>Name</label>
-            <input type="text" id="modalName" placeholder="Node Name">
-        </div>
-        <div class="modal-field" id="modalTypeField">
-            <label>Typ</label>
-            <select id="modalType">
-                <option value="betreuer">👥 Betreuer (Grün)</option>
-                <option value="teamleiter">👤 Teamleiter (Orange)</option>
-                <option value="teamleiterplus">👑 Teamleiter Plus (Dunkelrot)</option>
-            </select>
-        </div>
-        <div class="modal-buttons">
-            <button class="btn" onclick="closeModal()">Abbrechen</button>
-            <button class="btn primary" onclick="saveModal()">Speichern</button>
-        </div>
+        <div class="modal-field"><label>Name</label><input type="text" id="modalName" placeholder="Node Name"></div>
+        <div class="modal-field" id="modalTypeField"><label>Typ</label><select id="modalType"><option value="betreuer">👥 Betreuer (Grün)</option><option value="teamleiter">👤 Teamleiter (Orange)</option><option value="teamleiterplus">👑 Teamleiter Plus (Dunkelrot)</option></select></div>
+        <div class="modal-buttons"><button class="btn" onclick="closeModal()">Abbrechen</button><button class="btn primary" onclick="saveModal()">Speichern</button></div>
     </div>
 </div>
-
 <script>
-let nodes=[], connections=[], groups=[];
-let nodeIdCounter=0, groupIdCounter=0, selectedNodes=[], contextNode=null;
-let isDragging=false, isConnecting=false, connectingFrom=null, tempLine=null, hoveredPort=null, editingNodeId=null;
-let snapToGrid=false, currentZoom=1, draggedNodeType=null;
-let draggedNode=null, dragStartX=0, dragStartY=0, nodeStartX=0, nodeStartY=0, multiDragOffsets=[];
+let nodes=[],connections=[],groups=[],nodeIdCounter=0,groupIdCounter=0,selectedNodes=[],contextNode=null;
+let isDragging=false,isConnecting=false,connectingFrom=null,tempLine=null,hoveredPort=null,editingNodeId=null;
+let snapToGrid=false,currentZoom=1,draggedNodeType=null,draggedNode=null,dragStartX=0,dragStartY=0,nodeStartX=0,nodeStartY=0,multiDragOffsets=[];
+let isSelecting=false,selectionBox=null,selectionStart={x:0,y:0},zoomOriginX=0,zoomOriginY=0,isInitialLoad=true;
+let isDraggingGroup=false,draggedGroupId=null,groupDragOffsets=[];
+const canvas=document.getElementById('canvas'),canvasContainer=document.getElementById('canvasContainer'),canvasWrapper=document.getElementById('canvasWrapper'),connectionsLayer=document.getElementById('connectionsLayer');
 
-const canvas=document.getElementById('canvas');
-const canvasContainer=document.getElementById('canvasContainer');
-const canvasWrapper=document.getElementById('canvasWrapper');
-const connectionsLayer=document.getElementById('connectionsLayer');
-
-window.onload=function(){setupEventListeners();loadTemplate1();updateDisplay();syncGlobalValues();calculateAll();setTimeout(()=>{canvasContainer.scrollLeft=50;canvasContainer.scrollTop=0;redrawConnections();},100);};
+window.onload=function(){setupEventListeners();loadTemplate1(true);updateDisplay();syncGlobalValues();calculateAll();setTimeout(()=>{canvasContainer.scrollLeft=50;canvasContainer.scrollTop=0;redrawConnections();},100);};
 
 function setupEventListeners(){
     document.querySelectorAll('.palette-node').forEach(n=>n.addEventListener('dragstart',handlePaletteDragStart));
-    canvasWrapper.addEventListener('dragover',handleDragOver);canvasWrapper.addEventListener('drop',handleDrop);
-    document.addEventListener('mousemove',handleMouseMove);document.addEventListener('mouseup',handleMouseUp);
-    document.addEventListener('keydown',handleKeyDown);canvasContainer.addEventListener('wheel',handleWheel,{passive:false});
+    canvasWrapper.addEventListener('dragover',handleDragOver);
+    canvasWrapper.addEventListener('drop',handleDrop);
+    document.addEventListener('mousemove',handleMouseMove);
+    document.addEventListener('mouseup',handleMouseUp);
+    document.addEventListener('keydown',handleKeyDown);
+    canvasContainer.addEventListener('wheel',handleWheel,{passive:false});
     canvasWrapper.addEventListener('contextmenu',showContextMenu);
     document.addEventListener('click',()=>document.getElementById('contextMenu').classList.remove('active'));
     canvasContainer.addEventListener('scroll',redrawConnections);
     document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target.id==='modalOverlay')closeModal();});
-    canvas.addEventListener('mousedown',e=>{if(e.target===canvas&&!e.ctrlKey&&!e.metaKey)deselectAll();});
+    canvas.addEventListener('mousedown',handleCanvasMouseDown);
 }
 
-function handlePaletteDragStart(e){draggedNodeType=e.currentTarget.dataset.nodeType;e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain',draggedNodeType);}
-function handleDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='copy';}
+function handleCanvasMouseDown(e){
+    if(e.target===canvas&&!e.ctrlKey&&!e.metaKey){
+        if(e.shiftKey){
+            startSelection(e);
+        }else{
+            deselectAll();
+        }
+    }
+}
+
+function startSelection(e){
+    isSelecting=true;
+    canvas.classList.add('selecting');
+    const rect=canvasWrapper.getBoundingClientRect();
+    selectionStart={
+        x:(e.clientX-rect.left+canvasContainer.scrollLeft)/currentZoom,
+        y:(e.clientY-rect.top+canvasContainer.scrollTop)/currentZoom
+    };
+    if(!selectionBox){
+        selectionBox=document.createElement('div');
+        selectionBox.className='selection-box';
+        canvas.appendChild(selectionBox);
+    }
+    selectionBox.style.left=selectionStart.x+'px';
+    selectionBox.style.top=selectionStart.y+'px';
+    selectionBox.style.width='0px';
+    selectionBox.style.height='0px';
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function updateSelection(e){
+    if(!isSelecting||!selectionBox)return;
+    const rect=canvasWrapper.getBoundingClientRect();
+    const currentX=(e.clientX-rect.left+canvasContainer.scrollLeft)/currentZoom;
+    const currentY=(e.clientY-rect.top+canvasContainer.scrollTop)/currentZoom;
+    const left=Math.min(selectionStart.x,currentX),top=Math.min(selectionStart.y,currentY);
+    const width=Math.abs(currentX-selectionStart.x),height=Math.abs(currentY-selectionStart.y);
+    selectionBox.style.left=left+'px';
+    selectionBox.style.top=top+'px';
+    selectionBox.style.width=width+'px';
+    selectionBox.style.height=height+'px';
+}
+
+function endSelection(){
+    if(!isSelecting)return;
+    canvas.classList.remove('selecting');
+    if(selectionBox){
+        const boxRect={
+            left:parseFloat(selectionBox.style.left),
+            top:parseFloat(selectionBox.style.top),
+            width:parseFloat(selectionBox.style.width),
+            height:parseFloat(selectionBox.style.height)
+        };
+        deselectAll();
+        nodes.forEach(n=>{
+            const elem=document.getElementById(n.id);
+            if(!elem)return;
+            const nodeRect={
+                left:n.x,
+                top:n.y,
+                right:n.x+elem.offsetWidth,
+                bottom:n.y+elem.offsetHeight
+            };
+            if(!(nodeRect.right<boxRect.left||nodeRect.left>boxRect.left+boxRect.width||nodeRect.bottom<boxRect.top||nodeRect.top>boxRect.top+boxRect.height)){
+                selectedNodes.push(n.id);
+                elem.classList.add('selected');
+            }
+        });
+        updateSelectionUI();
+        selectionBox.remove();
+        selectionBox=null;
+    }
+    isSelecting=false;
+}
+
+function handlePaletteDragStart(e){
+    draggedNodeType=e.currentTarget.dataset.nodeType;
+    e.dataTransfer.effectAllowed='copy';
+    e.dataTransfer.setData('text/plain',draggedNodeType);
+}
+
+function handleDragOver(e){
+    e.preventDefault();
+    e.dataTransfer.dropEffect='copy';
+}
 
 function handleDrop(e){
-    e.preventDefault();if(!draggedNodeType)return;
+    e.preventDefault();
+    if(!draggedNodeType)return;
     const rect=canvasWrapper.getBoundingClientRect();
     let x=(e.clientX-rect.left)/currentZoom,y=(e.clientY-rect.top)/currentZoom;
-    if(snapToGrid){const gs=parseInt(document.getElementById('gridSize').value);x=Math.round(x/gs)*gs;y=Math.round(y/gs)*gs;}
-    createNode(draggedNodeType,x,y);draggedNodeType=null;setStatus('Node erstellt ✓');
+    if(snapToGrid){
+        const gs=parseInt(document.getElementById('gridSize').value);
+        x=Math.round(x/gs)*gs;
+        y=Math.round(y/gs)*gs;
+    }
+    createNode(draggedNodeType,x,y);
+    draggedNodeType=null;
+    setStatus('Node erstellt ✓');
 }
 
 function toggleSnapToGrid(){
-    snapToGrid=!snapToGrid;const btn=document.getElementById('snapGridBtn');
-    if(snapToGrid){btn.textContent='📌 Snap: ON';btn.classList.add('active');}
-    else{btn.textContent='📌 Snap: OFF';btn.classList.remove('active');}
+    snapToGrid=!snapToGrid;
+    const btn=document.getElementById('snapGridBtn');
+    if(snapToGrid){
+        btn.textContent='📌 Snap: ON';
+        btn.classList.add('active');
+    }else{
+        btn.textContent='📌 Snap: OFF';
+        btn.classList.remove('active');
+    }
 }
 
 function handleKeyDown(e){
-    if((e.key==='Delete'||e.key==='Backspace')&&selectedNodes.length>0){e.preventDefault();deleteSelectedNodes();}
+    if((e.key==='Delete'||e.key==='Backspace')&&selectedNodes.length>0){
+        e.preventDefault();
+        deleteSelectedNodes();
+    }
     if(e.key==='Escape')deselectAll();
-    if((e.ctrlKey||e.metaKey)&&e.key==='d'&&selectedNodes.length>0){e.preventDefault();duplicateGroup();}
+    if((e.ctrlKey||e.metaKey)&&e.key==='d'&&selectedNodes.length>0){
+        e.preventDefault();
+        duplicateGroup();
+    }
     if(e.key==='g'||e.key==='G')toggleSnapToGrid();
 }
 
 function handleWheel(e){
     if(e.ctrlKey||e.metaKey){
         e.preventDefault();
-        const delta=e.deltaY>0?-0.05:0.05;
-        setZoom(Math.min(Math.max(currentZoom+delta,0.5),2));
+        const delta=e.deltaY>0?-0.05:0.05,newZoom=Math.min(Math.max(currentZoom+delta,0.5),2);
+        const rect=canvasContainer.getBoundingClientRect();
+        zoomOriginX=e.clientX-rect.left;
+        zoomOriginY=e.clientY-rect.top;
+        setZoom(newZoom);
     }
 }
 
 function setZoom(z){
-    currentZoom=z;canvasWrapper.style.transform=`scale(${z})`;canvasWrapper.style.transformOrigin='0 0';
-    document.getElementById('zoomLevel').textContent=Math.round(z*100)+'%';redrawConnections();
+    const prevZoom=currentZoom;
+    currentZoom=z;
+    if(zoomOriginX&&zoomOriginY){
+        const scrollX=canvasContainer.scrollLeft,scrollY=canvasContainer.scrollTop,zoomRatio=z/prevZoom;
+        canvasContainer.scrollLeft=scrollX*zoomRatio+(zoomOriginX*(zoomRatio-1));
+        canvasContainer.scrollTop=scrollY*zoomRatio+(zoomOriginY*(zoomRatio-1));
+    }
+    canvasWrapper.style.transform=`scale(${z})`;
+    canvasWrapper.style.transformOrigin='0 0';
+    document.getElementById('zoomLevel').textContent=Math.round(z*100)+'%';
+    redrawConnections();
 }
 
-function zoomIn(){setZoom(Math.min(currentZoom+0.1,2));}
-function zoomOut(){setZoom(Math.max(currentZoom-0.1,0.5));}
-function resetZoom(){setZoom(1);}
+function zoomIn(){
+    const rect=canvasContainer.getBoundingClientRect();
+    zoomOriginX=rect.width/2;
+    zoomOriginY=rect.height/2;
+    setZoom(Math.min(currentZoom+0.1,2));
+}
+
+function zoomOut(){
+    const rect=canvasContainer.getBoundingClientRect();
+    zoomOriginX=rect.width/2;
+    zoomOriginY=rect.height/2;
+    setZoom(Math.max(currentZoom-0.1,0.5));
+}
+
+function resetZoom(){
+    zoomOriginX=0;
+    zoomOriginY=0;
+    setZoom(1);
+}
 
 function updateDisplay(){
     document.getElementById('displayGridSize').textContent=document.getElementById('gridSize').value;
@@ -1078,8 +445,7 @@ function updateDisplay(){
 function syncGlobalValues(){
     const st=parseFloat(document.getElementById('stundensatz').value);
     const ks=parseFloat(document.getElementById('kundenStunden').value);
-    const mg=parseFloat(document.getElementById('marge').value)/100;
-    const hs=st*(1-mg);
+    const mg=parseFloat(document.getElementById('marge').value)/100,hs=st*(1-mg);
     nodes.forEach(n=>{
         if((n.type==='betreuer'||n.type==='teamleiter'||n.type==='teamleiterplus')&&n.data.useGlobalValues){
             n.data.lohnProStunde=hs;
@@ -1098,8 +464,7 @@ function createNode(type,x,y,data={}){
     const nodeId=`node-${++nodeIdCounter}`;
     const st=parseFloat(document.getElementById('stundensatz').value);
     const ks=parseFloat(document.getElementById('kundenStunden').value);
-    const mg=parseFloat(document.getElementById('marge').value)/100;
-    const hs=st*(1-mg);
+    const mg=parseFloat(document.getElementById('marge').value)/100,hs=st*(1-mg);
     const defData={
         firma:{name:'VitaKreis'},
         teamleiterplus:{name:`TL+ ${nodeIdCounter}`,stunden:0,lohnProStunde:hs,useGlobalValues:true},
@@ -1110,13 +475,15 @@ function createNode(type,x,y,data={}){
     };
     const nodeData={...defData[type],...data};
     const node=document.createElement('div');
-    node.className=`node ${type}`;node.id=nodeId;
+    node.className=`node ${type}`;
+    node.id=nodeId;
     node.innerHTML=generateNodeHTML(type,nodeData,nodeId);
-    node.style.left=x+'px';node.style.top=y+'px';
+    node.style.left=x+'px';
+    node.style.top=y+'px';
     node.addEventListener('mousedown',startDragNode);
     node.addEventListener('dblclick',e=>{
-        if(!e.target.classList.contains('port-top')&&!e.target.classList.contains('port-bottom')&&
-            e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')openEditModal(nodeId);
+        if(!e.target.classList.contains('port-top')&&!e.target.classList.contains('port-bottom')&&e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')
+            openEditModal(nodeId);
     });
     const tp=node.querySelector('.port-top'),bp=node.querySelector('.port-bottom');
     if(tp)tp.addEventListener('mousedown',startConnection);
@@ -1131,7 +498,9 @@ function createNode(type,x,y,data={}){
                 const li=node.querySelector('input[data-field="lohnProStunde"]');
                 if(li)li.disabled=e.target.checked;
             }
-            updateNodeData(nodeId);syncGlobalValues();calculateAll();
+            updateNodeData(nodeId);
+            syncGlobalValues();
+            calculateAll();
         });
     }
     node.querySelectorAll('input[data-field]').forEach(inp=>{
@@ -1140,56 +509,25 @@ function createNode(type,x,y,data={}){
         inp.addEventListener('mousedown',e=>e.stopPropagation());
     });
     canvas.appendChild(node);
-    nodes.push({id:nodeId,type:type,x:x,y:y,data:nodeData,groupId:null,
-        calculated:{basis:0,level1:0,level2:0,total:0,umsatz:0,helferAuszahlung:0,provisionen:0,provision1:0,provision2:0,netto:0,level1Hours:0,level2Hours:0,basisHours:0}
-    });
-    updateStats();return nodeId;
+    nodes.push({id:nodeId,type:type,x:x,y:y,data:nodeData,groupId:null,calculated:{basis:0,level1:0,level2:0,total:0,umsatz:0,helferAuszahlung:0,provisionen:0,provision1:0,provision2:0,netto:0,level1Hours:0,level2Hours:0,basisHours:0}});
+    updateStats();
+    return nodeId;
 }
 
 function generateNodeHTML(type,data,nodeId){
     let h='';
     if(type!=='firma')h+=`<div class="port-top" data-node="${nodeId}" data-port="top"></div>`;
-    h+=`<div class="node-header"><span>${getIcon(type)} ${data.name}</span><div class="node-header-buttons">
-        <button class="node-duplicate" onclick="event.stopPropagation(); duplicateNodeById('${nodeId}')">📋</button>
-        <button class="node-close" onclick="event.stopPropagation(); deleteNodeById('${nodeId}')">×</button>
-    </div></div><div class="node-body">`;
+    h+=`<div class="node-header"><span>${getIcon(type)} ${data.name}</span><div class="node-header-buttons"><button class="node-duplicate" onclick="event.stopPropagation(); duplicateNodeById('${nodeId}')">📋</button><button class="node-close" onclick="event.stopPropagation(); deleteNodeById('${nodeId}')">×</button></div></div><div class="node-body">`;
     if(type==='firma'){
-        h+=`<div class="node-summary">
-            <div class="summary-line"><span class="summary-label">Gesamt-Umsatz:</span><span class="summary-value positive">€<span id="umsatz-${nodeId}">0</span></span></div>
-            <div class="summary-line"><span class="summary-label">Basis-Std:</span><span class="summary-value"><span id="basis-hours-${nodeId}">0</span> Std</span></div>
-            <div class="summary-line"><span class="summary-label">L1 Std:</span><span class="summary-value"><span id="level1-hours-${nodeId}">0</span> Std</span></div>
-            <div class="summary-line"><span class="summary-label">L2 Std:</span><span class="summary-value"><span id="level2-hours-${nodeId}">0</span> Std</span></div>
-            <div class="summary-divider"></div>
-            <div class="summary-line"><span class="summary-label">Helfer-Basis:</span><span class="summary-value negative">−€<span id="helfer-${nodeId}">0</span></span></div>
-            <div class="summary-line"><span class="summary-label">Prov Ebene 1:</span><span class="summary-value negative">−€<span id="provision1-${nodeId}">0</span></span></div>
-            <div class="summary-line"><span class="summary-label">Prov Ebene 2:</span><span class="summary-value negative">−€<span id="provision2-${nodeId}">0</span></span></div>
-            <div class="summary-line"><span class="summary-label">Prov Gesamt:</span><span class="summary-value negative">−€<span id="provisionen-${nodeId}">0</span></span></div>
-            <div class="summary-divider"></div>
-            <div class="summary-line summary-total"><span>Netto-Gewinn:</span><span class="summary-value positive">€<span id="total-${nodeId}">0</span></span></div>
-        </div>`;
+        h+=`<div class="node-summary"><div class="summary-line"><span class="summary-label">Gesamt-Umsatz:</span><span class="summary-value positive">€<span id="umsatz-${nodeId}">0</span></span></div><div class="summary-line"><span class="summary-label">Basis-Std:</span><span class="summary-value"><span id="basis-hours-${nodeId}">0</span> Std</span></div><div class="summary-line"><span class="summary-label">L1 Std:</span><span class="summary-value"><span id="level1-hours-${nodeId}">0</span> Std</span></div><div class="summary-line"><span class="summary-label">L2 Std:</span><span class="summary-value"><span id="level2-hours-${nodeId}">0</span> Std</span></div><div class="summary-divider"></div><div class="summary-line"><span class="summary-label">Helfer-Basis:</span><span class="summary-value negative">−€<span id="helfer-${nodeId}">0</span></span></div><div class="summary-line"><span class="summary-label">Prov Ebene 1:</span><span class="summary-value negative">−€<span id="provision1-${nodeId}">0</span></span></div><div class="summary-line"><span class="summary-label">Prov Ebene 2:</span><span class="summary-value negative">−€<span id="provision2-${nodeId}">0</span></span></div><div class="summary-line"><span class="summary-label">Prov Gesamt:</span><span class="summary-value negative">−€<span id="provisionen-${nodeId}">0</span></span></div><div class="summary-divider"></div><div class="summary-line summary-total"><span>Netto-Gewinn:</span><span class="summary-value positive">€<span id="total-${nodeId}">0</span></span></div></div>`;
     }else if(type==='kunde'){
         const ug=data.useGlobalValues!==undefined?data.useGlobalValues:true;
-        h+=`<div class="checkbox-field"><input type="checkbox" id="sync-${nodeId}" data-field="useGlobalValues" ${ug?'checked':''}>
-            <label for="sync-${nodeId}">🔗 Globale Werte</label></div>
-            <div class="node-field"><label>Stunden/Monat</label>
-            <input type="number" value="${data.stunden}" data-field="stunden" min="0" max="200" ${ug?'disabled':''}></div>
-            <div class="node-summary"><div class="summary-line summary-total"><span>Zahlt:</span><span class="summary-value">€<span id="total-${nodeId}">0</span></span></div></div>`;
+        h+=`<div class="checkbox-field"><input type="checkbox" id="sync-${nodeId}" data-field="useGlobalValues" ${ug?'checked':''}><label for="sync-${nodeId}">🔗 Globale Werte</label></div><div class="node-field"><label>Stunden/Monat</label><input type="number" value="${data.stunden}" data-field="stunden" min="0" max="200" ${ug?'disabled':''}></div><div class="node-summary"><div class="summary-line summary-total"><span>Zahlt:</span><span class="summary-value">€<span id="total-${nodeId}">0</span></span></div></div>`;
     }else if(type==='custom'){
-        h+=`<div class="node-field"><label>Wert</label><input type="number" value="${data.wert}" data-field="wert" min="0" max="10000"></div>
-            <div class="node-field"><label>Formel</label><input type="text" value="${data.formel}" data-field="formel"></div>
-            <div class="node-summary"><div class="summary-line summary-total"><span>Ergebnis:</span><span class="summary-value">€<span id="total-${nodeId}">0</span></span></div></div>`;
+        h+=`<div class="node-field"><label>Wert</label><input type="number" value="${data.wert}" data-field="wert" min="0" max="10000"></div><div class="node-field"><label>Formel</label><input type="text" value="${data.formel}" data-field="formel"></div><div class="node-summary"><div class="summary-line summary-total"><span>Ergebnis:</span><span class="summary-value">€<span id="total-${nodeId}">0</span></span></div></div>`;
     }else{
         const ug=data.useGlobalValues!==undefined?data.useGlobalValues:true;
-        h+=`<div class="checkbox-field"><input type="checkbox" id="sync-${nodeId}" data-field="useGlobalValues" ${ug?'checked':''}>
-            <label for="sync-${nodeId}">🔗 Globale Werte</label></div>
-            <div class="node-field"><label>Kundenstunden (auto)</label><input type="number" value="${data.stunden}" data-field="stunden" disabled style="opacity:0.7;"></div>
-            <div class="node-field"><label>Lohn/Std (€)</label><input type="number" value="${data.lohnProStunde.toFixed(2)}" data-field="lohnProStunde" min="10" max="100" step="0.5" ${ug?'disabled':''}></div>
-            <div class="node-summary">
-                <div class="summary-line"><span class="summary-label">Basis:</span><span class="summary-value">€<span id="basis-${nodeId}">0</span></span></div>
-                <div class="summary-line"><span class="summary-label">Ebene 1:</span><span class="summary-value"><span id="level1hours-${nodeId}">0</span> Std | €<span id="level1-${nodeId}">0</span></span></div>
-                <div class="summary-line"><span class="summary-label">Ebene 2:</span><span class="summary-value"><span id="level2hours-${nodeId}">0</span> Std | €<span id="level2-${nodeId}">0</span></span></div>
-                <div class="summary-line summary-total"><span>Gesamt:</span><span class="summary-value">€<span id="total-${nodeId}">0</span></span></div>
-            </div>`;
+        h+=`<div class="checkbox-field"><input type="checkbox" id="sync-${nodeId}" data-field="useGlobalValues" ${ug?'checked':''}><label for="sync-${nodeId}">🔗 Globale Werte</label></div><div class="node-field"><label>Kundenstunden (auto)</label><input type="number" value="${data.stunden}" data-field="stunden" disabled style="opacity:0.7;"></div><div class="node-field"><label>Lohn/Std (€)</label><input type="number" value="${data.lohnProStunde.toFixed(2)}" data-field="lohnProStunde" min="10" max="100" step="0.5" ${ug?'disabled':''}></div><div class="node-summary"><div class="summary-line"><span class="summary-label">Basis:</span><span class="summary-value">€<span id="basis-${nodeId}">0</span></span></div><div class="summary-line"><span class="summary-label">Ebene 1:</span><span class="summary-value"><span id="level1hours-${nodeId}">0</span> Std | €<span id="level1-${nodeId}">0</span></span></div><div class="summary-line"><span class="summary-label">Ebene 2:</span><span class="summary-value"><span id="level2hours-${nodeId}">0</span> Std | €<span id="level2-${nodeId}">0</span></span></div><div class="summary-line summary-total"><span>Gesamt:</span><span class="summary-value">€<span id="total-${nodeId}">0</span></span></div></div>`;
     }
     h+=`</div>`;
     if(type!=='kunde')h+=`<div class="port-bottom" data-node="${nodeId}" data-port="bottom"></div>`;
@@ -1212,19 +550,31 @@ function updateNodeData(nid){
 }
 
 function toggleNodeSelection(nid,e){
-    const ne=document.getElementById(nid);if(!ne)return;
+    const ne=document.getElementById(nid);
+    if(!ne)return;
     if(e&&(e.ctrlKey||e.metaKey)){
-        if(selectedNodes.includes(nid)){selectedNodes=selectedNodes.filter(id=>id!==nid);ne.classList.remove('selected');}
-        else{selectedNodes.push(nid);ne.classList.add('selected');}
+        if(selectedNodes.includes(nid)){
+            selectedNodes=selectedNodes.filter(id=>id!==nid);
+            ne.classList.remove('selected');
+        }else{
+            selectedNodes.push(nid);
+            ne.classList.add('selected');
+        }
     }else{
-        deselectAll();selectedNodes=[nid];ne.classList.add('selected');
+        deselectAll();
+        selectedNodes=[nid];
+        ne.classList.add('selected');
     }
     updateSelectionUI();
 }
 
 function deselectAll(){
-    selectedNodes.forEach(nid=>{const ne=document.getElementById(nid);if(ne)ne.classList.remove('selected');});
-    selectedNodes=[];updateSelectionUI();
+    selectedNodes.forEach(nid=>{
+        const ne=document.getElementById(nid);
+        if(ne)ne.classList.remove('selected');
+    });
+    selectedNodes=[];
+    updateSelectionUI();
 }
 
 function updateSelectionUI(){
@@ -1232,13 +582,17 @@ function updateSelectionUI(){
     document.getElementById('groupBtn').disabled=selectedNodes.length<2;
     document.getElementById('ungroupBtn').disabled=selectedNodes.length===0;
     const dgi=document.getElementById('duplicateGroupItem');
-    if(selectedNodes.length>1)dgi.classList.remove('disabled');else dgi.classList.add('disabled');
+    if(selectedNodes.length>1)dgi.classList.remove('disabled');
+    else dgi.classList.add('disabled');
 }
 
 function groupSelected(){
     if(selectedNodes.length<2)return;
     const gid=`group-${++groupIdCounter}`;
-    selectedNodes.forEach(nid=>{const nd=nodes.find(n=>n.id===nid);if(nd)nd.groupId=gid;});
+    selectedNodes.forEach(nid=>{
+        const nd=nodes.find(n=>n.id===nid);
+        if(nd)nd.groupId=gid;
+    });
     groups.push({id:gid,nodes:[...selectedNodes],name:`Gruppe ${groupIdCounter}`});
     renderGroups();
 }
@@ -1248,7 +602,10 @@ function ungroupSelected(){
     const gtr=new Set();
     selectedNodes.forEach(nid=>{
         const nd=nodes.find(n=>n.id===nid);
-        if(nd&&nd.groupId){gtr.add(nd.groupId);nd.groupId=null;}
+        if(nd&&nd.groupId){
+            gtr.add(nd.groupId);
+            nd.groupId=null;
+        }
     });
     groups=groups.filter(g=>!gtr.has(g.id));
     renderGroups();
@@ -1261,72 +618,170 @@ function renderGroups(){
         if(gns.length===0)return;
         let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
         gns.forEach(nd=>{
-            const ne=document.getElementById(nd.id);if(!ne)return;
+            const ne=document.getElementById(nd.id);
+            if(!ne)return;
             const w=ne.offsetWidth,h=ne.offsetHeight;
-            minX=Math.min(minX,nd.x);minY=Math.min(minY,nd.y);
-            maxX=Math.max(maxX,nd.x+w);maxY=Math.max(maxY,nd.y+h);
+            minX=Math.min(minX,nd.x);
+            minY=Math.min(minY,nd.y);
+            maxX=Math.max(maxX,nd.x+w);
+            maxY=Math.max(maxY,nd.y+h);
         });
         const p=20,f=document.createElement('div');
         f.className='group-frame';
-        f.style.left=(minX-p)+'px';f.style.top=(minY-p)+'px';
-        f.style.width=(maxX-minX+p*2)+'px';f.style.height=(maxY-minY+p*2)+'px';
-        f.innerHTML=`<div class="group-label">${g.name}</div>
-            <button class="group-duplicate-btn" onclick="duplicateGroupById('${g.id}')">📋</button>
-            <button class="group-delete-btn" onclick="deleteGroupById('${g.id}')">×</button>`;
+        f.dataset.groupId=g.id;
+        f.style.left=(minX-p)+'px';
+        f.style.top=(minY-p)+'px';
+        f.style.width=(maxX-minX+p*2)+'px';
+        f.style.height=(maxY-minY+p*2)+'px';
+        f.innerHTML=`<div class="group-label">${g.name}</div><button class="group-duplicate-btn" onclick="event.stopPropagation(); duplicateGroupById('${g.id}')">📋</button><button class="group-delete-btn" onclick="event.stopPropagation(); deleteGroupById('${g.id}')">×</button>`;
+        f.addEventListener('mousedown',startDragGroup);
+        f.addEventListener('click',e=>{
+            if(e.target===f){
+                selectGroup(g.id);
+            }
+        });
         canvas.appendChild(f);
     });
 }
 
+function startDragGroup(e){
+    if(e.target.tagName==='BUTTON')return;
+    const frame=e.currentTarget;
+    const gid=frame.dataset.groupId;
+    const group=groups.find(g=>g.id===gid);
+    if(!group)return;
+    isDraggingGroup=true;
+    draggedGroupId=gid;
+    dragStartX=e.clientX;
+    dragStartY=e.clientY;
+    groupDragOffsets=group.nodes.map(nid=>{
+        const nd=nodes.find(n=>n.id===nid);
+        return {id:nid,startX:nd.x,startY:nd.y};
+    });
+    frame.style.cursor='grabbing';
+    e.stopPropagation();
+    e.preventDefault();
+}
+
+function dragGroup(e){
+    if(!isDraggingGroup||!draggedGroupId)return;
+    const dx=(e.clientX-dragStartX)/currentZoom;
+    const dy=(e.clientY-dragStartY)/currentZoom;
+    groupDragOffsets.forEach(({id,startX,startY})=>{
+        let nx=startX+dx,ny=startY+dy;
+        if(snapToGrid){
+            const gs=parseInt(document.getElementById('gridSize').value);
+            nx=Math.round(nx/gs)*gs;
+            ny=Math.round(ny/gs)*gs;
+        }
+        const el=document.getElementById(id);
+        if(el){
+            el.style.left=nx+'px';
+            el.style.top=ny+'px';
+        }
+        const nd=nodes.find(n=>n.id===id);
+        if(nd){
+            nd.x=nx;
+            nd.y=ny;
+        }
+    });
+    redrawConnections();
+    renderGroups();
+}
+
+function endDragGroup(){
+    if(isDraggingGroup){
+        const frame=document.querySelector(`.group-frame[data-group-id="${draggedGroupId}"]`);
+        if(frame)frame.style.cursor='move';
+    }
+    isDraggingGroup=false;
+    draggedGroupId=null;
+    groupDragOffsets=[];
+}
+
+function selectGroup(gid){
+    const group=groups.find(g=>g.id===gid);
+    if(!group)return;
+    deselectAll();
+    selectedNodes=[...group.nodes];
+    selectedNodes.forEach(nid=>{
+        const ne=document.getElementById(nid);
+        if(ne)ne.classList.add('selected');
+    });
+    updateSelectionUI();
+}
+
 function duplicateGroupById(gid){
-    const g=groups.find(gr=>gr.id===gid);if(!g)return;
-    deselectAll();selectedNodes=[...g.nodes];
-    selectedNodes.forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('selected');});
+    const g=groups.find(gr=>gr.id===gid);
+    if(!g)return;
+    deselectAll();
+    selectedNodes=[...g.nodes];
+    selectedNodes.forEach(id=>{
+        const e=document.getElementById(id);
+        if(e)e.classList.add('selected');
+    });
     duplicateGroup();
 }
 
 function deleteGroupById(gid){
-    const g=groups.find(gr=>gr.id===gid);if(!g)return;
+    const g=groups.find(gr=>gr.id===gid);
+    if(!g)return;
     if(!confirm(`Gruppe "${g.name}" mit ${g.nodes.length} Nodes löschen?`))return;
-    g.nodes.forEach(nid=>{const n=document.getElementById(nid);if(n)n.remove();});
+    g.nodes.forEach(nid=>{
+        const n=document.getElementById(nid);
+        if(n)n.remove();
+    });
     nodes=nodes.filter(n=>!g.nodes.includes(n.id));
     connections=connections.filter(c=>!g.nodes.includes(c.from)&&!g.nodes.includes(c.to));
     selectedNodes=selectedNodes.filter(id=>!g.nodes.includes(id));
     groups=groups.filter(gr=>gr.id!==gid);
-    redrawConnections();renderGroups();calculateAll();updateSelectionUI();setStatus(`Gruppe gelöscht ✓`);
+    redrawConnections();
+    renderGroups();
+    calculateAll();
+    updateSelectionUI();
+    setStatus(`Gruppe gelöscht ✓`);
 }
 
 function openEditModal(nid){
-    const nd=nodes.find(n=>n.id===nid);if(!nd)return;
+    const nd=nodes.find(n=>n.id===nid);
+    if(!nd)return;
     editingNodeId=nid;
     document.getElementById('modalName').value=nd.data.name||'';
     const tf=document.getElementById('modalTypeField');
     if(nd.type==='betreuer'||nd.type==='teamleiter'||nd.type==='teamleiterplus'){
-        tf.style.display='block';document.getElementById('modalType').value=nd.type;
+        tf.style.display='block';
+        document.getElementById('modalType').value=nd.type;
     }else tf.style.display='none';
     document.getElementById('modalOverlay').classList.add('active');
 }
 
-function closeModal(){document.getElementById('modalOverlay').classList.remove('active');editingNodeId=null;}
+function closeModal(){
+    document.getElementById('modalOverlay').classList.remove('active');
+    editingNodeId=null;
+}
 
 function saveModal(){
     if(!editingNodeId)return;
-    const nd=nodes.find(n=>n.id===editingNodeId);if(!nd)return;
-    const nn=document.getElementById('modalName').value;
-    const nt=document.getElementById('modalType').value;
+    const nd=nodes.find(n=>n.id===editingNodeId);
+    if(!nd)return;
+    const nn=document.getElementById('modalName').value,nt=document.getElementById('modalType').value;
     nd.data.name=nn;
     const cct=['betreuer','teamleiter','teamleiterplus'].includes(nd.type);
     if(cct&&nd.type!==nt){
         nd.type=nt;
         const ne=document.getElementById(editingNodeId);
-        const ox=nd.x,oy=nd.y;ne.remove();
+        const ox=nd.x,oy=nd.y;
+        ne.remove();
         const nne=document.createElement('div');
-        nne.className=`node ${nt}`;nne.id=editingNodeId;
+        nne.className=`node ${nt}`;
+        nne.id=editingNodeId;
         nne.innerHTML=generateNodeHTML(nt,nd.data,editingNodeId);
-        nne.style.left=ox+'px';nne.style.top=oy+'px';
+        nne.style.left=ox+'px';
+        nne.style.top=oy+'px';
         nne.addEventListener('mousedown',startDragNode);
         nne.addEventListener('dblclick',e=>{
-            if(!e.target.classList.contains('port-top')&&!e.target.classList.contains('port-bottom')&&
-                e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')openEditModal(editingNodeId);
+            if(!e.target.classList.contains('port-top')&&!e.target.classList.contains('port-bottom')&&e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')
+                openEditModal(editingNodeId);
         });
         const tp=nne.querySelector('.port-top'),bp=nne.querySelector('.port-bottom');
         if(tp)tp.addEventListener('mousedown',startConnection);
@@ -1335,7 +790,9 @@ function saveModal(){
         if(sc)sc.addEventListener('change',e=>{
             const li=nne.querySelector('input[data-field="lohnProStunde"]');
             if(li)li.disabled=e.target.checked;
-            updateNodeData(editingNodeId);syncGlobalValues();calculateAll();
+            updateNodeData(editingNodeId);
+            syncGlobalValues();
+            calculateAll();
         });
         nne.querySelectorAll('input[data-field]').forEach(inp=>{
             if(inp.type!=='checkbox')inp.addEventListener('change',()=>{updateNodeData(editingNodeId);calculateAll();});
@@ -1347,47 +804,70 @@ function saveModal(){
         const h=document.querySelector(`#${editingNodeId} .node-header span`);
         if(h)h.textContent=`${getIcon(nd.type)} ${nn}`;
     }
-    closeModal();calculateAll();redrawConnections();
+    closeModal();
+    calculateAll();
+    redrawConnections();
 }
 
 function startDragNode(e){
-    if(e.target.classList.contains('port-top')||e.target.classList.contains('port-bottom')||
-        e.target.tagName==='INPUT'||e.target.tagName==='BUTTON'||e.target.tagName==='LABEL')return;
+    if(e.target.classList.contains('port-top')||e.target.classList.contains('port-bottom')||e.target.tagName==='INPUT'||e.target.tagName==='BUTTON'||e.target.tagName==='LABEL')return;
     draggedNode=e.currentTarget;
     const nid=draggedNode.id;
-    if(e.ctrlKey||e.metaKey){toggleNodeSelection(nid,e);return;}
+    if(e.ctrlKey||e.metaKey){
+        toggleNodeSelection(nid,e);
+        return;
+    }
     if(!selectedNodes.includes(nid))toggleNodeSelection(nid,e);
-    const nd=nodes.find(n=>n.id===draggedNode.id);if(!nd)return;
-    dragStartX=e.clientX;dragStartY=e.clientY;nodeStartX=nd.x;nodeStartY=nd.y;
+    const nd=nodes.find(n=>n.id===draggedNode.id);
+    if(!nd)return;
+    dragStartX=e.clientX;
+    dragStartY=e.clientY;
+    nodeStartX=nd.x;
+    nodeStartY=nd.y;
     multiDragOffsets=selectedNodes.map(id=>{
         const n=nodes.find(node=>node.id===id);
         return{id:id,offsetX:n.x-nd.x,offsetY:n.y-nd.y};
     });
-    isDragging=true;draggedNode.style.cursor='grabbing';
-    e.stopPropagation();e.preventDefault();
+    isDragging=true;
+    draggedNode.style.cursor='grabbing';
+    e.stopPropagation();
+    e.preventDefault();
 }
 
 function dragNode(e){
     if(!isDragging||!draggedNode)return;
-    const dx=e.clientX-dragStartX,dy=e.clientY-dragStartY;
+    const dx=(e.clientX-dragStartX)/currentZoom,dy=(e.clientY-dragStartY)/currentZoom;
     multiDragOffsets.forEach(({id,offsetX,offsetY})=>{
         let nx=nodeStartX+dx+offsetX,ny=nodeStartY+dy+offsetY;
-        if(snapToGrid){const gs=parseInt(document.getElementById('gridSize').value);nx=Math.round(nx/gs)*gs;ny=Math.round(ny/gs)*gs;}
+        if(snapToGrid){
+            const gs=parseInt(document.getElementById('gridSize').value);
+            nx=Math.round(nx/gs)*gs;
+            ny=Math.round(ny/gs)*gs;
+        }
         const el=document.getElementById(id);
-        if(el){el.style.left=nx+'px';el.style.top=ny+'px';}
+        if(el){
+            el.style.left=nx+'px';
+            el.style.top=ny+'px';
+        }
         const nd=nodes.find(n=>n.id===id);
-        if(nd){nd.x=nx;nd.y=ny;}
+        if(nd){
+            nd.x=nx;
+            nd.y=ny;
+        }
     });
-    redrawConnections();renderGroups();
+    redrawConnections();
+    renderGroups();
 }
 
 function endDragNode(){
     if(draggedNode)draggedNode.style.cursor='move';
-    isDragging=false;draggedNode=null;
+    isDragging=false;
+    draggedNode=null;
 }
 
 function startConnection(e){
-    e.stopPropagation();e.preventDefault();
+    e.stopPropagation();
+    e.preventDefault();
     isConnecting=true;
     const p=e.target;
     connectingFrom={nodeId:p.dataset.node,port:p.dataset.port,element:p};
@@ -1396,7 +876,11 @@ function startConnection(e){
 
 function handleMouseMove(e){
     if(isDragging)dragNode(e);
-    else if(isConnecting&&connectingFrom){drawTempConnection(e);checkMagneticSnap(e);}
+    else if(isDraggingGroup)dragGroup(e);
+    else if(isConnecting&&connectingFrom){
+        drawTempConnection(e);
+        checkMagneticSnap(e);
+    }else if(isSelecting)updateSelection(e);
 }
 
 function checkMagneticSnap(e){
@@ -1410,17 +894,16 @@ function checkMagneticSnap(e){
         if(d<mr){
             const pt=p.dataset.port;
             if(connectingFrom.port==='bottom'&&pt==='top'&&p.dataset.node!==connectingFrom.nodeId){
-                p.classList.add('magnetic');hoveredPort=p;
+                p.classList.add('magnetic');
+                hoveredPort=p;
             }
         }
     });
 }
 
 function drawTempConnection(e){
-    const pr=connectingFrom.element.getBoundingClientRect();
-    const wr=canvasWrapper.getBoundingClientRect();
-    const x1=(pr.left-wr.left)/currentZoom+pr.width/(2*currentZoom);
-    const y1=(pr.top-wr.top)/currentZoom+pr.height/(2*currentZoom);
+    const pr=connectingFrom.element.getBoundingClientRect(),wr=canvasWrapper.getBoundingClientRect();
+    const x1=(pr.left-wr.left)/currentZoom+pr.width/(2*currentZoom),y1=(pr.top-wr.top)/currentZoom+pr.height/(2*currentZoom);
     let x2,y2;
     if(hoveredPort&&hoveredPort.classList.contains('magnetic')){
         const tr=hoveredPort.getBoundingClientRect();
@@ -1440,21 +923,31 @@ function drawTempConnection(e){
 function handleMouseUp(e){
     if(isConnecting)endConnection(e);
     else if(isDragging)endDragNode();
+    else if(isDraggingGroup)endDragGroup();
+    else if(isSelecting)endSelection();
 }
 
 function endConnection(e){
     if(!isConnecting)return;
     if(hoveredPort&&hoveredPort.classList.contains('magnetic')){
-        const tnid=hoveredPort.dataset.node;
-        const tp=hoveredPort.dataset.port;
+        const tnid=hoveredPort.dataset.node,tp=hoveredPort.dataset.port;
         if(connectingFrom.port==='bottom'&&tp==='top'&&connectingFrom.nodeId!==tnid){
             const ex=connections.find(c=>c.from===connectingFrom.nodeId&&c.to===tnid);
-            if(!ex){connections.push({from:connectingFrom.nodeId,to:tnid});redrawConnections();calculateAll();}
+            if(!ex){
+                connections.push({from:connectingFrom.nodeId,to:tnid});
+                redrawConnections();
+                calculateAll();
+            }
         }
     }
-    if(tempLine){connectionsLayer.removeChild(tempLine);tempLine=null;}
+    if(tempLine){
+        connectionsLayer.removeChild(tempLine);
+        tempLine=null;
+    }
     document.querySelectorAll('.port-top, .port-bottom').forEach(p=>p.classList.remove('magnetic'));
-    isConnecting=false;connectingFrom=null;hoveredPort=null;
+    isConnecting=false;
+    connectingFrom=null;
+    hoveredPort=null;
     canvas.classList.remove('connecting');
 }
 
@@ -1487,7 +980,11 @@ function createVerticalPath(x1,y1,x2,y2){
     return `M ${x1} ${y1} C ${x1} ${y1+c}, ${x2} ${y2-c}, ${x2} ${y2}`;
 }
 
-function deleteConnection(i){connections.splice(i,1);redrawConnections();calculateAll();}
+function deleteConnection(i){
+    connections.splice(i,1);
+    redrawConnections();
+    calculateAll();
+}
 
 function calculateAll(){
     const st=parseFloat(document.getElementById('stundensatz').value);
@@ -1500,7 +997,8 @@ function calculateAll(){
     nodes.forEach(n=>{
         if(n.type==='kunde'){
             const s=n.data.stunden||0,z=s*st;
-            tU+=z;n.calculated.total=z;
+            tU+=z;
+            n.calculated.total=z;
             const e=document.getElementById(`total-${n.id}`);
             if(e)e.textContent=z.toFixed(0);
         }
@@ -1513,7 +1011,9 @@ function calculateAll(){
                 const cn=nodes.find(nn=>nn.id===c.to);
                 if(cn&&cn.type==='kunde')dch+=cn.data.stunden||0;
             });
-            n.data.stunden=dch;n.calculated.basisHours=dch;tBH+=dch;
+            n.data.stunden=dch;
+            n.calculated.basisHours=dch;
+            tBH+=dch;
             const si=document.querySelector(`#${n.id} input[data-field="stunden"]`);
             if(si)si.value=dch;
         }
@@ -1521,7 +1021,8 @@ function calculateAll(){
     nodes.forEach(n=>{
         if(n.type==='betreuer'||n.type==='teamleiter'||n.type==='teamleiterplus'){
             const s=n.data.stunden||0,l=n.data.lohnProStunde||hs,b=s*l;
-            n.calculated.basis=b;tH+=b;
+            n.calculated.basis=b;
+            tH+=b;
             const l1d=connections.filter(c=>c.from===n.id);
             let level1Prov=0,level1Hrs=0;
             l1d.forEach(c=>{
@@ -1532,8 +1033,10 @@ function calculateAll(){
                     level1Hrs+=ds;
                 }
             });
-            n.calculated.level1=level1Prov;n.calculated.level1Hours=level1Hrs;
-            tP1+=level1Prov;tL1H+=level1Hrs;
+            n.calculated.level1=level1Prov;
+            n.calculated.level1Hours=level1Hrs;
+            tP1+=level1Prov;
+            tL1H+=level1Hrs;
             let level2Prov=0,level2Hrs=0;
             l1d.forEach(c=>{
                 const l1n=nodes.find(nn=>nn.id===c.to);
@@ -1549,15 +1052,12 @@ function calculateAll(){
                     });
                 }
             });
-            n.calculated.level2=level2Prov;n.calculated.level2Hours=level2Hrs;
-            tP2+=level2Prov;tL2H+=level2Hrs;
+            n.calculated.level2=level2Prov;
+            n.calculated.level2Hours=level2Hrs;
+            tP2+=level2Prov;
+            tL2H+=level2Hrs;
             n.calculated.total=b+level1Prov+level2Prov;
-            const be=document.getElementById(`basis-${n.id}`);
-            const l1he=document.getElementById(`level1hours-${n.id}`);
-            const l1e=document.getElementById(`level1-${n.id}`);
-            const l2he=document.getElementById(`level2hours-${n.id}`);
-            const l2e=document.getElementById(`level2-${n.id}`);
-            const te=document.getElementById(`total-${n.id}`);
+            const be=document.getElementById(`basis-${n.id}`),l1he=document.getElementById(`level1hours-${n.id}`),l1e=document.getElementById(`level1-${n.id}`),l2he=document.getElementById(`level2hours-${n.id}`),l2e=document.getElementById(`level2-${n.id}`),te=document.getElementById(`total-${n.id}`);
             if(be)be.textContent=b.toFixed(0);
             if(l1he)l1he.textContent=level1Hrs;
             if(l1e)l1e.textContent=level1Prov.toFixed(0);
@@ -1579,23 +1079,21 @@ function calculateAll(){
             }
         }
     });
-    tP=tP1+tP2;tF=tU-tH-tP;
+    tP=tP1+tP2;
+    tF=tU-tH-tP;
     const om=tU>0?(tF/tU*100):0;
     nodes.forEach(n=>{
         if(n.type==='firma'){
-            n.calculated.umsatz=tU;n.calculated.helferAuszahlung=tH;
-            n.calculated.provision1=tP1;n.calculated.provision2=tP2;
-            n.calculated.provisionen=tP;n.calculated.netto=tF;
-            n.calculated.basisHours=tBH;n.calculated.level1Hours=tL1H;n.calculated.level2Hours=tL2H;
-            const ue=document.getElementById(`umsatz-${n.id}`);
-            const he=document.getElementById(`helfer-${n.id}`);
-            const p1e=document.getElementById(`provision1-${n.id}`);
-            const p2e=document.getElementById(`provision2-${n.id}`);
-            const pe=document.getElementById(`provisionen-${n.id}`);
-            const te=document.getElementById(`total-${n.id}`);
-            const bhe=document.getElementById(`basis-hours-${n.id}`);
-            const l1he=document.getElementById(`level1-hours-${n.id}`);
-            const l2he=document.getElementById(`level2-hours-${n.id}`);
+            n.calculated.umsatz=tU;
+            n.calculated.helferAuszahlung=tH;
+            n.calculated.provision1=tP1;
+            n.calculated.provision2=tP2;
+            n.calculated.provisionen=tP;
+            n.calculated.netto=tF;
+            n.calculated.basisHours=tBH;
+            n.calculated.level1Hours=tL1H;
+            n.calculated.level2Hours=tL2H;
+            const ue=document.getElementById(`umsatz-${n.id}`),he=document.getElementById(`helfer-${n.id}`),p1e=document.getElementById(`provision1-${n.id}`),p2e=document.getElementById(`provision2-${n.id}`),pe=document.getElementById(`provisionen-${n.id}`),te=document.getElementById(`total-${n.id}`),bhe=document.getElementById(`basis-hours-${n.id}`),l1he=document.getElementById(`level1-hours-${n.id}`),l2he=document.getElementById(`level2-hours-${n.id}`);
             if(ue)ue.textContent=tU.toFixed(0);
             if(he)he.textContent=tH.toFixed(0);
             if(p1e)p1e.textContent=tP1.toFixed(0);
@@ -1640,10 +1138,12 @@ function updateFlowList(){
 
 function showContextMenu(e){
     e.preventDefault();
-    const t=e.target.closest('.node');if(!t)return;
+    const t=e.target.closest('.node');
+    if(!t)return;
     contextNode=t.id;
     const m=document.getElementById('contextMenu');
-    m.style.left=e.clientX+'px';m.style.top=e.clientY+'px';
+    m.style.left=e.clientX+'px';
+    m.style.top=e.clientY+'px';
     m.classList.add('active');
 }
 
@@ -1654,20 +1154,28 @@ function deleteNode(){
 }
 
 function deleteNodeById(nid){
-    const n=document.getElementById(nid);if(n)n.remove();
+    const n=document.getElementById(nid);
+    if(n)n.remove();
     nodes=nodes.filter(n=>n.id!==nid);
     connections=connections.filter(c=>c.from!==nid&&c.to!==nid);
     selectedNodes=selectedNodes.filter(id=>id!==nid);
-    redrawConnections();calculateAll();updateSelectionUI();
+    redrawConnections();
+    calculateAll();
+    updateSelectionUI();
 }
 
 function deleteSelectedNodes(){
     if(selectedNodes.length===0)return;
-    selectedNodes.forEach(nid=>{const n=document.getElementById(nid);if(n)n.remove();});
+    selectedNodes.forEach(nid=>{
+        const n=document.getElementById(nid);
+        if(n)n.remove();
+    });
     nodes=nodes.filter(n=>!selectedNodes.includes(n.id));
     connections=connections.filter(c=>!selectedNodes.includes(c.from)&&!selectedNodes.includes(c.to));
     selectedNodes=[];
-    redrawConnections();calculateAll();updateSelectionUI();
+    redrawConnections();
+    calculateAll();
+    updateSelectionUI();
 }
 
 function duplicateNode(){
@@ -1677,22 +1185,26 @@ function duplicateNode(){
 }
 
 function duplicateNodeById(nid){
-    const o=nodes.find(n=>n.id===nid);if(!o)return;
+    const o=nodes.find(n=>n.id===nid);
+    if(!o)return;
     const nnid=createNode(o.type,o.x+50,o.y+50,{...o.data});
     connections.forEach(c=>{
         if(c.from===nid)connections.push({from:nnid,to:c.to});
         if(c.to===nid)connections.push({from:c.from,to:nnid});
     });
-    redrawConnections();calculateAll();
+    redrawConnections();
+    calculateAll();
 }
 
 function duplicateGroup(){
     if(selectedNodes.length<2)return;
     const im={},of=50,nni=[];
     selectedNodes.forEach(oid=>{
-        const o=nodes.find(n=>n.id===oid);if(!o)return;
+        const o=nodes.find(n=>n.id===oid);
+        if(!o)return;
         const nid=createNode(o.type,o.x+of,o.y+of,{...o.data});
-        im[oid]=nid;nni.push(nid);
+        im[oid]=nid;
+        nni.push(nid);
     });
     connections.forEach(c=>{
         if(im[c.from]&&im[c.to])connections.push({from:im[c.from],to:im[c.to]});
@@ -1700,12 +1212,22 @@ function duplicateGroup(){
     const sngids=new Set(selectedNodes.map(id=>nodes.find(n=>n.id===id)?.groupId).filter(g=>g!=null));
     if(sngids.size>0){
         const ngid=`group-${++groupIdCounter}`;
-        nni.forEach(nid=>{const nd=nodes.find(n=>n.id===nid);if(nd)nd.groupId=ngid;});
+        nni.forEach(nid=>{
+            const nd=nodes.find(n=>n.id===nid);
+            if(nd)nd.groupId=ngid;
+        });
         groups.push({id:ngid,nodes:nni,name:`Gruppe ${groupIdCounter}`});
     }
-    deselectAll();selectedNodes=nni;
-    selectedNodes.forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('selected');});
-    redrawConnections();renderGroups();calculateAll();updateSelectionUI();
+    deselectAll();
+    selectedNodes=nni;
+    selectedNodes.forEach(id=>{
+        const e=document.getElementById(id);
+        if(e)e.classList.add('selected');
+    });
+    redrawConnections();
+    renderGroups();
+    calculateAll();
+    updateSelectionUI();
 }
 
 function updateStats(){
@@ -1715,59 +1237,219 @@ function updateStats(){
     document.getElementById('statKunden').textContent=nodes.filter(n=>n.type==='kunde').length;
 }
 
-function setStatus(t){document.getElementById('statusText').textContent=t;}
+function setStatus(t){
+    document.getElementById('statusText').textContent=t;
+}
 
 function clearCanvas(){
     if(!confirm('Wirklich alle Nodes löschen?'))return;
     canvas.innerHTML='';
-    nodes=[];connections=[];groups=[];selectedNodes=[];
-    nodeIdCounter=0;groupIdCounter=0;
-    redrawConnections();calculateAll();updateSelectionUI();
+    nodes=[];
+    connections=[];
+    groups=[];
+    selectedNodes=[];
+    nodeIdCounter=0;
+    groupIdCounter=0;
+    redrawConnections();
+    calculateAll();
+    updateSelectionUI();
 }
 
 function autoLayout(){
     let y=100;
-    const fn=nodes.filter(n=>n.type==='firma');
-    const hn=nodes.filter(n=>n.type==='betreuer'||n.type==='teamleiter'||n.type==='teamleiterplus');
-    const kn=nodes.filter(n=>n.type==='kunde');
-    const cn=nodes.filter(n=>n.type==='custom');
+    const fn=nodes.filter(n=>n.type==='firma'),hn=nodes.filter(n=>n.type==='betreuer'||n.type==='teamleiter'||n.type==='teamleiterplus'),kn=nodes.filter(n=>n.type==='kunde'),cn=nodes.filter(n=>n.type==='custom');
     fn.forEach(nd=>{
         const n=document.getElementById(nd.id);
-        n.style.left='400px';n.style.top=y+'px';
-        nd.x=400;nd.y=y;y+=250;
+        n.style.left='400px';
+        n.style.top=y+'px';
+        nd.x=400;
+        nd.y=y;
+        y+=250;
     });
-    y+=50;let x=100;
+    y+=50;
+    let x=100;
     hn.forEach(nd=>{
         const n=document.getElementById(nd.id);
-        n.style.left=x+'px';n.style.top=y+'px';
-        nd.x=x;nd.y=y;x+=250;
-        if(x>700){x=100;y+=350;}
+        n.style.left=x+'px';
+        n.style.top=y+'px';
+        nd.x=x;
+        nd.y=y;
+        x+=250;
+        if(x>700){
+            x=100;
+            y+=350;
+        }
     });
-    y+=350;x=100;
+    y+=350;
+    x=100;
     kn.forEach(nd=>{
         const n=document.getElementById(nd.id);
-        n.style.left=x+'px';n.style.top=y+'px';
-        nd.x=x;nd.y=y;x+=250;
+        n.style.left=x+'px';
+        n.style.top=y+'px';
+        nd.x=x;
+        nd.y=y;
+        x+=250;
     });
     x+=100;
     cn.forEach(nd=>{
         const n=document.getElementById(nd.id);
-        n.style.left=x+'px';n.style.top=y+'px';
-        nd.x=x;nd.y=y;x+=250;
+        n.style.left=x+'px';
+        n.style.top=y+'px';
+        nd.x=x;
+        nd.y=y;
+        x+=250;
     });
-    redrawConnections();renderGroups();
+    redrawConnections();
+    renderGroups();
 }
 
-function exportGraph(){
-    const d=JSON.stringify({nodes,connections,groups},null,2);
-    const b=new Blob([d],{type:'application/json'});
-    const u=URL.createObjectURL(b);
-    const a=document.createElement('a');
-    a.href=u;a.download='vitakreis-mlm-graph.json';a.click();
+async function exportPDF(){
+    setStatus('Erstelle PDF...');
+    try{
+        const {jsPDF}=window.jspdf;
+        const pdf=new jsPDF('l','mm','a3');
+        
+        // Seite 1: Canvas
+        const scale=2;
+        const captureCanvas=await html2canvas(canvasWrapper,{scale:scale,backgroundColor:'#2B2B2B',logging:false,useCORS:true});
+        const imgData=captureCanvas.toDataURL('image/png');
+        const pdfWidth=pdf.internal.pageSize.getWidth(),pdfHeight=pdf.internal.pageSize.getHeight();
+        const imgWidth=captureCanvas.width,imgHeight=captureCanvas.height;
+        const ratio=Math.min(pdfWidth/imgWidth,pdfHeight/imgHeight);
+        const imgX=(pdfWidth-imgWidth*ratio)/2,imgY=30;
+        pdf.setFontSize(20);
+        pdf.text('VitaKreis MLM Node Editor',pdfWidth/2,20,{align:'center'});
+        pdf.addImage(imgData,'PNG',imgX,imgY,imgWidth*ratio,imgHeight*ratio);
+        
+        // Seite 2: Global Settings + Analytics
+        pdf.addPage();
+        pdf.setFontSize(20);
+        pdf.text('Global Settings & Analytics',pdfWidth/2,20,{align:'center'});
+        
+        let yPos=40;
+        pdf.setFontSize(14);
+        pdf.setFont(undefined,'bold');
+        pdf.text('Global Settings',20,yPos);
+        yPos+=10;
+        pdf.setFont(undefined,'normal');
+        pdf.setFontSize(11);
+        
+        const gridSize=document.getElementById('gridSize').value;
+        const stundensatz=document.getElementById('stundensatz').value;
+        const kundenStunden=document.getElementById('kundenStunden').value;
+        const marge=document.getElementById('marge').value;
+        const level1=document.getElementById('level1').value;
+        const level2=document.getElementById('level2').value;
+        const magneticRadius=document.getElementById('magneticRadius').value;
+        
+        pdf.text(`Grid Size: ${gridSize}px`,25,yPos);
+        yPos+=7;
+        pdf.text(`Stundensatz Kunde: ${stundensatz}€`,25,yPos);
+        yPos+=7;
+        pdf.text(`Kundenstunden/Monat: ${kundenStunden} Std`,25,yPos);
+        yPos+=7;
+        pdf.text(`Firmenmarge: ${marge}%`,25,yPos);
+        yPos+=7;
+        pdf.text(`Provision Ebene 1: ${level1}%`,25,yPos);
+        yPos+=7;
+        pdf.text(`Provision Ebene 2: ${level2}%`,25,yPos);
+        yPos+=7;
+        pdf.text(`Magnetic Radius: ${magneticRadius}
+
+px`,25,yPos);
+        yPos+=15;
+        
+        // Analytics Section
+        yPos+=10;
+        pdf.setFont(undefined,'bold');
+        pdf.setFontSize(14);
+        pdf.text('Live Analytics',20,yPos);
+        yPos+=10;
+        pdf.setFont(undefined,'normal');
+        pdf.setFontSize(11);
+        
+        const analyticsUmsatz=document.getElementById('analyticsUmsatz').textContent;
+        const analyticsFirma=document.getElementById('analyticsFirma').textContent;
+        const analyticsMargin=document.getElementById('analyticsMargin').textContent;
+        const analyticsHelfer=document.getElementById('analyticsHelfer').textContent;
+        const analyticsProvisionen=document.getElementById('analyticsProvisionen').textContent;
+        
+        pdf.text(`Gesamt-Umsatz (Monat): ${analyticsUmsatz}`,25,yPos);
+        yPos+=7;
+        pdf.text(`Firmen-Einkommen: ${analyticsFirma}`,25,yPos);
+        yPos+=7;
+        pdf.text(`Operating Margin: ${analyticsMargin}`,25,yPos);
+        yPos+=7;
+        pdf.text(`Helfer-Basis (gesamt): ${analyticsHelfer}`,25,yPos);
+        yPos+=7;
+        pdf.text(`Provisionen (gesamt): ${analyticsProvisionen}`,25,yPos);
+        yPos+=15;
+        
+        // Stunden-Übersicht
+        pdf.setFont(undefined,'bold');
+        pdf.setFontSize(14);
+        pdf.text('Stunden-Übersicht',20,yPos);
+        yPos+=10;
+        pdf.setFont(undefined,'normal');
+        pdf.setFontSize(11);
+        
+        const statHoursBasis=document.getElementById('statHoursBasis').textContent;
+        const statHoursLevel1=document.getElementById('statHoursLevel1').textContent;
+        const statHoursLevel2=document.getElementById('statHoursLevel2').textContent;
+        
+        pdf.text(`Basis-Stunden: ${statHoursBasis} Std`,25,yPos);
+        yPos+=7;
+        pdf.text(`Ebene 1 Stunden: ${statHoursLevel1} Std`,25,yPos);
+        yPos+=7;
+        pdf.text(`Ebene 2 Stunden: ${statHoursLevel2} Std`,25,yPos);
+        yPos+=15;
+        
+        // Statistiken
+        pdf.setFont(undefined,'bold');
+        pdf.setFontSize(14);
+        pdf.text('Statistiken',20,yPos);
+        yPos+=10;
+        pdf.setFont(undefined,'normal');
+        pdf.setFontSize(11);
+        
+        const statNodes=document.getElementById('statNodes').textContent;
+        const statSelected=document.getElementById('statSelected').textContent;
+        const statConnections=document.getElementById('statConnections').textContent;
+        const statHelfer=document.getElementById('statHelfer').textContent;
+        const statKunden=document.getElementById('statKunden').textContent;
+        
+        pdf.text(`Nodes: ${statNodes}`,25,yPos);
+        yPos+=7;
+        pdf.text(`Selected: ${statSelected}`,25,yPos);
+        yPos+=7;
+        pdf.text(`Connections: ${statConnections}`,25,yPos);
+        yPos+=7;
+        pdf.text(`Aktive Helfer: ${statHelfer}`,25,yPos);
+        yPos+=7;
+        pdf.text(`Kunden: ${statKunden}`,25,yPos);
+        
+        const date=new Date().toLocaleDateString('de-DE');
+        pdf.save(`vitakreis-mlm-graph-${date}.pdf`);
+        setStatus('PDF erfolgreich exportiert ✓');
+    }catch(err){
+        console.error('PDF Export Error:',err);
+        setStatus('PDF Export fehlgeschlagen ✗');
+        alert('Fehler beim Erstellen des PDFs. Bitte versuchen Sie es erneut.');
+    }
 }
 
-function loadTemplate1(){
-    clearCanvas();
+function loadTemplate1(silent=false){
+    if(!silent&&!isInitialLoad){
+        if(!confirm('Wirklich alle Nodes löschen?'))return;
+    }
+    isInitialLoad=false;
+    canvas.innerHTML='';
+    nodes=[];
+    connections=[];
+    groups=[];
+    selectedNodes=[];
+    nodeIdCounter=0;
+    groupIdCounter=0;
     const fid=createNode('firma',350,80,{name:'VitaKreis'});
     const mid=createNode('teamleiterplus',350,450,{name:'Michael',stunden:0,lohnProStunde:28,useGlobalValues:true});
     const maid=createNode('teamleiter',100,900,{name:'Maria',stunden:0,lohnProStunde:28,useGlobalValues:true});
@@ -1779,11 +1461,19 @@ function loadTemplate1(){
     const k2id=createNode('kunde',350,1850,{name:'Kunde B',stunden:5,useGlobalValues:true});
     const k3id=createNode('kunde',650,1850,{name:'Kunde C',stunden:5,useGlobalValues:true});
     connections.push({from:fid,to:mid},{from:mid,to:maid},{from:mid,to:pid},{from:maid,to:aid},{from:maid,to:tid},{from:pid,to:lid},{from:aid,to:k1id},{from:tid,to:k2id},{from:lid,to:k3id});
-    setTimeout(()=>redrawConnections(),100);calculateAll();
+    setTimeout(()=>redrawConnections(),100);
+    calculateAll();
 }
 
 function loadTemplateLarge(){
-    clearCanvas();
+    if(!confirm('Wirklich alle Nodes löschen?'))return;
+    canvas.innerHTML='';
+    nodes=[];
+    connections=[];
+    groups=[];
+    selectedNodes=[];
+    nodeIdCounter=0;
+    groupIdCounter=0;
     const fid=createNode('firma',2000,100,{name:'VitaKreis'});
     const tlpid=createNode('teamleiterplus',2000,400,{name:'MA Plus',stunden:0,lohnProStunde:28,useGlobalValues:true});
     connections.push({from:fid,to:tlpid});
@@ -1813,3 +1503,13 @@ function loadTemplateLarge(){
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
