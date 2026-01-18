@@ -427,28 +427,28 @@
         .faq-question { transition: all 0.3s ease; }
         .faq-question:hover { background-color: #f9f9f9; color: var(--accent-warm); }
 
+        
 
-
-/* Logo Styling - Exakte Größensteuerung */
+/* Logo Styling - Verhindert Bescheiden */
 .hero-logo {
     display: block;
-    width: 75% !important;   /* Zwingt das Logo auf 75% Breite auf dem Handy */
-    max-width: 280px;        /* Verhindert, dass es auf großen Handys zu riesig wird */
-    height: auto;            /* Behält das Seitenverhältnis bei (kein Beschneiden) */
-    margin-bottom: 15px;     /* Abstand zum Text/Badge darunter */
-    object-fit: contain;     /* Garantierte Anzeige des gesamten Bildes */
+    width: 75% !important;   /* Breite Handy */
+    max-width: 280px;        /* Damit es auf großen Handys nicht zu riesig wird */
+    height: auto !important; /* WICHTIG: Erhält das Seitenverhältnis */
+    object-fit: contain !important; /* Verhindert das Bescheiden/Abschneiden */
+    margin-bottom: 20px;     /* Abstand zum Text darunter */
+    align-self: flex-start;  /* Richtet es linksbündig am Text aus */
 }
 
-/* Anpassung für Desktop (Bildschirme ab 900px Breite) */
+/* Anpassung für Desktop */
 @media (min-width: 900px) {
     .hero-logo {
-        width: 25% !important; /* Zwingt das Logo auf 25% Breite auf dem Desktop */
-        max-width: 350px;      /* Maximale Breite für sehr große Monitore */
+        width: 25% !important; /* Breite Desktop */
+        max-width: 350px;
     }
 }
 
-
-
+        
 
     </style>
 </head>
