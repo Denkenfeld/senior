@@ -1347,6 +1347,36 @@ window.setAppState = function(data) {
             }
         }
     });
+
+
+
+
+
+    // === "ALLES-ÜBERWACHUNG" ===
+    // Damit wir wirklich jede Änderung mitbekommen!
+    setInterval(() => {
+        if (window.isAppReady) {
+           // Wir prüfen einfach alle 5 Sekunden, ob wir speichern sollen
+           // (Ist zwar etwas "dumm", aber fängt sicher alles ab)
+           window.saveToCloud();
+        }
+    }, 5000); // Alle 5 Sekunden speichern
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 </script>
 
 
