@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitakreis Onboarding Planer V3.7</title>
+    <style>
+        :root {
+            --primary: #2c7a7b; 
+            --primary-light: #e6fffa; 
+            --primary-dark: #234e52; 
+            --accent: #ed8936;
+            --bg: #f7fafc; 
+            --surface: #ffffff; 
+            --text: #2d3748; 
+            --text-light: #718096; 
+            --border: #e2e8f0;
+            --success: #48bb78; 
+            --running: #4299e1; 
+            --gray: #a0aec0; 
+            --radius: 8px; 
+            --shadow: 0 4px 6px -1px rgba(44, 122, 123, 0.1);
+        }
+
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; transition: background-color 0.3s, color 0.3s; }
+
+        /* --- SIDEBAR --- */
+        aside { width: 320px; min-width: 320px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; overflow-y: auto; z-index: 10; box-shadow: 2px 0 5px rgba(44, 122, 123, 0.05); transition: background-color 0.3s, border-color 0.3s; }
+        aside h2 { font-size: 1.3rem; color: var(--primary); margin-top: 0; margin-bottom: 15px; font-weight: 600; font-family: "Segoe UI", "Inter", system-ui, sans-serif; text-align: left;}
+        aside h3 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); margin-top: 25px; margin-bottom: 10px; letter-spacing: 1px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
+
+        .draggable-item { background: var(--surface); border: 1px solid var(--border); padding: 10px; margin-bottom: 8px; border-radius: var(--radius); cursor: grab; font-size: 0.9rem; display: flex; align-items: center; transition: all 0.2s; }
+
+        .status-box { 
+            display: inline-block; 
+            width: 22px; 
+            height: 22px; 
+            border: 1px solid var(--border); 
+            border-radius: 3px; 
+            text-align: center; 
+            line-height: 22px; 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            margin-right: 8px; 
+            background: var(--bg);
+            color: var(--text-light);
+            flex-shrink: 0;
+        }
+        .status-box.status-running { color: var(--running); background: #ebf8ff; }
+        .status-box.status-done { color: var(--success); background: #f0fff4; }
+
+        .draggable-item:hover { border-color: var(--accent); transform: translateX(3px); box-shadow: var(--shadow); }
+
+
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .panel-toggle-btn { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 5px 8px; color: var(--primary); transition: transform 0.2s; border-radius: 4px; }
+        .panel-toggle-btn:hover { background: var(--primary-light); }
+        .panel-toggle-btn.collapsed::before { content: '▲'; }
+        .panel-toggle-btn::before { content: '▼'; }
+
+        aside.panel-collapsed .module-section { display: none; }
+
+        .module-section { transition: max-height 0.3s ease; }
+        .module-section.section-collapsed { max-height: 0; overflow: hidden; display: none; }
+        h3.section-header { cursor: pointer; user-select: none; transition: color 0.2s; }
+        h3.section-header:hover { color: var(--primary-dark); }
+.custom-input-wrapper { display: flex; align-items: center; margin-top: 5px; background: var(--primary-light); border: 1px dashed var(--gray); border-radius: var(--radius); padding: 5px; }
+        .custom-input { border: none; background: transparent; width: 100%; padding: 5px; font-size: 0.85rem; outline: none; }
+        .custom-drag-handle { cursor: grab; font-size: 1.2rem; color: var(--primary); padding: 0 8px; }
+
+        /* Person Chips */
+        .person-chip { 
+            background: var(--surface); 
+            border: 1px solid var(--border); 
+            padding: 5px 10px; 
+            border-radius: 20px; 
+            margin-bottom: 8px; 
+            cursor: grab; 
+            display: flex; 
+            align-items: center; 
+            font-weight: 500; 
+            font-size: 0.9rem; 
+            position: relative; 
+        }
+
+        .person-chip-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 8px;
+            border: 2px solid white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .person-chip-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .person-name-input { border: none; background: transparent; font-weight: 500; font-size: 0.85rem; outline: none; flex: 1; padding: 2px 5px; }
+        .color-picker { 
+            width: 0;
+            height: 0;
+            border: none; 
+            padding: 0; 
+            background: transparent; 
+            cursor: pointer; 
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .person-delete { color: #d4866f; cursor: pointer; font-size: 1.1rem; margin-left: 5px; visibility: hidden; }
+        .person-chip:hover .person-delete { visibility: visible; }
+
+        .add-person-btn {
+            width: 100%;
+            border: 2px dashed var(--gray);
+            background-color: transparent;
+            color: var(--primary);
+            padding: 10px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .add-person-btn:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        /* Color Picker Popup */
+        .color-picker-popup {
+            position: fixed;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            padding: 15px;
+            z-index: 1000;
+            display: none;
+            border: 2px solid var(--border);
+        }
+
+        .color-picker-popup.active {
+            display: block;
+            animation: popupFadeIn 0.2s ease-out;
+        }
+
+        @keyframes popupFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .color-picker-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: scale(1.15);
+            border-color: var(--primary);
+        }
+
+        .color-option.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(44, 122, 123, 0.2);
+        }
+
+        .color-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.1);
+            z-index: 999;
+            display: none;
+        }
+
+        .popup-overlay.active {
+            display: block;
+        }
+
+        /* Color Theme Selector */
+        .theme-selector {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+        }
+        .theme-selector h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin-top: 0;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        .theme-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .theme-btn {
+            flex: 1;
+            min-width: 55px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .theme-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .theme-btn.active {
+            border-width: 3px;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+        .theme-btn.default { background: linear-gradient(135deg, #2c7a7b 0%, #4299e1 100%); }
+        .theme-btn.creme { background: linear-gradient(135deg, #8b6f47 0%, #c8956b 100%); }
+        .theme-btn.gray { background: linear-gradient(135deg, #4a5568 0%, #a0aec0 100%); }
+        .theme-btn.dark { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); }
+        .theme-btn.rainbow { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 16%, #c44569 33%, #786fa6 50%, #4b7bec 66%, #26de81 83%, #fed330 100%); }
+
+        .theme-label {
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.65rem;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            font-weight: 600;
+        }
+
+        /* --- MAIN --- */
+        main { flex: 1; display: flex; flex-direction: column; height: 100vh; min-width: 0; }
+        header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 20; box-shadow: 0 1px 3px rgba(44, 122, 123, 0.05); transition: background-color 0.3s, border-color 0.3s; }
+        .header-left h1 { margin: 0; font-size: 1.4rem; color: var(--primary-dark); }
+        .header-left span { font-size: 0.85rem; color: var(--text-light); }
+        .candidate-name { font-size: 2rem; font-weight: 800; color: var(--primary); border-bottom: 2px dashed transparent; cursor: text; }
+        .candidate-name:focus { border-bottom-color: var(--accent); outline: none; }
+        .toolbar-actions { display: flex; gap: 10px; }
+        .toolbar-btn { background: white; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .toolbar-btn:hover { border-color: var(--accent); background: var(--primary-light); }
+
+        /* Timeline Canvas */
+        #timeline-canvas { flex: 1; padding: 40px; overflow-y: auto; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 24px 24px; scroll-behavior: smooth; transition: background-color 0.3s; }
+        .timeline-container { max-width: 900px; margin: 0 auto; position: relative; padding-left: 20px; padding-bottom: 100px;}
+        .timeline-line { position: absolute; left: 45px; top: 0; bottom: 0; width: 4px; background: var(--border); border-radius: 2px; transition: background-color 0.3s; }
+
+        .phase { margin-bottom: 50px; position: relative; z-index: 1; }
+        .phase-marker { position: absolute; left: 0; top: 0; width: 50px; height: 50px; background: var(--surface); border: 4px solid var(--primary); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; z-index: 2; box-shadow: 0 4px 6px rgba(44, 122, 123, 0.1); transition: all 0.3s; }
+        .phase-badge { display: none; position: absolute; right: -10px; top: -15px; background: var(--accent); color: white; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 4px 6px rgba(44, 122, 123, 0.15); transform: rotate(5deg); }
+        .phase.completed .phase-badge { display: block; }
+        .phase-content { margin-left: 70px; background: var(--surface); border-radius: 12px; box-shadow: var(--shadow); padding: 25px; border: 1px solid var(--border); transition: all 0.3s; }
+        .phase.completed .phase-content { border: 2px solid var(--accent); }
+        .phase-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
+        .phase-title { font-size: 1.3rem; font-weight: 700; outline: none; color: var(--primary-dark); }
+        .phase-duration { background: var(--primary-light); padding: 4px 10px; border-radius: 6px; font-size: 0.9rem; color: var(--text-light); outline: none; transition: background-color 0.3s;}
+
+        .drop-zone { min-height: 60px; }
+        .drop-zone.drag-over { background: #f5f0e8; border: 2px dashed var(--accent); border-radius: 8px;}
+
+        /* NEUES MODUL-LAYOUT */
+        .timeline-item { 
+            background: var(--surface); 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            padding: 0;
+            margin-bottom: 12px; 
+            display: flex; 
+            flex-direction: column;
+            transition: all 0.2s; 
+            position: relative;
+            cursor: grab;
+        }
+
+        .timeline-item:hover { 
+            box-shadow: 0 4px 12px rgba(44, 122, 123, 0.12); 
+            transform: translateY(-1px); 
+            border-color: var(--accent); 
+        }
+
+        .timeline-item:focus-within { 
+            border-color: var(--primary); 
+            background-color: var(--primary-light); 
+            box-shadow: 0 0 0 2px rgba(44, 122, 123, 0.15); 
+        }
+
+        .timeline-item.completed { border-left: 5px solid var(--success); }
+
+        /* Obere Zeile: Titel links, Controls rechts */
+        .item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            gap: 15px;
+            border-bottom: 1px solid var(--primary-light);
+        }
+
+        .item-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.95rem;
+            outline: none;
+            color: var(--text);
+            min-width: 0;
+        }
+
+        .item-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .module-avatar { 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 50%; 
+            color: white; 
+            font-size: 11px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            cursor: default; 
+            position: relative; 
+            flex-shrink: 0; 
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(44, 122, 123, 0.2);
+        }
+        .module-avatar:hover::after { 
+            content: "×"; 
+            position: absolute; 
+            top:0; 
+            left:0; 
+            right:0; 
+            bottom:0; 
+            background: rgba(0,0,0,0.6); 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            font-size: 14px;
+        }
+
+        .doc-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: var(--primary-light);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .doc-link:hover {
+            background: var(--surface);
+            border-color: var(--accent);
+        }
+
+        select.status-select { 
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            border: 1px solid var(--border); 
+            font-size: 0.8rem; 
+            outline: none; 
+            min-width: 85px;
+        }
+        .status-open { color: var(--text-light); background: var(--primary-light); }
+        .status-running { color: white; background: var(--running); border-color: var(--running); }
+        .status-done { color: white; background: var(--success); border-color: var(--success); }
+
+        .delete-btn { 
+            color: #d4866f; 
+            cursor: pointer; 
+            font-size: 1.4rem; 
+            padding: 0 2px; 
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .delete-btn:hover {
+            color: #c06f56;
+        }
+
+        /* Unterer Bereich: Textfeld */
+        .item-content {
+            padding: 12px 15px;
+        }
+
+        .item-description {
+            min-height: 40px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            outline: none;
+            font-size: 0.9rem;
+            color: #5d4a36;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            transition: all 0.2s;
+        }
+
+        .item-description:hover {
+            border-color: var(--gray);
+            background: var(--surface);
+        }
+
+        .item-description:focus {
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 2px rgba(44, 122, 123, 0.1);
+        }
+
+        .item-description:empty:before {
+            content: "Beschreibung, Notizen, Checkliste...";
+            color: var(--gray);
+        }
+
+        .assignee-drop-zone {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            min-width: 32px;
+            min-height: 32px;
+            padding: 2px 4px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .assignee-drop-zone.drag-over-person {
+            background: var(--primary-light);
+            outline: 2px dashed var(--accent);
+        }
+
+        @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @media print { aside, .toolbar-actions, .delete-btn, .add-person-btn, .custom-input-wrapper, .doc-link { display: none !important; } main { display: block; } .timeline-item { break-inside: avoid; border: 1px solid #ccc; } .phase-content { margin-left: 0; } }
+
+        /* Minimierte Module */
+        .timeline-item.minimized .item-content {
+            display: none;
+        }
+
+        .timeline-item.minimized .item-header {
+            border-bottom: none;
+        }
+
+        .timeline-item.minimized {
+            cursor: pointer;
+        }
+
+        .timeline-item.minimized:hover {
+            background-color: var(--primary-light);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Color Picker Popup -->
+    <div class="popup-overlay" id="colorPopupOverlay" onclick="closeColorPopup()"></div>
+    <div class="color-picker-popup" id="colorPickerPopup">
+        <div class="color-picker-title">Farbe wählen</div>
+        <div class="color-grid" id="colorGrid"></div>
+    </div>
+
+    <aside>
+        <h2>Vitakreis Onboarding<br><span style="font-size: 0.75rem; font-weight: 400; color: var(--text-light);">Der Weg zum erfolgreichen VitaHelfer</span></h2>
+        <div class="module-category">
+            <h3 class="section-header" onclick="toggleSection(this)">✨ Willkommens-Phase</h3>
+            <div class="draggable-item" draggable="true" data-type="new-module">💚 Willkommens-Video</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">📝 Gewerbeanmeldung</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">👤 Profil erstellen</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">✍️ Vertrag unterschreiben</div>
+            <div class="custom-input-wrapper">
+                <input type="text" class="custom-input" placeholder="Individuell...">
+                <span class="custom-drag-handle" draggable="true" data-type="new-module-custom" ondragstart="dragCustomStart(event)">::</span>
+            </div>
+        </div>
+
+        <div class="module-category">
+            <h3 class="section-header" onclick="toggleSection(this)">🎓 Ausbildung & Wissen</h3>
+            <div class="draggable-item" draggable="true" data-type="new-module">🎬 Akademie-Modul 1: Alltagsbetreuung</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🎬 Akademie-Modul 2: Kundengewinnung</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🎬 Akademie-Modul 3: Rechtliches</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🎬 Akademie-Modul 4: Senioren-Kommunikation</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">💰 Vergütungsplan verstehen</div>
+            <div class="custom-input-wrapper">
+                <input type="text" class="custom-input" placeholder="Individuell...">
+                <span class="custom-drag-handle" draggable="true" data-type="new-module-custom" ondragstart="dragCustomStart(event)">::</span>
+            </div>
+        </div>
+
+        <div class="module-category">
+            <h3 class="section-header" onclick="toggleSection(this)">🌐 Website & Marketing</h3>
+            <div class="draggable-item" draggable="true" data-type="new-module">🌐 Eigene Website live</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">📱 VitaKreis-App Installation</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">📸 Business-Foto Termin</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🏘️ Flyer-Aktion starten</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">📱 Social Media Post (3x)</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">💬 Google My Business Profil</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🎤 Elevator Pitch üben</div>
+            <div class="custom-input-wrapper">
+                <input type="text" class="custom-input" placeholder="Individuell...">
+                <span class="custom-drag-handle" draggable="true" data-type="new-module-custom" ondragstart="dragCustomStart(event)">::</span>
+            </div>
+        </div>
+
+        <div class="module-category">
+            <h3 class="section-header" onclick="toggleSection(this)">🤝 Kunden & Praxis</h3>
+            <div class="draggable-item" draggable="true" data-type="new-module">🎯 Erster Schnupper-Einsatz</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">👴 Erstbesuch beim Kunden</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🗣️ Feedback-Gespräch</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🏆 Zertifikat erhalten</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">💼 Erstes Kundengespräch solo</div>
+            <div class="custom-input-wrapper">
+                <input type="text" class="custom-input" placeholder="Individuell...">
+                <span class="custom-drag-handle" draggable="true" data-type="new-module-custom" ondragstart="dragCustomStart(event)">::</span>
+            </div>
+        </div>
+
+        <div class="module-category">
+            <h3 class="section-header" onclick="toggleSection(this)">👥 Team-Aufbau (optional)</h3>
+            <div class="draggable-item" draggable="true" data-type="new-module">👥 Erster Teampartner gewinnen</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🎓 Rekrutierungs-Schulung</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">📊 Team-Dashboard Setup</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🤝 Als Mentor einarbeiten</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">💸 Provisionsplan erklärt</div>
+            <div class="custom-input-wrapper">
+                <input type="text" class="custom-input" placeholder="Individuell...">
+                <span class="custom-drag-handle" draggable="true" data-type="new-module-custom" ondragstart="dragCustomStart(event)">::</span>
+            </div>
+        </div>
+
+        <div class="module-category">
+            <h3 class="section-header" onclick="toggleSection(this)">📚 Weiterbildung</h3>
+            <div class="draggable-item" draggable="true" data-type="new-module">🧠 Demenzbegleitung-Zertifikat</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🚑 Erste-Hilfe-Kurs</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🕊️ Sterbebegleitung-Grundlagen</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">💎 Premium-Begleiter Status</div>
+            <div class="custom-input-wrapper">
+                <input type="text" class="custom-input" placeholder="Individuell...">
+                <span class="custom-drag-handle" draggable="true" data-type="new-module-custom" ondragstart="dragCustomStart(event)">::</span>
+            </div>
+        </div>
+
+        <div class="module-category">
+            <h3 class="section-header" onclick="toggleSection(this)">🎪 Community & Events</h3>
+            <div class="draggable-item" draggable="true" data-type="new-module">💬 Monatlicher Zoom-Call</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">☕ Lokales Meetup</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">🎉 Jahres-Konferenz</div>
+            <div class="draggable-item" draggable="true" data-type="new-module">📱 WhatsApp-Gruppe beitreten</div>
+            <div class="custom-input-wrapper">
+                <input type="text" class="custom-input" placeholder="Individuell...">
+                <span class="custom-drag-handle" draggable="true" data-type="new-module-custom" ondragstart="dragCustomStart(event)">::</span>
+            </div>
+        </div>
+
+        <div class="module-category">
+            <h3 class="section-header" onclick="toggleSection(this)">🏆 Gamification Meilensteine</h3>
+            <div class="draggable-item" draggable="true" data-type="new-module" style="border-left: 3px solid var(--accent)">🎯 Erste 10 Stunden geschafft</div>
+            <div class="draggable-item" draggable="true" data-type="new-module" style="border-left: 3px solid var(--accent)">⭐ 5-Sterne Bewertung erhalten</div>
+            <div class="draggable-item" draggable="true" data-type="new-module" style="border-left: 3px solid var(--accent)">🥉 Bronze-Level erreicht</div>
+            <div class="draggable-item" draggable="true" data-type="new-module" style="border-left: 3px solid var(--accent)">🥈 Silber-Level erreicht</div>
+            <div class="draggable-item" draggable="true" data-type="new-module" style="border-left: 3px solid var(--accent)">🥇 Gold-Level erreicht</div>
+            <div class="draggable-item" draggable="true" data-type="new-module" style="border-left: 3px solid var(--accent)">💎 Platin-Status erreicht</div>
+            <div class="draggable-item" draggable="true" data-type="new-module" style="border-left: 3px solid var(--accent)">🚀 Teamleiter-Status</div>
+            <div class="draggable-item" draggable="true" data-type="new-module" style="border-left: 3px solid var(--accent)">🍕 Team-Essen organisiert</div>
+            <div class="custom-input-wrapper">
+                <input type="text" class="custom-input" placeholder="Eigenes Ziel...">
+                <span class="custom-drag-handle" draggable="true" data-type="new-module-custom" ondragstart="dragCustomStart(event)">::</span>
+            </div>
+        </div>
+
+        <div class="module-category">
+            <h3 class="section-header" onclick="toggleSection(this)">Team & Zuständigkeit</h3>
+            <div id="team-container">
+                <div class="person-chip" draggable="true" data-type="person" data-id="main">
+                    <div class="person-chip-avatar" style="background-color: #2c7a7b;" onclick="openColorPicker(event, 'main')">M</div>
+                    <span class="person-name-input" id="name-main-sidebar" contenteditable="true" oninput="updatePersonName(this, 'main')">Maria</span>
+                </div>
+                <div class="person-chip" draggable="true" data-type="person" data-id="p_default_1">
+                    <div class="person-chip-avatar" style="background-color: #ed8936;" onclick="openColorPicker(event, 'p_default_1')">S</div>
+                    <span class="person-name-input" contenteditable="true" oninput="updatePersonName(this, 'p_default_1')">Sebastian</span>
+                    <span class="person-delete" onclick="deletePerson(this)">×</span>
+                </div>
+            </div>
+            <button class="add-person-btn" onclick="addNewPerson()">+ Neuer Mitarbeiter</button>
+        </div>
+
+        <div class="theme-selector">
+            <h3 class="section-header" onclick="toggleSection(this)">🎨 Farbschema</h3>
+            <div class="theme-options">
+                <div class="theme-btn default active" onclick="setTheme('default')" title="Standard Blau">
+                    <span class="theme-label">Blau</span>
+                </div>
+                <div class="theme-btn creme" onclick="setTheme('creme')" title="Warmes Creme">
+                    <span class="theme-label">Creme</span>
+                </div>
+                <div class="theme-btn gray" onclick="setTheme('gray')" title="Neutral Grau">
+                    <span class="theme-label">Grau</span>
+                </div>
+                <div class="theme-btn dark" onclick="setTheme('dark')" title="Dunkler Modus">
+                    <span class="theme-label">Dunkel</span>
+                </div>
+                <div class="theme-btn rainbow" onclick="setTheme('rainbow')" title="Farbenfroher Regenbogen">
+                    <span class="theme-label">Rainbow</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main>
+        <header>
+            <div class="header-left"></div>
+            <div class="candidate-name" contenteditable="true" id="header-name" oninput="syncCandidateName()">Maria</div>
+            <div class="toolbar-actions">
+                <button class="toolbar-btn" onclick="toggleAllModules()" id="toggle-btn">📋 Übersicht</button>
+                <button class="toolbar-btn" onclick="clearTimeline()">🗑️ Reset</button>
+                <button class="toolbar-btn" onclick="saveTimeline()">💾 Speichern</button>
+                <button class="toolbar-btn" onclick="loadTimelineInput()">📂 Laden</button>
+                <button class="toolbar-btn" style="background:var(--primary);color:white" onclick="window.print()">🖨️ PDF</button>
+            </div>
+            <input type="file" id="file-input" style="display: none;" onchange="loadTimelineFile(this)">
+        </header>
+
+        <div id="timeline-canvas">
+            <div class="timeline-container" id="timeline"><div class="timeline-line"></div></div>
+        </div>
+    </main>
+
+    <script>
+        // Farbpalette für die Mitarbeiterkreise
+        const colorPalette = [
+            '#2c7a7b', '#ed8936', '#e53e3e', '#9f7aea', 
+            '#38b2ac', '#d69e2e', '#f56565', '#805ad5',
+            '#4299e1', '#48bb78', '#ec4899', '#8b5cf6',
+            '#0891b2', '#059669', '#dc2626', '#7c3aed',
+            '#0284c7', '#10b981', '#f59e0b', '#6366f1',
+            '#14b8a6', '#84cc16', '#f97316', '#a855f7',
+            '#06b6d4', '#22c55e', '#eab308', '#8b5cf6',
+            '#0ea5e9', '#4ade80', '#fb923c', '#c026d3',
+            '#3b82f6', '#6ee7b7', '#fbbf24', '#d946ef'
+        ];
+
+        let currentColorPersonId = null;
+
+        function openColorPicker(event, personId) {
+            event.stopPropagation();
+            currentColorPersonId = personId;
+
+            const popup = document.getElementById('colorPickerPopup');
+            const overlay = document.getElementById('colorPopupOverlay');
+            const colorGrid = document.getElementById('colorGrid');
+
+            // Leere Grid
+            colorGrid.innerHTML = '';
+
+            // Aktuelle Farbe des Mitarbeiters
+            const chip = document.querySelector(`.person-chip[data-id="${personId}"]`);
+            const currentColor = chip.querySelector('.person-chip-avatar').style.backgroundColor;
+            const currentColorHex = rgbToHex(currentColor);
+
+            // Erstelle Farboptionen
+            colorPalette.forEach(color => {
+                const colorOption = document.createElement('div');
+                colorOption.className = 'color-option';
+                if (color.toLowerCase() === currentColorHex.toLowerCase()) {
+                    colorOption.classList.add('selected');
+                }
+                colorOption.style.backgroundColor = color;
+                colorOption.onclick = () => selectColor(color);
+                colorGrid.appendChild(colorOption);
+            });
+
+            // Positioniere Popup
+            const rect = event.target.getBoundingClientRect();
+            popup.style.left = rect.left + 'px';
+            popup.style.top = (rect.bottom + 10) + 'px';
+
+            // Zeige Popup
+            overlay.classList.add('active');
+            popup.classList.add('active');
+        }
+
+        function closeColorPopup() {
+            document.getElementById('colorPickerPopup').classList.remove('active');
+            document.getElementById('colorPopupOverlay').classList.remove('active');
+            currentColorPersonId = null;
+        }
+
+        function selectColor(color) {
+            if (currentColorPersonId) {
+                const chip = document.querySelector(`.person-chip[data-id="${currentColorPersonId}"]`);
+                const avatar = chip.querySelector('.person-chip-avatar');
+                avatar.style.backgroundColor = color;
+                syncTeamColor(currentColorPersonId, color);
+            }
+            closeColorPopup();
+        }
+
+        function rgbToHex(rgb) {
+            if (rgb.startsWith('#')) return rgb;
+            const values = rgb.match(/\d+/g);
+            if (!values) return '#000000';
+            const r = parseInt(values[0]);
+            const g = parseInt(values[1]);
+            const b = parseInt(values[2]);
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        const themes = {
+            default: {
+                primary: '#2c7a7b',
+                primaryLight: '#e6fffa',
+                primaryDark: '#234e52',
+                accent: '#ed8936',
+                bg: '#f7fafc',
+                surface: '#ffffff',
+                text: '#2d3748',
+                textLight: '#718096',
+                border: '#e2e8f0',
+                success: '#48bb78',
+                running: '#4299e1',
+                gray: '#a0aec0'
+            },
+            creme: {
+                primary: '#8b6f47',
+                primaryLight: '#faf8f5',
+                primaryDark: '#5d4a36',
+                accent: '#c8956b',
+                bg: '#faf8f3',
+                surface: '#ffffff',
+                text: '#3d3027',
+                textLight: '#8b7d6b',
+                border: '#e8dfd3',
+                success: '#7b9b6e',
+                running: '#a3b3c4',
+                gray: '#b8a999'
+            },
+            gray: {
+                primary: '#4a5568',
+                primaryLight: '#f7fafc',
+                primaryDark: '#2d3748',
+                accent: '#718096',
+                bg: '#edf2f7',
+                surface: '#ffffff',
+                text: '#1a202c',
+                textLight: '#718096',
+                border: '#cbd5e0',
+                success: '#68d391',
+                running: '#63b3ed',
+                gray: '#a0aec0'
+            },
+            dark: {
+                primary: '#90cdf4',
+                primaryLight: '#2d3748',
+                primaryDark: '#63b3ed',
+                accent: '#fbd38d',
+                bg: '#1a202c',
+                surface: '#1a202c',
+                text: '#f7fafc',
+                textLight: '#a0aec0',
+                border: '#4a5568',
+                success: '#68d391',
+                running: '#63b3ed',
+                gray: '#718096'
+            },
+            rainbow: {
+                primary: '#c44569',
+                primaryLight: '#fff5f7',
+                primaryDark: '#8e2f4d',
+                accent: '#4b7bec',
+                bg: '#fef5f8',
+                surface: '#ffffff',
+                text: '#2d3748',
+                textLight: '#718096',
+                border: '#ffd6e7',
+                success: '#26de81',
+                running: '#4b7bec',
+                gray: '#a0aec0'
+            }
+        };
+
+        function setTheme(themeName) {
+            const theme = themes[themeName];
+            const root = document.documentElement;
+
+            root.style.setProperty('--primary', theme.primary);
+            root.style.setProperty('--primary-light', theme.primaryLight);
+            root.style.setProperty('--primary-dark', theme.primaryDark);
+            root.style.setProperty('--accent', theme.accent);
+            root.style.setProperty('--bg', theme.bg);
+            root.style.setProperty('--surface', theme.surface);
+            root.style.setProperty('--text', theme.text);
+            root.style.setProperty('--text-light', theme.textLight);
+            root.style.setProperty('--border', theme.border);
+            root.style.setProperty('--success', theme.success);
+            root.style.setProperty('--running', theme.running);
+            root.style.setProperty('--gray', theme.gray);
+
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.theme-btn.${themeName}`).classList.add('active');
+
+            localStorage.setItem('selectedTheme', themeName);
+        }
+
+        function updatePersonName(nameInput, personId) {
+            const chip = nameInput.closest('.person-chip');
+            const avatar = chip.querySelector('.person-chip-avatar');
+            const text = nameInput.innerText || nameInput.textContent;
+            const initial = text.charAt(0).toUpperCase();
+
+            avatar.innerText = initial;
+            syncTeamName(personId, text);
+        }
+
+        function deletePerson(deleteBtn) {
+            deleteBtn.closest('.person-chip').remove();
+        }
+
+        const defaultData = [
+            { 
+                title: "🎉 Phase 1: Willkommen im VitaKreis!", 
+                duration: "Tag 1-3", 
+                items: [
+                    { text: "💚 Herzlich Willkommen", description: "Du bist jetzt Teil von VitaKreis! 🎉\n- Willkommens-Video (2 Min)\n- Persönliche Begrüßung vom Mentor\n- Zugangsdaten zu allen Tools", status: "done", assignees: ['p_default_1'] },
+                    { text: "📝 Deine ersten Schritte", description: "Gewerbeanmeldung klingt kompliziert? Ist es nicht! 💪\n\n- Gewerbeanmeldung beim Gewerbeamt (Personalausweis + Formular)\n- Fragebogen zur steuerlichen Erfassung fürs Finanzamt\n- Checkliste runterladen\n\n⏱️ In 30 Minuten erledigt – dann kann's losgehen!", status: "open", assignees: ['main'] },
+                    { text: "👤 Dein VitaKreis-Profil", description: "Zeig, wer du bist! Dein Profil ist deine Visitenkarte für Kunden. 📸\n\n- Profilbild hochladen\n- Kurze Bio schreiben (Vorlage vorhanden)\n- Verfügbarkeitszeiten eintragen\n- Region/Einsatzgebiet festlegen\n\n💡 Fertige Profile bekommen 5x mehr Anfragen!", status: "open", assignees: ['main'] },
+                    { text: "✍️ Handelsvertretervertrag", description: "Wir schicken dir deinen Vertrag zu – einfach unterschreiben und zurück. 📄\n\n- Vertrag prüfen (mit Mentor besprechen bei Fragen)\n- Digital oder per Post zurücksenden\n\n⏳ Status: Warte auf VitaKreis (1-2 Werktage)", status: "open", assignees: ['p_default_1'] }
+                ]
+            },
+            { 
+                title: "🚀 Phase 2: Wissen & Werkzeuge", 
+                duration: "Woche 1-2", 
+                items: [
+                    { text: "🎓 VitaKreis-Akademie", description: "Kurze Videos, praktische Tipps – alles was du wissen musst! 🎬\n\n- Modul 1: Was ist Alltagsbetreuung? (15 Min)\n- Modul 2: Deine ersten Kunden gewinnen (20 Min)\n- Modul 3: Rechtliches & Datenschutz (10 Min)\n- Modul 4: Kommunikation mit Senioren (25 Min)\n\n🏆 Jedes Modul bringt dich näher zu deinem ersten Einsatz!", status: "open", assignees: ['main'] },
+                    { text: "🌐 Deine Website & Tools", description: "Deine eigene Website – sofort startklar, keine Technik-Kenntnisse nötig! 💻\n\n- Persönliche Website (vorname-nachname.vitakreis.de)\n- Buchungskalender-Zugang\n- VitaKreis-App Installation (iOS/Android)\n- Visitenkarten-Design (optional bestellen)\n\n🎯 Teile deine Website noch heute mit Freunden!", status: "running", assignees: ['p_default_1'] },
+                    { text: "💰 Preise & Vergütung verstehen", description: "Versteh genau, wie du verdienst – direkt und über dein Team! 📊\n\n- Stundensätze für verschiedene Leistungen\n- Deine Direktvergütung (100€/Tag bei 8h)\n- Teambonus-System erklärt (Level 1-5)\n- Interaktiver Rechner nutzen\n\n🧮 Rechne dir dein Wunscheinkommen aus!", status: "open", assignees: ['main'] }
+                ]
+            },
+            { 
+                title: "💪 Phase 3: Durchstarten!", 
+                duration: "Woche 3-4", 
+                items: [
+                    { text: "🎯 Dein erster Einsatz", description: "Dein erster Kunde wartet schon! Wir gehen gemeinsam. 🤝\n\n- Mentor vermittelt ersten Kunden (Schnupper-Einsatz)\n- Gemeinsamer Erstbesuch zur Einarbeitung\n- Feedback-Gespräch danach\n\n🏆 Nach dem ersten Einsatz → Zertifikat 'VitaKreis-Begleiter'\n\n💡 Der erste Einsatz ist der aufregendste – danach läuft's!", status: "open", assignees: ['main'] },
+                    { text: "📢 Marketing & Sichtbarkeit", description: "Erzähl's weiter! Wir geben dir alle Materialien. 📱\n\n- Social Media Vorlagen (Instagram/Facebook)\n- Flyer zum Ausdrucken (PDF)\n- Elevator Pitch Skript\n- Lokale Aushänge (Apotheken, Supermärkte)\n- Poste 3x über VitaKreis & markiere uns\n\n✨ Jeder Post kann dein nächster Kunde sein!", status: "open", assignees: ['main'] },
+                    { text: "👥 Dein Team aufbauen (optional)", description: "Willst du mehr verdienen? Baue dein eigenes Team auf! 🚀\n\n- Wie finde ich neue Teammitglieder?\n- Rekrutierungs-Gespräche führen (Leitfaden)\n- Deine Rolle als Mentor\n- Team-Dashboard kennenlernen\n\n⚠️ Erst selbst Erfahrung sammeln – dann andere begeistern!\n\n💸 Jedes Teammitglied bringt dir passive Provisionen!", status: "open", assignees: [] }
+                ]
+            },
+            { 
+                title: "🏆 Phase 4: Meisterschaft", 
+                duration: "Ongoing", 
+                items: [
+                    { text: "🤝 Community & Events", description: "Lerne andere VitaKreis-Begleiter kennen – tauscht euch aus! 🎪\n\n- Monatliche Zoom-Calls (Best Practices)\n- Lokale Meetups in deiner Region\n- Jahres-Konferenz mit Auszeichnungen\n- Slack/WhatsApp-Gruppen nach Region\n\n💚 Gemeinsam sind wir stark – hier entstehen echte Freundschaften!", status: "open", assignees: [] },
+                    { text: "📚 Weiterbildung & Zertifikate", description: "Werde Experte! Zusatz-Qualifikationen öffnen neue Türen. 🎓\n\n- Demenzbegleitung-Zertifikat\n- Erste-Hilfe-Kurs\n- Sterbebegleitung-Grundlagen\n- VitaKreis-Premium-Begleiter (internes Gütesiegel)\n\n💎 Benefit: Höhere Stundensätze & mehr Kundenanfragen\n\n🌟 Jede Weiterbildung macht dich wertvoller!", status: "open", assignees: [] },
+                    { text: "📊 Erfolgs-Dashboard", description: "Sieh deinen Fortschritt auf einen Blick! 📈\n\n- Geleistete Stunden diese Woche/Monat\n- Verdienst (Direkt + Team-Boni)\n- Teamgröße & Levels\n- Nächstes Ziel (z.B. 'Noch 12h bis 500€-Bonus!')\n- Kundenbewertungen\n\n🎮 Levels: Bronze → Silber → Gold → Platin\n\n💪 Jede Stunde bringt dich weiter!", status: "open", assignees: ['main'] }
+                ]
+            },
+            { 
+                title: "📌 Bonus: Immer verfügbar", 
+                duration: "Jederzeit", 
+                items: [
+                    { text: "❓ Hilfe & Support", description: "Fragen? Wir sind für dich da – immer! 🆘\n\n- FAQ-Datenbank durchsuchbar\n- Chat-Support (Mo-Fr 9-18 Uhr)\n- Mentor direkt kontaktieren\n- Video-Tutorials Bibliothek", status: "done", assignees: ['p_default_1'] },
+                    { text: "⚖️ Rechtliches & Compliance", description: "Alle wichtigen Dokumente an einem Ort. 📋\n\n- AGB & Datenschutz\n- Muster-Kundenverträge\n- Versicherungsinfos\n- Steuer-Tipps für Selbstständige", status: "done", assignees: ['p_default_1'] }
+                ]
+            }
+        ];
+
+        let draggedEl = null; 
+        let dragType = null; 
+        let dragData = null;
+
+        function render(data) {
+            const container = document.getElementById('timeline');
+            container.innerHTML = '<div class="timeline-line"></div>';
+            data.forEach((phase, idx) => {
+                const phaseEl = document.createElement('div');
+                phaseEl.className = 'phase';
+                phaseEl.innerHTML = `<div class="phase-marker">${idx+1}</div><div class="phase-badge">🎉 Phase abgeschlossen! ⭐</div><div class="phase-content"><div class="phase-header"><div class="phase-title" contenteditable="true">${phase.title}</div><div class="phase-duration" contenteditable="true">${phase.duration}</div></div><div class="drop-zone"></div></div>`;
+                const dz = phaseEl.querySelector('.drop-zone');
+                dz.addEventListener('dragover', handleDragOver);
+                dz.addEventListener('drop', handleDrop);
+                dz.addEventListener('dragleave', (e) => {
+                    if (e.target === dz) {
+                        dz.classList.remove('drag-over');
+                    }
+                });
+                phase.items.forEach(item => dz.appendChild(createModuleEl(item.text, item.description || "", item.status, item.assignees)));
+                container.appendChild(phaseEl);
+            });
+            checkAllPhases();
+        }
+
+        function createModuleEl(text, description = "", status = "open", assigneeIds = []) {
+            const el = document.createElement('div');
+            el.className = `timeline-item ${status === 'done' ? 'completed' : ''}`;
+            el.draggable = true;
+
+            el.innerHTML = `
+                <div class="item-header">
+                    <div class="item-title" contenteditable="true">${text}</div>
+                    <div class="item-header-controls">
+                        <div class="assignee-drop-zone"></div>
+                        <a href="#" class="doc-link" onclick="alert('Dokumenten-Upload oder Link öffnen'); return false;">Dokumente ↗</a>
+                        <select class="status-select ${getStatusClass(status)}" onchange="updateStatus(this)">
+                            <option value="open" ${status==='open'?'selected':''}>Offen</option>
+                            <option value="running" ${status==='running'?'selected':''}>Laufend</option>
+                            <option value="done" ${status==='done'?'selected':''}>Erledigt</option>
+                        </select>
+                        <span class="delete-btn" onclick="confirmDelete(this)" title="Löschen">×</span>
+                    </div>
+                </div>
+                <div class="item-content">
+                    <div class="item-description" contenteditable="true">${description}</div>
+                </div>`;
+
+            const assigneeArea = el.querySelector('.assignee-drop-zone');
+
+            assigneeArea.addEventListener('dragover', allowDropPerson);
+            assigneeArea.addEventListener('drop', handlePersonDrop);
+            assigneeArea.addEventListener('dragleave', (e) => {
+                e.stopPropagation();
+                assigneeArea.classList.remove('drag-over-person');
+            });
+
+            assigneeIds.forEach(id => assigneeArea.appendChild(createAvatar(id)));
+
+            el.addEventListener('dragstart', handleDragStart);
+            el.addEventListener('dragend', () => el.style.opacity = '1');
+            return el;
+        }
+
+        function createAvatar(id) {
+            const av = document.createElement('div');
+            av.className = 'module-avatar';
+            av.dataset.id = id;
+            av.onclick = () => av.remove();
+            updateAvatarStyle(av, id);
+            return av;
+        }
+
+        function updateAvatarStyle(avEl, id) {
+            const sidebarPerson = document.querySelector(`.person-chip[data-id="${id}"]`);
+            if (sidebarPerson) {
+                const nameEl = sidebarPerson.querySelector('.person-name-input');
+                const name = nameEl.innerText || nameEl.value || nameEl.textContent;
+                const avatar = sidebarPerson.querySelector('.person-chip-avatar');
+                const color = rgbToHex(avatar.style.backgroundColor);
+                avEl.innerText = (name || "?").charAt(0).toUpperCase();
+                avEl.style.backgroundColor = color;
+            }
+        }
+
+        function syncCandidateName() {
+            const val = document.getElementById('header-name').innerText;
+            const nameEl = document.getElementById('name-main-sidebar');
+            const chip = nameEl.closest('.person-chip');
+            const avatar = chip.querySelector('.person-chip-avatar');
+            const initial = val.charAt(0).toUpperCase();
+
+            nameEl.innerText = val;
+            avatar.innerText = initial;
+            syncTeamName('main', val);
+        }
+
+        function syncTeamName(id, newName) {
+            document.querySelectorAll(`.module-avatar[data-id="${id}"]`).forEach(av => {
+                av.innerText = newName.charAt(0).toUpperCase();
+            });
+        }
+
+        function syncTeamColor(id, color) {
+            document.querySelectorAll(`.module-avatar[data-id="${id}"]`).forEach(av => {
+                av.style.backgroundColor = color;
+            });
+        }
+
+        function handleDragStart(e) { 
+            dragType = "reorder-module"; 
+            draggedEl = this; 
+            setTimeout(() => this.style.opacity = '0.4', 0); 
+        }
+
+        function handleDragOver(e) { 
+            e.preventDefault(); 
+            if (dragType !== 'person') {
+                e.currentTarget.classList.add('drag-over');
+            }
+        }
+
+        function allowDrop(e) { 
+            e.preventDefault(); 
+            e.stopPropagation(); 
+        }
+
+        function allowDropPerson(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (dragType === 'person') {
+                e.currentTarget.classList.add('drag-over-person');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault(); 
+            e.stopPropagation();
+            const dz = e.currentTarget; 
+            dz.classList.remove('drag-over');
+
+            if (dragType === 'new-module' || dragType === 'new-module-custom') {
+                dz.appendChild(createModuleEl(dragData, "", 'open', ['main']));
+            } else if (dragType === 'reorder-module' && draggedEl) {
+                dz.appendChild(draggedEl);
+            }
+            checkAllPhases();
+        }
+
+        function handlePersonDrop(e) {
+            e.preventDefault(); 
+            e.stopPropagation();
+            const area = e.currentTarget;
+            area.classList.remove('drag-over-person');
+
+            if (dragType === 'person' && dragData) {
+                if (!area.querySelector(`[data-id="${dragData}"]`)) {
+                    area.appendChild(createAvatar(dragData));
+                }
+            }
+        }
+
+        function dragCustomStart(e) {
+            const input = e.target.previousElementSibling;
+            if(!input.value) { e.preventDefault(); return; }
+            dragType = "new-module"; 
+            dragData = "📝 " + input.value;
+        }
+
+        document.querySelectorAll('.draggable-item').forEach(item => {
+            item.ondragstart = (e) => { 
+                dragType = "new-module"; 
+                dragData = item.innerText; 
+            };
+        });
+
+        document.addEventListener('dragstart', e => {
+            const chip = e.target.closest('.person-chip');
+            if (chip) { 
+                dragType = "person"; 
+                dragData = chip.dataset.id; 
+            }
+        });
+
+        document.addEventListener('dragend', e => {
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            document.querySelectorAll('.drag-over-person').forEach(el => el.classList.remove('drag-over-person'));
+        });
+
+        function getStatusClass(s) { 
+            return s === 'done' ? 'status-done' : (s === 'running' ? 'status-running' : 'status-open'); 
+        }
+
+        function updateStatus(sel) { 
+            const item = sel.closest('.timeline-item');
+            sel.className = `status-select ${getStatusClass(sel.value)}`;
+            sel.value === 'done' ? item.classList.add('completed') : item.classList.remove('completed');
+            checkAllPhases();
+        }
+
+        function checkAllPhases() {
+            document.querySelectorAll('.phase').forEach(p => {
+                const items = p.querySelectorAll('.timeline-item');
+                const done = items.length > 0 && [...items].every(i => i.querySelector('select').value === 'done');
+                p.classList.toggle('completed', done);
+            });
+        }
+
+        function addNewPerson() {
+            const name = prompt("Name des Mitarbeiters:");
+            if (!name) return;
+            const id = 'p_' + Date.now();
+            const initial = name.charAt(0).toUpperCase();
+            const randomColor = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+
+            const div = document.createElement('div');
+            div.className = 'person-chip'; 
+            div.draggable = true; 
+            div.dataset.id = id;
+            div.dataset.type = 'person';
+            div.innerHTML = `
+                <div class="person-chip-avatar" style="background-color: ${randomColor};" onclick="openColorPicker(event, '${id}')">${initial}</div>
+                <span class="person-name-input" contenteditable="true" oninput="updatePersonName(this, '${id}')">${name}</span>
+                <span class="person-delete" onclick="deletePerson(this)">×</span>`;
+            document.getElementById('team-container').appendChild(div);
+        }
+
+        function confirmDelete(btn) {
+            if (confirm("Möchten Sie dieses Modul wirklich löschen?")) {
+                deleteModule(btn);
+            }
+        }
+
+        function deleteModule(btn) { 
+            btn.closest('.timeline-item').remove(); 
+            checkAllPhases(); 
+        }
+
+        function clearTimeline() { 
+            if(confirm("Wirklich alles zurücksetzen?")) render(defaultData); 
+        }
+
+        function saveTimeline() {
+            // Speichere Phasen und Module
+            const phases = [...document.querySelectorAll('.phase')].map(p => ({
+                title: p.querySelector('.phase-title').innerText,
+                duration: p.querySelector('.phase-duration').innerText,
+                items: [...p.querySelectorAll('.timeline-item')].map(i => ({
+                    text: i.querySelector('.item-title').innerText,
+                    description: i.querySelector('.item-description').innerText,
+                    status: i.querySelector('select').value,
+                    assignees: [...i.querySelectorAll('.module-avatar')].map(av => av.dataset.id)
+                }))
+            }));
+
+            // Speichere Team/Mitarbeiter mit korrekten Namen
+            const team = [...document.querySelectorAll('#team-container .person-chip')].map(chip => {
+                const nameInput = chip.querySelector('.person-name-input');
+                const name = nameInput.textContent.trim() || nameInput.innerText.trim();
+                return {
+                    id: chip.dataset.id,
+                    name: name,
+                    color: rgbToHex(chip.querySelector('.person-chip-avatar').style.backgroundColor)
+                };
+            });
+
+            // Speichere Kandidatenname korrekt
+            const headerNameEl = document.getElementById('header-name');
+            const candidateName = (headerNameEl.textContent || headerNameEl.innerText).trim();
+
+            // Speichere aktuelles Theme
+            const currentTheme = localStorage.getItem('selectedTheme') || 'default';
+
+            // Erstelle vollständiges Datenobjekt
+            const fullData = {
+                candidateName: candidateName,
+                theme: currentTheme,
+                team: team,
+                phases: phases
+            };
+
+            console.log('💾 Speichere:', fullData);
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullData, null, 2));
+            const dl = document.createElement('a');
+            dl.href = dataStr;
+            dl.download = 'vitakreisplan.json';
+            dl.click();
+        }
+
+        function loadTimelineInput() { 
+            document.getElementById('file-input').click(); 
+        }
+
+        function loadTimelineFile(input) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = JSON.parse(e.target.result);
+
+                console.log('📂 Lade Daten:', data);
+
+                // Prüfe ob es das neue oder alte Format ist
+                if (Array.isArray(data)) {
+                    // Altes Format - nur Phasen
+                    render(data);
+                } else {
+                    // Neues Format - mit allen Daten
+
+                    // Lade Theme zuerst
+                    if (data.theme) {
+                        setTheme(data.theme);
+                    }
+
+                    // Lade Team/Mitarbeiter VOR dem Kandidatennamen
+                    if (data.team && data.team.length > 0) {
+                        const teamContainer = document.getElementById('team-container');
+                        // Entferne ALLE bestehenden Mitarbeiter
+                        teamContainer.innerHTML = '';
+
+                        // Füge alle geladenen Mitarbeiter hinzu
+                        data.team.forEach(person => {
+                            const div = document.createElement('div');
+                            div.className = 'person-chip';
+                            div.draggable = true;
+                            div.dataset.id = person.id;
+                            div.dataset.type = 'person';
+
+                            const initial = person.name.charAt(0).toUpperCase();
+                            const deleteBtn = person.id === 'main' ? '' : '<span class="person-delete" onclick="deletePerson(this)">×</span>';
+                            const idAttr = person.id === 'main' ? 'id="name-main-sidebar"' : '';
+
+                            div.innerHTML = `
+                                <div class="person-chip-avatar" style="background-color: ${person.color}" onclick="openColorPicker(event, '${person.id}')">${initial}</div>
+                                <span class="person-name-input" ${idAttr} contenteditable="true" oninput="updatePersonName(this, '${person.id}')">${person.name}</span>
+                                ${deleteBtn}
+                            `;
+                            teamContainer.appendChild(div);
+                        });
+                    }
+
+                    // Lade Kandidatenname und synchronisiere
+                    if (data.candidateName) {
+                        const headerName = document.getElementById('header-name');
+                        headerName.textContent = data.candidateName;
+
+                        // Aktualisiere auch den Hauptmitarbeiter in der Sidebar
+                        const mainNameEl = document.getElementById('name-main-sidebar');
+                        if (mainNameEl) {
+                            mainNameEl.textContent = data.candidateName;
+                            const mainChip = mainNameEl.closest('.person-chip');
+                            if (mainChip) {
+                                const mainAvatar = mainChip.querySelector('.person-chip-avatar');
+                                mainAvatar.textContent = data.candidateName.charAt(0).toUpperCase();
+                            }
+                        }
+                    }
+
+                    // Lade Phasen
+                    if (data.phases) {
+                        render(data.phases);
+                    }
+                }
+            };
+            reader.readAsText(input.files[0]);
+        }
+
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+            setTheme(savedTheme);
+            render(defaultData);
+        };
+
+        let allMinimized = false;
+
+        function toggleAllModules() {
+            const items = document.querySelectorAll('.timeline-item');
+            const btn = document.getElementById('toggle-btn');
+
+            allMinimized = !allMinimized;
+
+            items.forEach(item => {
+                if (allMinimized) {
+                    item.classList.add('minimized');
+                } else {
+                    item.classList.remove('minimized');
+                }
+            });
+
+            btn.innerText = allMinimized ? '📋 Alle aufklappen' : '📋 Übersicht';
+        }
+
+        function togglePanel() {
+            const aside = document.querySelector('aside');
+            const btn = document.getElementById('panel-toggle-btn');
+            aside.classList.toggle('panel-collapsed');
+            btn.classList.toggle('collapsed');
+        }
+
+        function toggleSection(header) {
+            let nextEl = header.nextElementSibling;
+            while (nextEl && !nextEl.classList.contains('section-header')) {
+                if (nextEl.classList.contains('draggable-item')) {
+                    nextEl.style.display = nextEl.style.display === 'none' ? '' : 'none';
+                }
+                nextEl = nextEl.nextElementSibling;
+            }
+        }
+
+        function updateAllModuleStatuses() {
+            document.querySelectorAll('.status-box').forEach(box => {
+                const moduleId = box.getAttribute('data-module-id');
+                if (!moduleId) return;
+
+                const timelineItem = document.querySelector(`.timeline-item[data-module="${moduleId}"]`);
+                if (timelineItem) {
+                    const statusSelect = timelineItem.querySelector('.status-select');
+                    if (statusSelect) {
+                        const status = statusSelect.value;
+                        let displayStatus = '>';
+                        if (status === 'pending') displayStatus = 'O';
+                        if (status === 'running') displayStatus = 'L';
+                        if (status === 'done') displayStatus = 'E';
+
+                        box.textContent = displayStatus;
+                        box.className = 'status-box status-' + status;
+                    }
+                } else {
+                    box.textContent = '>';
+                    box.className = 'status-box';
+                }
+            });
+        }
+
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('status-select')) {
+                updateAllModuleStatuses();
+            }
+        });
+
+        setTimeout(updateAllModuleStatuses, 500);
+
+        document.addEventListener('click', (e) => {
+            const item = e.target.closest('.timeline-item');
+            if (item && e.target.closest('.item-header') && !e.target.closest('.item-header-controls')) {
+                item.classList.toggle('minimized');
+            }
+        });
+
+        const timelineObserver = new MutationObserver(() => {
+            updateAllModuleStatuses();
+        });
+
+        const timeline = document.getElementById('timeline');
+        if (timeline) {
+            timelineObserver.observe(timeline, { childList: true, subtree: true });
+        }
+    </script>
+</body>
+</html>
