@@ -1272,7 +1272,15 @@ window.setAppState = function(data) {
     
     window.isAppReady = false;
 
-    // === SAVE ===
+
+
+
+
+
+
+
+
+       // === SAVE (Verbessert & Sicher) ===
     window.saveToCloud = async function() {
         if (!window.isAppReady) return;
 
@@ -1280,21 +1288,47 @@ window.setAppState = function(data) {
         const user = userData?.user;
         if (!user) return;
 
-        const myData = window.getAppState();
+        // Daten holen
+        const rawData = window.getAppState();
 
-        // Speichert in die neue Spalte "level_data"
+        // DATEN REINIGEN (Entfernt Fehler für Supabase)
+        let cleanData;
+        try {
+            cleanData = JSON.parse(JSON.stringify(rawData));
+        } catch (e) {
+            console.error("Fehler beim Daten-Aufbereiten:", e);
+            return;
+        }
+
+        // Speichern
         const { error } = await window.sb
             .from('user_plans')
             .upsert({ 
                 user_id: user.id, 
-                level_data: myData, 
+                level_data: cleanData, 
                 updated_at: new Date().toISOString() 
             }, { onConflict: 'user_id' });
 
-        if (error) console.error('Fehler:', error);
-        else console.log('✅ Community-Daten gespeichert!');
+        if (error) {
+            console.error('Speicherfehler (400):', error);
+        } else {
+            console.log('✅ Community-Daten gespeichert!');
+        }
     };
 
+
+
+
+
+
+
+
+
+
+
+
+
+    
     // === LOAD ===
     window.loadFromCloud = async function() {
         const { data: userData } = await window.sb.auth.getUser();
