@@ -1409,8 +1409,9 @@
 
 
 
+
 <script type="module">
-    // ES Module Import  
+    // ES Module Import
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
     const URL = 'https://lqrxqwrzuhsaeocppdfm.supabase.co';
@@ -1418,23 +1419,27 @@
     
     const supabase = createClient(URL, KEY);
     window.sb = supabase; 
+    
+    // Globale Variable: Verhindert Speichern beim Start
+    window.isAppReady = false;
 
-    // === NEU: SAVE & LOAD FUNKTIONEN ===
+    // === SAVE FUNKTION (Verbessert mit textContent) ===
     window.saveToCloud = async function() {
-        const { data: userData } = await window.sb.auth.getUser();
-        const user = userData?.user;
-        if (!user) {
-            console.error('Kein User zum Speichern!');
+        if (!window.isAppReady) {
+            console.log("🚫 Speichern blockiert: App lädt noch.");
             return;
         }
 
-        // Extrahiere alle Daten aus dem DOM
+        const { data: userData } = await window.sb.auth.getUser();
+        const user = userData?.user;
+        if (!user) return;
+
         const phases = [...document.querySelectorAll('.phase')].map(p => ({
-            title: p.querySelector('.phase-title')?.innerText ?? '',
-            duration: p.querySelector('.phase-duration')?.innerText ?? '',
+            title: p.querySelector('.phase-title')?.textContent ?? '', // textContent statt innerText!
+            duration: p.querySelector('.phase-duration')?.textContent ?? '',
             items: [...p.querySelectorAll('.timeline-item')].map(i => ({
-                text: i.querySelector('.item-title')?.innerText ?? '',
-                description: i.querySelector('.item-description')?.innerText ?? '',
+                text: i.querySelector('.item-title')?.textContent ?? '', 
+                description: i.querySelector('.item-description')?.textContent ?? '',
                 status: i.querySelector('select')?.value ?? 'open',
                 assignees: [...i.querySelectorAll('.module-avatar')].map(av => av.dataset.id)
             }))
@@ -1442,7 +1447,7 @@
 
         const team = [...document.querySelectorAll('#team-container .person-chip')].map(chip => {
             const nameInput = chip.querySelector('.person-name-input');
-            const name = (nameInput?.textContent || nameInput?.innerText || '').trim();
+            const name = (nameInput?.textContent || '').trim(); // textContent!
             const avatar = chip.querySelector('.person-chip-avatar');
             return { 
                 id: chip.dataset.id, 
@@ -1452,7 +1457,7 @@
         });
 
         const headerNameEl = document.getElementById('header-name');
-        const candidateName = (headerNameEl?.textContent || headerNameEl?.innerText || '').trim();
+        const candidateName = (headerNameEl?.textContent || '').trim();
         const currentTheme = localStorage.getItem('selectedTheme') || 'default';
 
         const fullData = { candidateName, theme: currentTheme, team, phases };
@@ -1465,13 +1470,11 @@
                 updated_at: new Date().toISOString() 
             });
 
-        if (error) {
-            console.error('Speicherfehler:', error);
-        } else {
-            console.log('✅ Cloud gespeichert!');
-        }
+        if (error) console.error('Fehler:', error);
+        else console.log('✅ Cloud gespeichert!');
     };
 
+    // === LOAD FUNKTION ===
     window.loadFromCloud = async function() {
         const { data: userData } = await window.sb.auth.getUser();
         const user = userData?.user;
@@ -1491,7 +1494,7 @@
         // 1. Theme
         if (plan.theme) setTheme(plan.theme);
 
-        // 2. Team wiederherstellen
+        // 2. Team
         if (plan.team && plan.team.length > 0) {
             const teamContainer = document.getElementById('team-container');
             teamContainer.innerHTML = '';
@@ -1501,6 +1504,9 @@
                 div.draggable = true;
                 div.dataset.id = person.id;
                 div.dataset.type = 'person';
+                
+                // Event Listener für Drag & Drop wieder anhängen
+                div.addEventListener('dragstart', (e) => window.dragStartPerson(e, person.id));
 
                 const isMain = person.id === 'main';
                 const initial = (person.name || '?').charAt(0).toUpperCase();
@@ -1518,15 +1524,13 @@
 
         // 3. Name
         if (plan.candidateName) {
-            document.getElementById('header-name').textContent = plan.candidateName;
-            const mainNameEl = document.getElementById('name-main-sidebar');
-            if (mainNameEl) {
-                mainNameEl.textContent = plan.candidateName;
-                const mainChip = mainNameEl.closest('.person-chip');
-                if (mainChip) {
-                    const mainAvatar = mainChip.querySelector('.person-chip-avatar');
-                    if (mainAvatar) mainAvatar.textContent = plan.candidateName.charAt(0).toUpperCase();
-                }
+            const h = document.getElementById('header-name');
+            if(h) h.textContent = plan.candidateName;
+            const m = document.getElementById('name-main-sidebar');
+            if(m) {
+                m.textContent = plan.candidateName;
+                const av = m.closest('.person-chip').querySelector('.person-chip-avatar');
+                if(av) av.textContent = plan.candidateName.charAt(0).toUpperCase();
             }
         }
 
@@ -1536,28 +1540,34 @@
         }
     };
 
-    // === STARTUP: DATEN LADEN ===
+    // === STARTUP ===
     async function initApp() {
         const { data } = await supabase.auth.getUser();
         if (data?.user) {
-            console.log("App gestartet für User:", data.user.email);
+            console.log("User gefunden:", data.user.email);
             await window.loadFromCloud();
-        } else {
-            console.warn("Kein User angemeldet - App läuft isoliert.");
         }
+        
+        // WICHTIG: Speicher-Schutz aufheben nach 1 Sekunde
+        setTimeout(() => {
+            window.isAppReady = true;
+            console.log("🛡️ App bereit - Speichern aktiviert.");
+        }, 1000);
     }
 
     initApp();
 
-    // === AUTO-SAVE ÜBERWACHUNG (BRÜCKE ZUR SHELL) ===
+    // === KOMMUNIKATION MIT SHELL (Mit Schutz) ===
     document.body.addEventListener('input', () => {
-        window.parent.postMessage('status:dirty', '*');
+        // Nur "Dirty" melden, wenn App fertig geladen ist!
+        if (window.isAppReady) {
+            window.parent.postMessage('status:dirty', '*');
+        }
     });
 
     window.addEventListener('message', async (event) => {
         if (event.data === 'cmd:save') {
-            console.log("Shell fordert Speicherung an...");
-            if (window.saveToCloud) {
+            if (window.isAppReady && window.saveToCloud) {
                 await window.saveToCloud(); 
                 window.parent.postMessage('status:saved', '*');
             }
@@ -1566,6 +1576,14 @@
 
 </script>
 
+
+
+
+
+
+
+
+   
 
 
 
