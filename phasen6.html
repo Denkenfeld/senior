@@ -518,8 +518,7 @@
 </head>
 <body>
 
-    <!-- Login Screen -->
-    <div id="login-screen" style="position:fixed; inset:0; background:linear-gradient(135deg, #2c7a7b 0%, #4299e1 100%); z-index:9999; display:flex; align-items:center; justify-content:center; font-family: 'Inter', system-ui, sans-serif;">
+    <div id="login-screen" style="position:fixed; inset:0; background:linear-gradient(135deg, #2c7a7b 0%, #4299e1 100%); z-index:10000; display:flex; align-items:center; justify-content:center; font-family: 'Inter', system-ui, sans-serif;">
         <div style="max-width:420px; width:90%; padding:50px 40px; background:white; border-radius:16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
             <h1 style="margin:0 0 10px 0; font-size:2rem; color:#2c7a7b; text-align:center;">VitaKreis</h1>
             <p style="text-align:center; color:#718096; margin-bottom:30px; font-size:0.9rem;">Onboarding Planer</p>
@@ -527,7 +526,8 @@
             <div id="login-form">
                 <input type="email" id="login-email" placeholder="E-Mail" style="width:100%; padding:14px; margin:10px 0; border:1px solid #e2e8f0; border-radius:8px; font-size:1rem; box-sizing:border-box;">
                 <input type="password" id="login-password" placeholder="Passwort" style="width:100%; padding:14px; margin:10px 0; border:1px solid #e2e8f0; border-radius:8px; font-size:1rem; box-sizing:border-box;">
-                <button onclick="handleLogin()" style="width:100%; padding:14px; background:#2c7a7b; color:white; border:none; border-radius:8px; margin:15px 0 10px 0; font-weight:600; font-size:1rem; cursor:pointer; transition:background 0.2s;">Login</button>
+                <button onclick="handleLogin()" style="width:100%; padding:14px; background:#2c7a7b; color:white; border:none; border-radius:8px; margin:15px 0 5px 0; font-weight:600; font-size:1rem; cursor:pointer; transition:background 0.2s;">Login</button>
+                <button onclick="handleForgotPassword()" style="width:100%; padding:8px; background:transparent; color:#718096; border:none; font-size:0.8rem; cursor:pointer; text-decoration:underline; margin-bottom:10px;">Passwort vergessen?</button>
                 <button onclick="showSignup()" style="width:100%; padding:14px; background:transparent; color:#2c7a7b; border:2px solid #2c7a7b; border-radius:8px; font-weight:600; font-size:1rem; cursor:pointer; transition:all 0.2s;">Neuen Account erstellen</button>
                 <div id="login-error" style="color:#e53e3e; font-size:0.85rem; margin-top:15px; text-align:center; display:none;"></div>
             </div>
@@ -545,7 +545,6 @@
     </div>
 
 
-    <!-- Color Picker Popup -->
     <div class="popup-overlay" id="colorPopupOverlay" onclick="closeColorPopup()"></div>
     <div class="color-picker-popup" id="colorPickerPopup">
         <div class="color-picker-title">Farbe wählen</div>
@@ -782,6 +781,29 @@
                 showApp()
                 await loadFromCloud()
                 startAutoSave()
+            }
+        }
+
+        // Passwort vergessen Logik
+        async function handleForgotPassword() {
+            const email = document.getElementById('login-email').value;
+            const errorDiv = document.getElementById('login-error');
+            
+            if (!email) {
+                errorDiv.textContent = 'Bitte gib zuerst deine E-Mail Adresse oben ein.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.href, 
+            });
+
+            if (error) {
+                errorDiv.textContent = 'Fehler: ' + error.message;
+                errorDiv.style.display = 'block';
+            } else {
+                alert('Ein Link zum Zurücksetzen des Passworts wurde an ' + email + ' gesendet.');
             }
         }
 
