@@ -27,146 +27,6 @@
 
 
 
-
-
-      
-      <!-- ========================================== -->
-<!-- SUPABASE LOGIN OVERLAY (Start) -->
-<!-- Einfügen direkt nach dem <body> Tag -->
-<!-- ========================================== -->
-
-<div id="login-overlay" style="
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background-color: #f7fafc; z-index: 99999;
-    display: flex; justify-content: center; align-items: center;
-    font-family: 'Inter', sans-serif;
-">
-    <div style="
-        background: white; padding: 2.5rem; border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px;
-        text-align: center; border: 1px solid #e2e8f0;
-    ">
-        <h2 style="color: #2c7a7b; margin-top: 0;">Vitakreis Login</h2>
-        <p style="color: #718096; font-size: 0.9rem; margin-bottom: 20px;">Bitte melde dich an, um den Planer zu nutzen.</p>
-
-        <!-- Formular -->
-        <input type="email" id="sb-email" placeholder="E-Mail Adresse" style="
-            width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #cbd5e0;
-            border-radius: 6px; box-sizing: border-box; font-size: 1rem;
-        ">
-        <input type="password" id="sb-password" placeholder="Passwort" style="
-            width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #cbd5e0;
-            border-radius: 6px; box-sizing: border-box; font-size: 1rem;
-        ">
-
-        <button id="btn-login" style="
-            width: 100%; padding: 12px; background-color: #2c7a7b; color: white;
-            border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
-            font-size: 1rem; transition: background 0.2s; margin-bottom: 10px;
-        ">Anmelden</button>
-        
-        <button id="btn-register" style="
-            width: 100%; padding: 12px; background-color: white; color: #2c7a7b;
-            border: 1px solid #2c7a7b; border-radius: 6px; font-weight: 600; cursor: pointer;
-            font-size: 1rem; transition: background 0.2s;
-        ">Kostenlos Registrieren</button>
-
-        <!-- Status Nachrichten -->
-        <div id="sb-msg" style="margin-top: 15px; font-size: 0.9rem; min-height: 20px;"></div>
-    </div>
-</div>
-
-<!-- Logout Button (Optional: Irgendwo in deine App einbauen, z.B. in die Sidebar) -->
-<!-- <button id="btn-logout" style="display:none;">Abmelden</button> -->
-
-<script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-    // DEINE PROJEKT DATEN
-    const SUPABASE_URL = 'https://lqrxqwrzuhsaeocppdfm.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxcnhxd3J6dWhzYWVvY3BwZGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MTA5ODgsImV4cCI6MjA4NDM4Njk4OH0.8Jd74oHNqd6SBd0yHCjhPq7_Opr2jCyszaaG37en-WA';
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    const overlay = document.getElementById('login-overlay');
-    const msgEl = document.getElementById('sb-msg');
-
-    // 1. Buttons Logik
-    document.getElementById('btn-login').onclick = async () => {
-        const email = document.getElementById('sb-email').value;
-        const password = document.getElementById('sb-password').value;
-        setMsg("Lade...", "#718096");
-
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        
-        if (error) handleAuthError(error);
-        else setMsg("Erfolg!", "green"); // Overlay verschwindet automatisch durch Listener unten
-    };
-
-    document.getElementById('btn-register').onclick = async () => {
-        const email = document.getElementById('sb-email').value;
-        const password = document.getElementById('sb-password').value;
-        setMsg("Registriere...", "#718096");
-
-        // WICHTIG: Redirect URL setzen für Online-Betrieb
-        const { data, error } = await supabase.auth.signUp({
-            email, 
-            password,
-            options: { emailRedirectTo: window.location.href }
-        });
-
-        if (error) handleAuthError(error);
-        else setMsg("✅ Bestätigungs-Mail gesendet! Bitte Link klicken.", "green");
-    };
-
-    // 2. Automatischer Schutz (Session Check)
-    supabase.auth.onAuthStateChange((event, session) => {
-        if (session) {
-            // User ist drin -> Overlay wegblenden
-            overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 500);
-            console.log("Angemeldet als:", session.user.email);
-        } else {
-            // User ist raus -> Overlay zeigen
-            overlay.style.display = 'flex';
-            overlay.style.opacity = '1';
-        }
-    });
-
-    // Helper: Fehler hübsch anzeigen
-    function handleAuthError(error) {
-        if (error.message.includes("Email not confirmed")) {
-            setMsg("⚠️ E-Mail noch nicht bestätigt! Bitte Postfach checken.", "#dd6b20");
-        } else if (error.message.includes("Invalid login")) {
-            setMsg("❌ Falsche Daten oder User existiert nicht.", "#e53e3e");
-        } else {
-            setMsg("Fehler: " + error.message, "#e53e3e");
-        }
-    }
-
-    function setMsg(text, color) {
-        msgEl.innerText = text;
-        msgEl.style.color = color;
-    }
-    
-    // Kleines Extra: Hover Effekte für die Buttons per JS (falls CSS fehlt)
-    const btnReg = document.getElementById('btn-register');
-    btnReg.onmouseover = () => { btnReg.style.background = '#e6fffa'; };
-    btnReg.onmouseout = () => { btnReg.style.background = 'white'; };
-    
-    const btnLog = document.getElementById('btn-login');
-    btnLog.onmouseover = () => { btnLog.style.background = '#234e52'; };
-    btnLog.onmouseout = () => { btnLog.style.background = '#2c7a7b'; };
-
-</script>
-<!-- ========================================== -->
-<!-- SUPABASE LOGIN OVERLAY (Ende) -->
-<!-- ========================================== -->
-
-
-
-
-
       
       
       
@@ -1537,5 +1397,139 @@
             timelineObserver.observe(timeline, { childList: true, subtree: true });
         }
     </script>
+
+
+
+
+
+<!-- GANZ UNTEN IN DER DATEI EINFÜGEN, VOR </body> -->
+
+<div id="login-overlay" style="
+    position: fixed !important; top: 0 !important; left: 0 !important; 
+    width: 100vw !important; height: 100vh !important;
+    background-color: #f7fafc !important; 
+    z-index: 2147483647 !important; /* Maximaler Wert */
+    display: flex !important; justify-content: center !important; align-items: center !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+">
+    <div style="
+        background: white; padding: 40px; border-radius: 12px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15); width: 90%; max-width: 400px;
+        text-align: center; border: 1px solid #e2e8f0; position: relative;
+    ">
+        <!-- Logo / Titel -->
+        <h2 style="color: #2c7a7b; margin: 0 0 10px 0; font-size: 1.8rem;">Vitakreis</h2>
+        <h3 style="color: #718096; margin: 0 0 30px 0; font-weight: normal; font-size: 1rem;">Onboarding Planer</h3>
+
+        <!-- Formular -->
+        <div style="text-align: left;">
+            <label style="display:block; color:#4a5568; font-size:0.85rem; font-weight:600; margin-bottom:5px;">E-Mail</label>
+            <input type="email" id="sb-email" style="
+                width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e0;
+                border-radius: 6px; box-sizing: border-box; font-size: 1rem; outline: none;
+            ">
+            
+            <label style="display:block; color:#4a5568; font-size:0.85rem; font-weight:600; margin-bottom:5px;">Passwort</label>
+            <input type="password" id="sb-password" style="
+                width: 100%; padding: 12px; margin-bottom: 25px; border: 1px solid #cbd5e0;
+                border-radius: 6px; box-sizing: border-box; font-size: 1rem; outline: none;
+            ">
+        </div>
+
+        <button id="btn-login" style="
+            width: 100%; padding: 14px; background-color: #2c7a7b; color: white;
+            border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
+            font-size: 1rem; transition: background 0.2s; margin-bottom: 12px;
+            box-shadow: 0 4px 6px rgba(44, 122, 123, 0.2);
+        ">Anmelden</button>
+        
+        <button id="btn-register" style="
+            width: 100%; padding: 12px; background: transparent; color: #718096;
+            border: none; cursor: pointer; font-size: 0.9rem; text-decoration: underline;
+        ">Noch keinen Account? Registrieren</button>
+
+        <!-- Status -->
+        <div id="sb-msg" style="margin-top: 20px; font-size: 0.9rem; min-height: 20px; font-weight: 500;"></div>
+    </div>
+</div>
+
+<script type="module">
+    // ES Module Import (Funktioniert stabil)
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+    const URL = 'https://lqrxqwrzuhsaeocppdfm.supabase.co';
+    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxcnhxd3J6dWhzYWVvY3BwZGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MTA5ODgsImV4cCI6MjA4NDM4Njk4OH0.8Jd74oHNqd6SBd0yHCjhPq7_Opr2jCyszaaG37en-WA';
+    
+    const supabase = createClient(URL, KEY);
+    const overlay = document.getElementById('login-overlay');
+    const msg = document.getElementById('sb-msg');
+
+    // WICHTIG: Overlay sofort anzeigen, bis wir wissen, ob User eingeloggt ist
+    // Verhindert das "Aufblitzen" der Seite
+    overlay.style.display = 'flex';
+
+    // 1. Session Check (Der Türsteher)
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+            // User ist da -> Vorhang auf!
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => { overlay.style.display = 'none'; }, 500);
+        } else {
+            // Kein User -> Vorhang zu!
+            overlay.style.display = 'flex';
+            overlay.style.opacity = '1';
+        }
+    });
+
+    // 2. Login
+    document.getElementById('btn-login').onclick = async () => {
+        const email = document.getElementById('sb-email').value;
+        const password = document.getElementById('sb-password').value;
+        setMsg("Prüfe Daten...", "grey");
+
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        if(error) handleError(error);
+        // Bei Erfolg macht onAuthStateChange den Rest
+    };
+
+    // 3. Register
+    document.getElementById('btn-register').onclick = async () => {
+        const email = document.getElementById('sb-email').value;
+        const password = document.getElementById('sb-password').value;
+        
+        if(!email || !password) return setMsg("Bitte E-Mail & Passwort eingeben", "red");
+        
+        setMsg("Registriere...", "grey");
+
+        const { data, error } = await supabase.auth.signUp({
+            email, 
+            password,
+            options: { emailRedirectTo: window.location.href }
+        });
+
+        if(error) handleError(error);
+        else setMsg("✅ Fast fertig! Bestätigungs-Link in E-Mail klicken.", "green");
+    };
+
+    function handleError(error) {
+        if(error.message.includes("Invalid login")) setMsg("❌ Unbekannter User oder falsches Passwort.", "red");
+        else if(error.message.includes("Email not confirmed")) setMsg("⚠️ E-Mail noch nicht bestätigt!", "orange");
+        else setMsg("Fehler: " + error.message, "red");
+    }
+
+    function setMsg(txt, col) {
+        msg.innerText = txt;
+        msg.style.color = col;
+    }
+</script>
+
+
+
+
+
+
+    
 </body>
 </html>
