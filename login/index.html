@@ -49,7 +49,7 @@
     /* === IFRAME BEREICH === */
     #app-frame { flex: 1; border: none; width: 100%; background: white; }
 
-    /* === LOGIN OVERLAY (Dein Style angepasst) === */
+    /* === LOGIN OVERLAY === */
     #login-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(255,255,255,0.95); backdrop-filter: blur(5px);
@@ -83,13 +83,12 @@
     </div>
   </div>
 
-  <!-- 2. SHELL UI (Nur sichtbar wenn eingeloggt) -->
+  <!-- 2. SHELL UI -->
   <header>
     <div class="logo">
       <i class="fa-solid fa-leaf"></i> Vitakreis
     </div>
 
-    <!-- HIER DEINE APPS DEFINIEREN -->
     <nav class="nav-tabs">
       <button class="nav-tab active" onclick="switchApp('dashboard.html', this)">
         <i class="fa-solid fa-house"></i> Übersicht
@@ -103,15 +102,10 @@
     </nav>
 
     <div class="user-area">
-      <!-- Auto-Save Anzeige -->
       <div id="status-display" class="save-status saved">
         <i class="fa-solid fa-check-circle"></i> <span>Aktuell</span>
       </div>
-
-      <div class="avatar" title="Angemeldet">
-        <i class="fa-solid fa-user"></i>
-      </div>
-      
+      <div class="avatar" title="Angemeldet"><i class="fa-solid fa-user"></i></div>
       <button class="logout-btn" onclick="handleLogout()">
         <i class="fa-solid fa-sign-out-alt"></i> Logout
       </button>
@@ -120,7 +114,6 @@
 
   <!-- 3. APP CONTAINER -->
   <iframe id="app-frame" src="about:blank"></iframe>
-
 
   <!-- ===================== LOGIK ===================== -->
   <script type="module">
@@ -136,24 +129,40 @@
     const iframe = document.getElementById('app-frame');
     const statusDisplay = document.getElementById('status-display');
 
-    // === 1. LOGIN FUNKTIONEN (Dein Code) ===
+    // === 1. LOGIN ===
     document.getElementById('sb-btn-login').addEventListener('click', async () => {
-      setMsg('Login...');
+      setMsg('Login...', '#4a5568');
       const email = document.getElementById('sb-email').value.trim();
       const password = document.getElementById('sb-password').value;
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) setMsg(error.message, 'red');
     });
 
-    // === 2. AUTH STATE LISTENER ===
+    // === 2. REGISTRIEREN (JETZT KORREKT DRIN) ===
+    document.getElementById('sb-btn-signup').addEventListener('click', async () => {
+      setMsg('Registrieren...', '#4a5568');
+      const email = document.getElementById('sb-email').value.trim();
+      const password = document.getElementById('sb-password').value;
+      
+      const { error } = await sb.auth.signUp({
+        email, 
+        password
+      });
+
+      if (error) {
+          setMsg(error.message, 'red');
+      } else {
+          setMsg('Account erstellt! Du bist eingeloggt.', 'green');
+      }
+    });
+
+    // === 3. AUTH STATUS ===
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        // User ist drin!
         overlay.style.display = 'none';
-        // Lade standardmäßig Dashboard
+        // Wenn Frame noch leer, Dashboard laden
         if(iframe.src === 'about:blank') switchApp('dashboard.html', document.querySelector('.nav-tab'));
       } else {
-        // User ist raus!
         overlay.style.display = 'flex';
         iframe.src = 'about:blank';
       }
@@ -164,14 +173,10 @@
         msgEl.style.color = color;
     }
 
-    // === 3. SHELL LOGIK (Global verfügbar machen) ===
+    // === 4. SHELL LOGIK ===
     window.handleLogout = async function() {
-        // ZUERST: Iframe zum Speichern zwingen
         triggerSave();
-        
         statusDisplay.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sichere Daten...';
-        
-        // Kurz warten (simuliert), dann Logout
         setTimeout(async () => {
             await sb.auth.signOut();
             statusDisplay.innerHTML = '';
@@ -179,38 +184,31 @@
     };
 
     window.switchApp = function(url, btn) {
-        // Optik umschalten
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         if(btn) btn.classList.add('active');
 
-        // Vor dem Wechseln speichern!
+        // Speichern auslösen bevor wir wechseln
         if(iframe.src !== 'about:blank') triggerSave();
 
         iframe.src = url;
     };
 
     function triggerSave() {
-        // Schickt Nachricht an Iframe: "Hey du, speicher mal!"
-        iframe.contentWindow.postMessage('cmd:save', '*');
+        if(iframe.contentWindow) {
+            iframe.contentWindow.postMessage('cmd:save', '*');
+        }
     }
 
-    // === 4. KOMMUNIKATION VOM IFRAME ===
+    // === 5. KOMMUNIKATION MIT IFRAME ===
     window.addEventListener('message', (event) => {
         const msg = event.data;
-        
-        // Iframe sagt: "User tippt gerade..."
         if (msg === 'status:dirty') {
             statusDisplay.innerHTML = '<i class="fa-solid fa-pen"></i> <span>Ungespeichert</span>';
             statusDisplay.className = 'save-status saving';
         }
-        
-        // Iframe sagt: "Hab gespeichert!"
         if (msg === 'status:saved') {
             statusDisplay.innerHTML = '<i class="fa-solid fa-check-circle"></i> <span>Gespeichert</span>';
             statusDisplay.className = 'save-status saved';
-            
-            // OPTIONAL: Hier könnten wir die Daten auch ECHTE an Supabase schicken
-            // saveToCloud(msg.data); <- Das wäre der nächste Schritt
         }
     });
 
