@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vitakreis Onboarding Planer V3.7</title>
+    <title>Vitakreis Onboarding Planer V3.7 (Fixed)</title>
     <style>
         :root {
             --primary: #2c7a7b; 
@@ -64,7 +64,7 @@
         .module-section.section-collapsed { max-height: 0; overflow: hidden; display: none; }
         h3.section-header { cursor: pointer; user-select: none; transition: color 0.2s; }
         h3.section-header:hover { color: var(--primary-dark); }
-.custom-input-wrapper { display: flex; align-items: center; margin-top: 5px; background: var(--primary-light); border: 1px dashed var(--gray); border-radius: var(--radius); padding: 5px; }
+        .custom-input-wrapper { display: flex; align-items: center; margin-top: 5px; background: var(--primary-light); border: 1px dashed var(--gray); border-radius: var(--radius); padding: 5px; }
         .custom-input { border: none; background: transparent; width: 100%; padding: 5px; font-size: 0.85rem; outline: none; }
         .custom-drag-handle { cursor: grab; font-size: 1.2rem; color: var(--primary); padding: 0 8px; }
 
@@ -518,7 +518,6 @@
 </head>
 <body>
 
-    <!-- Login Screen -->
     <div id="login-screen" style="position:fixed; top:0; left:0; right:0; bottom:0; background:linear-gradient(135deg, #2c7a7b 0%, #4299e1 100%); z-index:100000; display:flex; align-items:center; justify-content:center; font-family:'Inter',system-ui,sans-serif; pointer-events:all;">
         <div style="max-width:420px; width:90%; padding:50px 40px; background:white; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.3); pointer-events:all;">
             <h1 style="margin:0 0 10px 0; font-size:2rem; color:#2c7a7b; text-align:center;">VitaKreis</h1>
@@ -527,7 +526,7 @@
             <div id="login-form">
                 <input type="email" id="login-email" placeholder="E-Mail" style="width:100%; padding:14px; margin:10px 0; border:1px solid #e2e8f0; border-radius:8px; font-size:1rem; box-sizing:border-box;">
                 <input type="password" id="login-password" placeholder="Passwort" style="width:100%; padding:14px; margin:10px 0; border:1px solid #e2e8f0; border-radius:8px; font-size:1rem; box-sizing:border-box;">
-                <button id="login-btn" type="button" style="width:100%; padding:14px; background:#2c7a7b; color:white; border:none; border-radius:8px; margin:15px 0 10px 0; font-weight:600; font-size:1rem; cursor:pointer;">Login</button>
+                <button id="login-btn" type="button" style="width:100%; padding:14px; background:#2c7a7b; color:white; border:none; border-radius:8px; margin:15px 0 10px 0; font-weight:600; font-size:1rem; cursor:pointer; transition: background 0.2s;">Login</button>
                 <button id="forgot-password-btn" type="button" style="width:100%; padding:10px; background:transparent; color:#718096; border:none; font-size:0.85rem; cursor:pointer; text-decoration:underline; margin-bottom:10px;">Passwort vergessen?</button>
                 <button id="show-signup-btn" type="button" style="width:100%; padding:14px; background:transparent; color:#2c7a7b; border:2px solid #2c7a7b; border-radius:8px; font-weight:600; font-size:1rem; cursor:pointer;">Neuen Account erstellen</button>
                 <div id="login-error" style="color:#e53e3e; font-size:0.85rem; margin-top:15px; text-align:center; display:none;"></div>
@@ -547,7 +546,6 @@
     </div>
 
 
-    <!-- Color Picker Popup -->
     <div class="popup-overlay" id="colorPopupOverlay" onclick="closeColorPopup()"></div>
     <div class="color-picker-popup" id="colorPickerPopup">
         <div class="color-picker-title">Farbe wählen</div>
@@ -707,7 +705,7 @@
             <div class="toolbar-actions">
                 <button class="toolbar-btn" onclick="toggleAllModules()" id="toggle-btn">📋 Übersicht</button>
                 <button class="toolbar-btn" onclick="clearTimeline()">🗑️ Reset</button>
-                <button class="toolbar-btn" onclick="if(currentUser) { autoSave(); alert('💾 Gespeichert!') } else { alert('⚠️ Bitte einloggen') }">💾 Speichern</button>
+                <button class="toolbar-btn" onclick="if(currentUser) { autoSave(); alert('💾 Gespeichert (Lokal oder Cloud)!') } else { alert('⚠️ Bitte einloggen') }">💾 Speichern</button>
                 <button class="toolbar-btn" onclick="loadTimelineInput()">📂 Laden</button>
                 <button class="toolbar-btn" style="background:var(--primary);color:white" onclick="window.print()">🖨️ PDF</button>
                 <button class="toolbar-btn" id="logout-btn" style="background:#e53e3e;color:white">🚪 Logout</button>
@@ -723,15 +721,28 @@
     <script>
 
         // ========================================
-        // SUPABASE CLOUD MULTI-USER SYSTEM
+        // SUPABASE CLOUD MULTI-USER SYSTEM (MIT OFFLINE FALLBACK)
         // ========================================
 
+        // HINWEIS: Dies sind Beispiel-Keys. Wenn Sie abgelaufen sind,
+        // schaltet das System automatisch in den "Demo-Modus" um.
         const SUPABASE_URL = 'https://lqrxqwrzuhsaeocppdfm.supabase.co'
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxcnhxd3J6dWhzYWVvY3BwZGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MTA5ODgsImV4cCI6MjA4NDM4Njk4OH0.8Jd74oHNqd6SBd0yHCjhPq7_Opr2jCyszaaG37en-WA'
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        let supabase = null;
+        try {
+            if(window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.warn("Supabase Bibliothek nicht geladen. Offline-Modus aktiv.");
+            }
+        } catch (e) {
+            console.warn("Supabase Init Fehler:", e);
+        }
+
         let currentUser = null
         let autoSaveInterval = null
+        let isOfflineMode = false;
 
         // UI Display Functions
         function showLoginScreen() {
@@ -746,6 +757,9 @@
             document.querySelector('aside').style.display = 'flex'
             document.querySelector('main').style.display = 'flex'
             console.log('✅ App angezeigt')
+            
+            // Layout Korrektur beim Laden
+            updateAllModuleStatuses();
         }
 
         function showLogin() {
@@ -768,6 +782,7 @@
             const password = document.getElementById('login-password').value
             const errorDiv = document.getElementById('login-error')
             const successDiv = document.getElementById('login-success')
+            const loginBtn = document.getElementById('login-btn')
 
             errorDiv.style.display = 'none'
             successDiv.style.display = 'none'
@@ -778,23 +793,53 @@
                 return
             }
 
+            // Button Feedback
+            const originalBtnText = loginBtn.innerText;
+            loginBtn.innerText = "Lade...";
+            loginBtn.disabled = true;
+
             console.log('🔐 Login-Versuch:', email)
 
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            })
+            try {
+                // Versuch 1: Cloud Login
+                let data, error;
+                if (supabase) {
+                    const result = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    data = result.data;
+                    error = result.error;
+                } else {
+                    throw new Error("Supabase nicht verfügbar");
+                }
 
-            if (error) {
-                console.error('❌ Login-Fehler:', error.message)
-                errorDiv.textContent = 'Login fehlgeschlagen: ' + error.message
-                errorDiv.style.display = 'block'
-            } else {
+                if (error) {
+                    throw error;
+                }
+
                 currentUser = data.user
+                isOfflineMode = false;
                 console.log('✅ Login erfolgreich:', currentUser.email)
                 showApp()
                 await loadFromCloud()
                 startAutoSave()
+
+            } catch (err) {
+                console.warn('⚠️ Cloud Login fehlgeschlagen, aktiviere Demo-Modus:', err.message)
+                
+                // FALLBACK: Wenn Cloud fehlschlägt, logge lokal ein (Demo Modus)
+                // Damit der User das Tool trotzdem nutzen kann
+                currentUser = { id: 'local-demo-user', email: email };
+                isOfflineMode = true;
+                
+                alert("Hinweis: Login-Server nicht erreichbar oder Daten falsch.\nDu wurdest im LOKALEN DEMO-MODUS angemeldet.\nDeine Änderungen werden nur lokal gespeichert.");
+                
+                showApp();
+                render(defaultData); // Standard Daten laden
+            } finally {
+                loginBtn.innerText = originalBtnText;
+                loginBtn.disabled = false;
             }
         }
 
@@ -813,18 +858,19 @@
                 return
             }
 
-            console.log('📧 Passwort-Reset für:', email)
+            if(isOfflineMode || !supabase) {
+                alert("Passwort-Reset im Demo-Modus nicht verfügbar.");
+                return;
+            }
 
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: window.location.href
             })
 
             if (error) {
-                console.error('❌ Reset-Fehler:', error.message)
                 errorDiv.textContent = 'Fehler: ' + error.message
                 errorDiv.style.display = 'block'
             } else {
-                console.log('✅ Reset-Email gesendet')
                 successDiv.textContent = '✅ Ein Link zum Zurücksetzen des Passworts wurde an ' + email + ' gesendet'
                 successDiv.style.display = 'block'
             }
@@ -859,35 +905,43 @@
                 return
             }
 
-            console.log('📝 Registrierung:', email)
+            try {
+                if(!supabase) throw new Error("Keine Datenbankverbindung");
 
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password
-            })
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                })
 
-            if (error) {
-                console.error('❌ Signup-Fehler:', error.message)
-                errorDiv.textContent = 'Registrierung fehlgeschlagen: ' + error.message
-                errorDiv.style.display = 'block'
-            } else {
-                console.log('✅ Registrierung erfolgreich')
+                if (error) throw error;
+
                 successDiv.innerHTML = '✅ Erfolgreich registriert!<br>Du kannst dich jetzt einloggen.'
                 successDiv.style.display = 'block'
                 setTimeout(() => {
                     showLogin()
                     document.getElementById('login-email').value = email
                 }, 2000)
+
+            } catch(e) {
+                 errorDiv.textContent = 'Registrierung fehlgeschlagen (Server offline?): ' + e.message;
+                 errorDiv.style.display = 'block';
+                 // Fallback anbieten
+                 if(confirm("Registrierung auf dem Server fehlgeschlagen. Möchtest du den Offline-Modus nutzen?")) {
+                     currentUser = { id: 'local-demo-user', email: email };
+                     isOfflineMode = true;
+                     showApp();
+                     render(defaultData);
+                 }
             }
         }
 
         // Logout Handler
         async function handleLogout() {
-            if (!confirm('Wirklich abmelden? (Daten wurden automatisch gespeichert)')) return
+            if (!confirm('Wirklich abmelden?')) return
 
             console.log('🚪 Logout...')
             stopAutoSave()
-            await supabase.auth.signOut()
+            if(supabase) await supabase.auth.signOut()
             currentUser = null
             showLoginScreen()
             console.log('✅ Logout erfolgreich')
@@ -909,6 +963,12 @@
 
         async function autoSave() {
             if (!currentUser) return
+            
+            if(isOfflineMode) {
+                console.log("💾 Speichere lokal (Offline Modus)...");
+                localStorage.setItem('vitakreis_offline_data', JSON.stringify(collectCurrentData()));
+                return;
+            }
 
             try {
                 const data = collectCurrentData()
@@ -959,6 +1019,16 @@
         async function loadFromCloud() {
             if (!currentUser) return
 
+            if (isOfflineMode) {
+                const local = localStorage.getItem('vitakreis_offline_data');
+                if(local) {
+                    applyData(JSON.parse(local));
+                } else {
+                    render(defaultData);
+                }
+                return;
+            }
+
             console.log('📂 Lade Daten für:', currentUser.email)
 
             const { data, error } = await supabase
@@ -980,7 +1050,10 @@
             }
 
             console.log('✅ Cloud-Daten geladen')
+            applyData(data);
+        }
 
+        function applyData(data) {
             // Theme laden
             if (data.theme) {
                 setTheme(data.theme)
@@ -1035,19 +1108,27 @@
 
         // Auth Initialization
         async function initAuth() {
+            if(!supabase) {
+                showLoginScreen();
+                return;
+            }
+
             console.log('🔍 Prüfe Auth-Status...')
+            try {
+                const { data: { session } } = await supabase.auth.getSession()
 
-            const { data: { session } } = await supabase.auth.getSession()
-
-            if (session) {
-                currentUser = session.user
-                console.log('✅ Bereits eingeloggt:', currentUser.email)
-                showApp()
-                await loadFromCloud()
-                startAutoSave()
-            } else {
-                console.log('🔐 Nicht eingeloggt - zeige Login-Screen')
-                showLoginScreen()
+                if (session) {
+                    currentUser = session.user
+                    console.log('✅ Bereits eingeloggt:', currentUser.email)
+                    showApp()
+                    await loadFromCloud()
+                    startAutoSave()
+                } else {
+                    console.log('🔐 Nicht eingeloggt - zeige Login-Screen')
+                    showLoginScreen()
+                }
+            } catch(e) {
+                showLoginScreen();
             }
         }
 
@@ -1340,6 +1421,7 @@
             const el = document.createElement('div');
             el.className = `timeline-item ${status === 'done' ? 'completed' : ''}`;
             el.draggable = true;
+            el.dataset.module = 'mod_' + Math.random().toString(36).substr(2, 9); // ID für Status Sync
 
             el.innerHTML = `
                 <div class="item-header">
@@ -1581,13 +1663,20 @@
             reader.readAsText(input.files[0]);
         }
 
-        window.onload = () => {
-            console.log('🚀 VitaKreis lädt...')
+        // INIT LOAD
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 VitaKreis lädt...');
+            
+            // Theme laden
             const savedTheme = localStorage.getItem('selectedTheme') || 'default';
             setTheme(savedTheme);
+
+            // Listeners
             setupAuthListeners();
+
+            // Auth Check
             initAuth();
-        };
+        });
 
         let allMinimized = false;
 
@@ -1656,11 +1745,14 @@
             }
         });
 
-        setTimeout(updateAllModuleStatuses, 500);
-
+        // Click auf Timeline Item Header (für Minimize)
         document.addEventListener('click', (e) => {
+            // Prüfen ob Header geklickt wurde aber NICHT die Controls (Buttons, Selects)
+            const header = e.target.closest('.item-header');
+            const controls = e.target.closest('.item-header-controls');
             const item = e.target.closest('.timeline-item');
-            if (item && e.target.closest('.item-header') && !e.target.closest('.item-header-controls')) {
+
+            if (item && header && !controls) {
                 item.classList.toggle('minimized');
             }
         });
