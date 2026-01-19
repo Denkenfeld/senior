@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitakreis OS | Pflege Management Plattform</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { vita: { primary: '#2e8b57', secondary: '#1e5c39', accent: '#f39c12', bg: '#f8fafc' } }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root { --fc-border-color: #e2e8f0; --fc-today-bg-color: #f0fdf4; }
+        body { background-color: #f8fafc; overflow: hidden; height: 100vh; }
+        .sidebar-item.active { background-color: #e8f5e9; color: #2e8b57; border-right: 4px solid #2e8b57; }
+        .page-section { display: none; height: calc(100vh - 2rem); overflow-y: auto; }
+        .page-section.active { display: block; }
+        .fc { background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .fc-header-toolbar { margin-bottom: 1.5rem !important; }
+        .fc-event { cursor: pointer; font-size: 0.75rem; padding: 2px 4px; }
+        .conflict-warning { border: 2px solid #ef4444 !important; }
+        .employee-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; margin-left: 4px; }
+        .filter-btn { transition: all 0.2s; }
+        .filter-btn.active { background-color: #2e8b57; color: white; }
+        @keyframes pulse-notification { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .notification-badge { animation: pulse-notification 2s infinite; }
+        .stat-card { transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-4px); }
+    </style>
+</head>
+<body class="flex">
+
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col transition-all">
+        <div class="p-6 flex items-center gap-3 border-b">
+            <div class="bg-vita-primary p-2 rounded-lg text-white"><i class="fas fa-heart-pulse"></i></div>
+            <h1 class="font-black text-xl tracking-tighter text-slate-800">Vitakreis<span class="text-vita-primary">.OS</span></h1>
+        </div>
+
+        <nav class="flex-1 py-6">
+            <button onclick="showPage('dashboard')" class="sidebar-item active w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-home w-5 text-center"></i> <span class="font-semibold">Dashboard</span>
+            </button>
+            <button onclick="showPage('calendar')" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-calendar-day w-5 text-center"></i> <span class="font-semibold">Einsatzplan</span>
+            </button>
+            <button onclick="showPage('team')" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-users w-5 text-center"></i> <span class="font-semibold">Team</span>
+            </button>
+            <button onclick="showPage('clients')" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-address-book w-5 text-center"></i> <span class="font-semibold">Kundenakte</span>
+            </button>
+            <button onclick="showPage('documentation')" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-file-medical w-5 text-center"></i> <span class="font-semibold">Dokumentation</span>
+            </button>
+            <button onclick="showPage('medication')" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-pills w-5 text-center"></i> <span class="font-semibold">Medikamente</span>
+            </button>
+            <button onclick="showPage('timetracking')" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-clock w-5 text-center"></i> <span class="font-semibold">Zeiterfassung</span>
+            </button>
+            <button onclick="showPage('billing')" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-file-invoice-dollar w-5 text-center"></i> <span class="font-semibold">Abrechnung</span>
+            </button>
+            <button onclick="showPage('documents')" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-folder w-5 text-center"></i> <span class="font-semibold">Dokumente</span>
+            </button>
+            <button onclick="showPage('messages')" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-600 hover:bg-slate-50 transition">
+                <i class="fas fa-comments w-5 text-center"></i> <span class="font-semibold">Nachrichten</span>
+                <span class="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center notification-badge">2</span>
+            </button>
+        </nav>
+
+        <div class="p-6 bg-slate-50 border-t">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-slate-300 border-2 border-white shadow-sm overflow-hidden">
+                    <img src="https://ui-avatars.com/api/?name=Admin+VK&background=2e8b57" alt="User">
+                </div>
+                <div class="text-xs">
+                    <p class="font-bold text-slate-800">Administrator</p>
+                    <p class="text-slate-500">Vitakreis Zentrale</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-hidden">
+
+        <!-- ============================================ -->
+        <!-- DASHBOARD (NEU) -->
+        <!-- ============================================ -->
+        <section id="page-dashboard" class="page-section active">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-800 tracking-tight">Dashboard</h2>
+                    <p class="text-slate-500 text-sm mt-1" id="dashboard-date">Montag, 19. Januar 2026</p>
+                </div>
+                <button onclick="openEditModal(null)" class="bg-vita-primary hover:bg-vita-secondary text-white px-6 py-3 rounded-xl font-bold shadow-lg transition">
+                    <i class="fas fa-plus"></i> Schnell-Termin
+                </button>
+            </div>
+
+            <!-- KPI CARDS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                    <div class="relative z-10">
+                        <p class="text-sm font-bold opacity-90">Termine Heute</p>
+                        <h3 class="text-4xl font-black mt-2" id="dash-today">0</h3>
+                        <p class="text-xs opacity-75 mt-2">+2 gegenüber gestern</p>
+                    </div>
+                    <i class="fas fa-calendar-check text-8xl opacity-20 absolute -right-4 -bottom-4"></i>
+                </div>
+
+                <div class="stat-card bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                    <div class="relative z-10">
+                        <p class="text-sm font-bold opacity-90">Aktive Mitarbeiter</p>
+                        <h3 class="text-4xl font-black mt-2" id="dash-employees">0</h3>
+                        <p class="text-xs opacity-75 mt-2">6 im Einsatz gerade</p>
+                    </div>
+                    <i class="fas fa-users text-8xl opacity-20 absolute -right-4 -bottom-4"></i>
+                </div>
+
+                <div class="stat-card bg-gradient-to-br from-amber-500 to-amber-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                    <div class="relative z-10">
+                        <p class="text-sm font-bold opacity-90">Offene Aufgaben</p>
+                        <h3 class="text-4xl font-black mt-2">8</h3>
+                        <p class="text-xs opacity-75 mt-2">2 dringend</p>
+                    </div>
+                    <i class="fas fa-tasks text-8xl opacity-20 absolute -right-4 -bottom-4"></i>
+                </div>
+
+                <div class="stat-card bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                    <div class="relative z-10">
+                        <p class="text-sm font-bold opacity-90">Umsatz (Monat)</p>
+                        <h3 class="text-4xl font-black mt-2" id="dash-revenue">0€</h3>
+                        <p class="text-xs opacity-75 mt-2">+12% zum Vormonat</p>
+                    </div>
+                    <i class="fas fa-euro-sign text-8xl opacity-20 absolute -right-4 -bottom-4"></i>
+                </div>
+            </div>
+
+            <!-- HEUTE ÜBERSICHT & CHART -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="font-black text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-calendar-day text-vita-primary"></i> Heutige Termine
+                    </h3>
+                    <div id="today-schedule" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="font-black text-slate-800 mb-4">Schnellzugriff</h3>
+                    <div class="space-y-2">
+                        <button onclick="openEditModal(null)" class="w-full text-left p-3 bg-slate-50 hover:bg-vita-primary hover:text-white rounded-lg transition font-bold text-sm">
+                            <i class="fas fa-plus-circle"></i> Neuer Termin
+                        </button>
+                        <button onclick="openEmployeeModal()" class="w-full text-left p-3 bg-slate-50 hover:bg-vita-primary hover:text-white rounded-lg transition font-bold text-sm">
+                            <i class="fas fa-user-plus"></i> Mitarbeiter hinzufügen
+                        </button>
+                        <button onclick="showPage('documentation')" class="w-full text-left p-3 bg-slate-50 hover:bg-vita-primary hover:text-white rounded-lg transition font-bold text-sm">
+                            <i class="fas fa-file-medical"></i> Dokumentation
+                        </button>
+                        <button onclick="showPage('timetracking')" class="w-full text-left p-3 bg-slate-50 hover:bg-vita-primary hover:text-white rounded-lg transition font-bold text-sm">
+                            <i class="fas fa-clock"></i> Zeit erfassen
+                        </button>
+                        <button onclick="exportCalendar()" class="w-full text-left p-3 bg-slate-50 hover:bg-vita-primary hover:text-white rounded-lg transition font-bold text-sm">
+                            <i class="fas fa-download"></i> Daten exportieren
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WOCHENÜBERSICHT CHART -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                <h3 class="font-black text-slate-800 mb-4">Wochenübersicht</h3>
+                <div class="h-64">
+                    <canvas id="week-overview-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- KALENDER -->
+        <!-- ============================================ -->
+        <section id="page-calendar" class="page-section">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Einsatzplanung</h2>
+                <div class="flex gap-3">
+                    <button onclick="openRecurringModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl font-bold shadow-lg transition">
+                        <i class="fas fa-repeat"></i> Serie
+                    </button>
+                    <button onclick="openEditModal(null)" class="bg-vita-primary hover:bg-vita-secondary text-white px-6 py-3 rounded-xl font-bold shadow-lg transition">
+                        <i class="fas fa-plus"></i> Termin
+                    </button>
+                </div>
+            </div>
+
+            <!-- FILTER -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-6">
+                <div class="flex justify-between items-start gap-6">
+                    <div class="flex-1">
+                        <p class="text-xs uppercase font-bold text-slate-400 mb-3">Filter</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterCalendar('all')" class="filter-btn active px-4 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-sm" id="filter-all">
+                                <i class="fas fa-globe"></i> Alle
+                            </button>
+                            <select id="filter-employee" onchange="filterByEmployee(this.value)" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-sm border-0 outline-none cursor-pointer">
+                                <option value="">👤 Mitarbeiter</option>
+                            </select>
+                            <select id="filter-client" onchange="filterByClient(this.value)" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-sm border-0 outline-none cursor-pointer">
+                                <option value="">🏠 Kunde</option>
+                            </select>
+                            <button onclick="filterCalendar('conflicts')" class="filter-btn px-4 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-sm" id="filter-conflicts">
+                                <i class="fas fa-triangle-exclamation text-red-500"></i> Konflikte
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-2xl font-black text-slate-800" id="stat-today">0</p>
+                            <p class="text-xs text-slate-400 font-bold">Heute</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black text-blue-600" id="stat-week">0</p>
+                            <p class="text-xs text-slate-400 font-bold">Woche</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black text-amber-600" id="stat-conflicts">0</p>
+                            <p class="text-xs text-slate-400 font-bold">Konflikte</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="calendar-container" class="h-full pb-20">
+                <div id="calendar"></div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- TEAM -->
+        <!-- ============================================ -->
+        <section id="page-team" class="page-section">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Team Verwaltung</h2>
+                <button onclick="openEmployeeModal()" class="bg-vita-primary text-white px-6 py-3 rounded-xl hover:bg-vita-secondary transition font-bold shadow-lg">
+                    <i class="fas fa-user-plus"></i> Mitarbeiter hinzufügen
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                    <p class="text-sm font-bold opacity-90">Aktive Mitarbeiter</p>
+                    <h3 class="text-4xl font-black mt-2" id="team-count-active">0</h3>
+                    <i class="fas fa-users text-6xl opacity-20 absolute right-6 bottom-6"></i>
+                </div>
+                <div class="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                    <p class="text-sm font-bold opacity-90">Einsätze heute</p>
+                    <h3 class="text-4xl font-black mt-2" id="team-count-today">0</h3>
+                    <i class="fas fa-calendar-check text-6xl opacity-20 absolute right-6 bottom-6"></i>
+                </div>
+                <div class="bg-gradient-to-br from-amber-500 to-amber-600 p-6 rounded-2xl shadow-lg text-white relative overflow-hidden">
+                    <p class="text-sm font-bold opacity-90">Verfügbar jetzt</p>
+                    <h3 class="text-4xl font-black mt-2" id="team-count-available">0</h3>
+                    <i class="fas fa-clock text-6xl opacity-20 absolute right-6 bottom-6"></i>
+                </div>
+            </div>
+
+            <div id="employee-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- KUNDEN -->
+        <!-- ============================================ -->
+        <section id="page-clients" class="page-section">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Kundenakte</h2>
+                <button onclick="openClientModal()" class="bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-black transition">Neuer Kunde</button>
+            </div>
+            <div id="client-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- DOKUMENTATION (NEU) -->
+        <!-- ============================================ -->
+        <section id="page-documentation" class="page-section">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Pflegedokumentation</h2>
+                <button onclick="alert('Neue Dokumentation - Feature in Entwicklung')" class="bg-vita-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg">
+                    <i class="fas fa-plus"></i> Neue Dokumentation
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-medical text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black">24</p>
+                            <p class="text-xs text-slate-500">Einträge heute</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black">156</p>
+                            <p class="text-xs text-slate-500">Diese Woche</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-amber-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black">3</p>
+                            <p class="text-xs text-slate-500">Nachträge offen</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-signature text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black">21</p>
+                            <p class="text-xs text-slate-500">Zu unterschreiben</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border p-6">
+                <h3 class="font-black text-slate-800 mb-4">Letzte Einträge</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-check text-green-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800">Maria Musterfrau - Morgentoilette</p>
+                            <p class="text-xs text-slate-500">Anna Schmidt • Heute 08:30 Uhr</p>
+                        </div>
+                        <button class="px-4 py-2 bg-slate-200 rounded-lg text-sm font-bold hover:bg-slate-300">Details</button>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-check text-green-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800">Josef Schmidt - Medikamentengabe</p>
+                            <p class="text-xs text-slate-500">Thomas Müller • Heute 09:15 Uhr</p>
+                        </div>
+                        <button class="px-4 py-2 bg-slate-200 rounded-lg text-sm font-bold hover:bg-slate-300">Details</button>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                        <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-clock text-amber-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800">Hildegard Weber - Wundversorgung</p>
+                            <p class="text-xs text-slate-500">Lisa König • Nachtrag erforderlich</p>
+                        </div>
+                        <button class="px-4 py-2 bg-amber-200 rounded-lg text-sm font-bold hover:bg-amber-300">Ergänzen</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- MEDIKAMENTE (NEU) -->
+        <!-- ============================================ -->
+        <section id="page-medication" class="page-section">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Medikamentenplan</h2>
+                <button onclick="alert('Medikament hinzufügen - Feature in Entwicklung')" class="bg-vita-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg">
+                    <i class="fas fa-plus"></i> Medikament hinzufügen
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border p-6 mb-6">
+                <h3 class="font-black text-slate-800 mb-4">Heutige Medikamentengabe</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800">Maria Musterfrau - Insulin</p>
+                            <p class="text-xs text-slate-500">08:00 Uhr • 12 IE • Verabreicht von Anna Schmidt</p>
+                        </div>
+                        <span class="px-3 py-1 bg-green-600 text-white rounded-full text-xs font-bold">Erledigt</span>
+                    </div>
+
+                    <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                            10:30
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800">Josef Schmidt - Ramipril 5mg</p>
+                            <p class="text-xs text-slate-500">10:30 Uhr • 1 Tablette • Zuständig: Thomas Müller</p>
+                        </div>
+                        <button class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600">Geben</button>
+                    </div>
+
+                    <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                        <div class="w-12 h-12 bg-slate-300 rounded-full flex items-center justify-center text-white font-bold">
+                            12:00
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800">Hildegard Weber - Marcumar 3mg</p>
+                            <p class="text-xs text-slate-500">12:00 Uhr • 1 Tablette • Zuständig: Lisa König</p>
+                        </div>
+                        <button class="px-4 py-2 bg-slate-200 rounded-lg text-sm font-bold hover:bg-slate-300">Geben</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow-sm border p-6">
+                    <h3 class="font-black text-slate-800 mb-4">Kritische Bestände</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                            <div>
+                                <p class="font-bold text-slate-800">Insulin Lantus</p>
+                                <p class="text-xs text-red-600">Nur noch 2 Ampullen</p>
+                            </div>
+                            <button class="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-bold">Nachbestellen</button>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                            <div>
+                                <p class="font-bold text-slate-800">Marcumar 3mg</p>
+                                <p class="text-xs text-amber-600">Läuft in 5 Tagen ab</p>
+                            </div>
+                            <button class="px-3 py-1 bg-amber-500 text-white rounded-lg text-xs font-bold">Prüfen</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border p-6">
+                    <h3 class="font-black text-slate-800 mb-4">Rezepte anfordern</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div>
+                                <p class="font-bold text-slate-800">Maria Musterfrau</p>
+                                <p class="text-xs text-slate-500">3 Medikamente • Fällig: 25.01.2026</p>
+                            </div>
+                            <button class="px-3 py-1 bg-vita-primary text-white rounded-lg text-xs font-bold">Anfordern</button>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div>
+                                <p class="font-bold text-slate-800">Hildegard Weber</p>
+                                <p class="text-xs text-slate-500">2 Medikamente • Fällig: 28.01.2026</p>
+                            </div>
+                            <button class="px-3 py-1 bg-vita-primary text-white rounded-lg text-xs font-bold">Anfordern</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- ZEITERFASSUNG (NEU) -->
+        <!-- ============================================ -->
+        <section id="page-timetracking" class="page-section">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Zeiterfassung</h2>
+                <button onclick="alert('Zeit manuell erfassen - Feature in Entwicklung')" class="bg-vita-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg">
+                    <i class="fas fa-clock"></i> Zeit erfassen
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                    <p class="text-slate-500 text-xs font-bold uppercase">Heute gearbeitet</p>
+                    <h3 class="text-3xl font-black text-vita-primary mt-2">42.5h</h3>
+                    <p class="text-xs text-slate-400 mt-1">Alle Mitarbeiter</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                    <p class="text-slate-500 text-xs font-bold uppercase">Diese Woche</p>
+                    <h3 class="text-3xl font-black text-blue-600 mt-2">187h</h3>
+                    <p class="text-xs text-slate-400 mt-1">+12h zu letzte Woche</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                    <p class="text-slate-500 text-xs font-bold uppercase">Überstunden</p>
+                    <h3 class="text-3xl font-black text-amber-600 mt-2">23.5h</h3>
+                    <p class="text-xs text-slate-400 mt-1">Gesamt Team</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                    <p class="text-slate-500 text-xs font-bold uppercase">Nicht erfasst</p>
+                    <h3 class="text-3xl font-black text-red-600 mt-2">2</h3>
+                    <p class="text-xs text-slate-400 mt-1">Termine ohne Zeit</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="font-black text-slate-800">Zeiterfassung Heute</h3>
+                </div>
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
+                        <tr>
+                            <th class="p-4">Mitarbeiter</th>
+                            <th class="p-4">Kunde</th>
+                            <th class="p-4">Start</th>
+                            <th class="p-4">Ende</th>
+                            <th class="p-4 text-right">Dauer</th>
+                            <th class="p-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timetracking-table" class="text-sm">
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-4 font-bold">Anna Schmidt</td>
+                            <td class="p-4">Maria Musterfrau</td>
+                            <td class="p-4">08:00</td>
+                            <td class="p-4">09:30</td>
+                            <td class="p-4 text-right font-black">1.5h</td>
+                            <td class="p-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Erfasst</span></td>
+                        </tr>
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-4 font-bold">Thomas Müller</td>
+                            <td class="p-4">Josef Schmidt</td>
+                            <td class="p-4">09:00</td>
+                            <td class="p-4">10:15</td>
+                            <td class="p-4 text-right font-black">1.25h</td>
+                            <td class="p-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Erfasst</span></td>
+                        </tr>
+                        <tr class="border-b hover:bg-slate-50 bg-amber-50">
+                            <td class="p-4 font-bold">Lisa König</td>
+                            <td class="p-4">Hildegard Weber</td>
+                            <td class="p-4">10:00</td>
+                            <td class="p-4">-</td>
+                            <td class="p-4 text-right font-black text-amber-600">Läuft...</td>
+                            <td class="p-4"><span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">Aktiv</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- ABRECHNUNG -->
+        <!-- ============================================ -->
+        <section id="page-billing" class="page-section">
+            <h2 class="text-3xl font-black text-slate-800 tracking-tight mb-8">Finanzen & Abrechnung</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-slate-500 text-sm font-bold uppercase tracking-wider">Monatsumsatz</p>
+                    <h3 class="text-4xl font-black text-vita-primary" id="billing-revenue">0.00 €</h3>
+                    <div class="mt-4 h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div class="bg-vita-primary h-full" style="width: 65%"></div>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-64">
+                    <canvas id="billing-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b flex justify-between items-center">
+                    <h3 class="font-black text-slate-800">Abzurechnende Leistungen</h3>
+                    <button onclick="processBilling()" class="bg-vita-primary text-white px-4 py-2 rounded-lg font-bold">Lauf abgleichen</button>
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
+                        <tr>
+                            <th class="p-4">Datum</th>
+                            <th class="p-4">Kunde</th>
+                            <th class="p-4">Mitarbeiter</th>
+                            <th class="p-4">Leistung</th>
+                            <th class="p-4 text-right">Betrag</th>
+                            <th class="p-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billing-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- DOKUMENTE (NEU) -->
+        <!-- ============================================ -->
+        <section id="page-documents" class="page-section">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Dokumente & Vorlagen</h2>
+                <button onclick="alert('Dokument hochladen - Feature in Entwicklung')" class="bg-vita-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg">
+                    <i class="fas fa-upload"></i> Hochladen
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+                <button class="bg-white p-4 rounded-xl border-2 border-dashed border-slate-200 hover:border-vita-primary hover:bg-vita-primary hover:text-white transition text-center">
+                    <i class="fas fa-file-pdf text-3xl mb-2"></i>
+                    <p class="font-bold text-sm">Verträge</p>
+                    <p class="text-xs opacity-70">12 Dateien</p>
+                </button>
+                <button class="bg-white p-4 rounded-xl border-2 border-dashed border-slate-200 hover:border-vita-primary hover:bg-vita-primary hover:text-white transition text-center">
+                    <i class="fas fa-file-signature text-3xl mb-2"></i>
+                    <p class="font-bold text-sm">Verordnungen</p>
+                    <p class="text-xs opacity-70">28 Dateien</p>
+                </button>
+                <button class="bg-white p-4 rounded-xl border-2 border-dashed border-slate-200 hover:border-vita-primary hover:bg-vita-primary hover:text-white transition text-center">
+                    <i class="fas fa-file-medical text-3xl mb-2"></i>
+                    <p class="font-bold text-sm">Arztberichte</p>
+                    <p class="text-xs opacity-70">45 Dateien</p>
+                </button>
+                <button class="bg-white p-4 rounded-xl border-2 border-dashed border-slate-200 hover:border-vita-primary hover:bg-vita-primary hover:text-white transition text-center">
+                    <i class="fas fa-file-alt text-3xl mb-2"></i>
+                    <p class="font-bold text-sm">Vorlagen</p>
+                    <p class="text-xs opacity-70">8 Dateien</p>
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border p-6">
+                <h3 class="font-black text-slate-800 mb-4">Zuletzt hochgeladen</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-pdf text-red-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-sm">Pflegevertrag_Musterfrau_2026.pdf</p>
+                            <p class="text-xs text-slate-500">18.01.2026 • 245 KB</p>
+                        </div>
+                        <button class="px-3 py-1 bg-slate-200 rounded-lg text-xs font-bold hover:bg-slate-300">Download</button>
+                    </div>
+                    <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-word text-blue-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-sm">Verordnung_Schmidt_Hausarzt.docx</p>
+                            <p class="text-xs text-slate-500">17.01.2026 • 128 KB</p>
+                        </div>
+                        <button class="px-3 py-1 bg-slate-200 rounded-lg text-xs font-bold hover:bg-slate-300">Download</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- NACHRICHTEN (NEU) -->
+        <!-- ============================================ -->
+        <section id="page-messages" class="page-section">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Nachrichten & Kommunikation</h2>
+                <button onclick="alert('Neue Nachricht - Feature in Entwicklung')" class="bg-vita-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg">
+                    <i class="fas fa-pen"></i> Neue Nachricht
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border p-4">
+                    <h3 class="font-black text-slate-800 mb-4 px-2">Konversationen</h3>
+                    <div class="space-y-2">
+                        <div class="p-3 bg-vita-primary text-white rounded-xl cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">TM</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-bold text-sm">Thomas Müller</p>
+                                    <p class="text-xs opacity-75 truncate">Kann heute später kommen...</p>
+                                </div>
+                                <span class="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold">2</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-600">LK</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-bold text-sm">Lisa König</p>
+                                    <p class="text-xs text-slate-500 truncate">Dokumentation fertig</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-600">AS</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-bold text-sm">Anna Schmidt</p>
+                                    <p class="text-xs text-slate-500 truncate">Alles klar, danke!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border flex flex-col">
+                    <div class="p-4 border-b flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center font-bold text-white">TM</div>
+                        <div>
+                            <p class="font-bold">Thomas Müller</p>
+                            <p class="text-xs text-green-600">● Online</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 p-6 space-y-4 overflow-y-auto" style="max-height: 400px;">
+                        <div class="flex gap-3">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center font-bold text-white text-xs">TM</div>
+                            <div class="flex-1">
+                                <div class="bg-slate-100 p-3 rounded-2xl rounded-tl-none">
+                                    <p class="text-sm">Hey, ich komme heute leider 30 Minuten später. Stau auf der A81.</p>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-1">09:15 Uhr</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-3 justify-end">
+                            <div class="flex-1 text-right">
+                                <div class="bg-vita-primary text-white p-3 rounded-2xl rounded-tr-none inline-block">
+                                    <p class="text-sm">Kein Problem! Ich verschiebe den Termin.</p>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-1">09:16 Uhr</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center font-bold text-white text-xs">TM</div>
+                            <div class="flex-1">
+                                <div class="bg-slate-100 p-3 rounded-2xl rounded-tl-none">
+                                    <p class="text-sm">Super, danke! Bin dann gegen 10 Uhr da.</p>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-1">09:17 Uhr</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-t">
+                        <div class="flex gap-3">
+                            <input type="text" placeholder="Nachricht schreiben..." class="flex-1 px-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-vita-primary">
+                            <button class="px-6 py-3 bg-vita-primary text-white rounded-xl font-bold hover:bg-vita-secondary transition">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODALS -->
+    <!-- TERMIN MODAL -->
+    <div id="modal-event" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50 sticky top-0 z-10">
+                <h3 id="event-modal-title" class="text-xl font-black text-slate-800">Termin bearbeiten</h3>
+                <button onclick="closeModal('modal-event')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="form-event" class="p-8 space-y-4">
+                <input type="hidden" id="field-id">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Kunde *</label>
+                        <select id="field-client" required class="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-vita-primary outline-none">
+                            <option value="">Bitte wählen...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Mitarbeiter *</label>
+                        <select id="field-employee" required class="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-vita-primary outline-none">
+                            <option value="">Bitte wählen...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Bezeichnung *</label>
+                    <input id="field-title" required class="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-vita-primary outline-none" placeholder="z.B. Morgentoilette, Medikamentengabe">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Startzeit *</label>
+                        <input type="datetime-local" id="field-start" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Endzeit *</label>
+                        <input type="datetime-local" id="field-end" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Status</label>
+                    <select id="field-status" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                        <option value="planned">Geplant (Blau)</option>
+                        <option value="done">Erledigt (Grün)</option>
+                        <option value="billed">Abgerechnet (Grau)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Notizen / Besonderheiten</label>
+                    <textarea id="field-notes" rows="3" class="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-vita-primary outline-none resize-none" placeholder="z.B. Medikamente, Besonderheiten, Anweisungen"></textarea>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4" id="conflict-warning" style="display: none;">
+                    <div class="flex items-center gap-2 text-amber-800">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span class="font-bold text-sm">Zeitkonflikt erkannt!</span>
+                    </div>
+                    <p class="text-xs text-amber-700 mt-1" id="conflict-details"></p>
+                </div>
+
+                <div class="flex gap-3 pt-6">
+                    <button type="button" id="btn-delete-event" class="px-6 py-3 rounded-xl font-bold text-red-500 hover:bg-red-50 transition">Löschen</button>
+                    <button type="submit" class="flex-1 bg-vita-primary text-white py-3 rounded-xl font-bold shadow-lg hover:bg-vita-secondary transition">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SERIEN-TERMIN MODAL -->
+    <div id="modal-recurring" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center bg-blue-50 sticky top-0">
+                <h3 class="text-xl font-black text-slate-800">📅 Wiederkehrende Serie</h3>
+                <button onclick="closeModal('modal-recurring')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="form-recurring" class="p-8 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Kunde</label>
+                        <select id="recurring-client" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Mitarbeiter</label>
+                        <select id="recurring-employee" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none"></select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Titel</label>
+                    <input id="recurring-title" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none" placeholder="z.B. Wöchentliche Betreuung">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Start (Uhrzeit)</label>
+                        <input type="time" id="recurring-time-start" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none" value="09:00">
+                    </div>
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Ende (Uhrzeit)</label>
+                        <input type="time" id="recurring-time-end" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none" value="10:30">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Wiederholung</label>
+                    <select id="recurring-pattern" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                        <option value="weekly" selected>Wöchentlich</option>
+                        <option value="daily">Täglich</option>
+                        <option value="biweekly">Alle 2 Wochen</option>
+                    </select>
+                </div>
+
+                <div id="weekday-selector" class="space-y-2">
+                    <label class="text-xs font-black uppercase text-slate-400">Wochentage</label>
+                    <div class="grid grid-cols-7 gap-2">
+                        <button type="button" class="weekday-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs hover:bg-vita-primary hover:text-white transition" data-day="1">Mo</button>
+                        <button type="button" class="weekday-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs hover:bg-vita-primary hover:text-white transition" data-day="2">Di</button>
+                        <button type="button" class="weekday-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs hover:bg-vita-primary hover:text-white transition" data-day="3">Mi</button>
+                        <button type="button" class="weekday-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs hover:bg-vita-primary hover:text-white transition" data-day="4">Do</button>
+                        <button type="button" class="weekday-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs hover:bg-vita-primary hover:text-white transition" data-day="5">Fr</button>
+                        <button type="button" class="weekday-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs hover:bg-vita-primary hover:text-white transition" data-day="6">Sa</button>
+                        <button type="button" class="weekday-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs hover:bg-vita-primary hover:text-white transition" data-day="0">So</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Von Datum</label>
+                        <input type="date" id="recurring-start-date" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Bis Datum</label>
+                        <input type="date" id="recurring-end-date" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <p class="text-xs text-blue-700">✨ Es werden <span class="font-black" id="recurring-count-preview">0</span> Termine erstellt</p>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-500 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-600 transition">Serie erstellen</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MITARBEITER MODAL -->
+    <div id="modal-employee" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50 sticky top-0">
+                <h3 id="employee-modal-title" class="text-xl font-black text-slate-800">Mitarbeiter hinzufügen</h3>
+                <button onclick="closeModal('modal-employee')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="form-employee" class="p-8 space-y-4">
+                <input type="hidden" id="emp-field-id">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Vorname *</label>
+                        <input id="emp-field-firstname" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Nachname *</label>
+                        <input id="emp-field-lastname" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">E-Mail</label>
+                        <input type="email" id="emp-field-email" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Telefon</label>
+                        <input type="tel" id="emp-field-phone" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Stundensatz (€)</label>
+                        <input type="number" id="emp-field-rate" value="45" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-black uppercase text-slate-400">Farbe</label>
+                        <input type="color" id="emp-field-color" value="#3b82f6" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none h-12">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Qualifikationen</label>
+                    <textarea id="emp-field-qualifications" rows="2" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none resize-none" placeholder="z.B. Krankenpfleger, Führerschein"></textarea>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="emp-field-active" checked class="w-5 h-5 text-vita-primary rounded">
+                    <label for="emp-field-active" class="text-sm font-bold text-slate-600">Mitarbeiter ist aktiv</label>
+                </div>
+
+                <div class="flex gap-3 pt-6">
+                    <button type="button" id="btn-delete-employee" class="px-6 py-3 rounded-xl font-bold text-red-500 hover:bg-red-50 transition" style="display: none;">Löschen</button>
+                    <button type="submit" class="flex-1 bg-vita-primary text-white py-3 rounded-xl font-bold shadow-lg hover:bg-vita-secondary transition">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CLIENT MODAL -->
+    <div id="modal-client" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="text-xl font-black text-slate-800">Neuer Kunde</h3>
+                <button onclick="closeModal('modal-client')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="form-client" class="p-8 space-y-4">
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Name *</label>
+                    <input id="client-field-name" required class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                </div>
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Adresse</label>
+                    <input id="client-field-address" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                </div>
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Stundensatz (€)</label>
+                    <input type="number" id="client-field-rate" value="45" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none">
+                </div>
+                <div>
+                    <label class="text-xs font-black uppercase text-slate-400">Notizen</label>
+                    <textarea id="client-field-notes" rows="3" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none resize-none"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-vita-primary text-white py-3 rounded-xl font-bold shadow-lg hover:bg-vita-secondary transition">Kunde speichern</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. DATA MANAGEMENT MIT DEMO CONTENT
+        // ==========================================
+        const dataManager = {
+            init() {
+                if (!localStorage.getItem('vk_initialized')) {
+                    // DEMO MITARBEITER
+                    const demoEmployees = [
+                        { id: 'emp1', firstname: 'Anna', lastname: 'Schmidt', email: 'anna@vitakreis.de', phone: '0151-12345678', rate: 45, color: '#3b82f6', qualifications: 'Krankenpflegerin, Wundmanagement', active: true },
+                        { id: 'emp2', firstname: 'Thomas', lastname: 'Müller', email: 'thomas@vitakreis.de', phone: '0152-98765432', rate: 42, color: '#10b981', qualifications: 'Altenpfleger, Palliativpflege', active: true },
+                        { id: 'emp3', firstname: 'Lisa', lastname: 'König', email: 'lisa@vitakreis.de', phone: '0173-55512345', rate: 48, color: '#f59e0b', qualifications: 'Gesundheits- und Krankenpflegerin', active: true },
+                        { id: 'emp4', firstname: 'Michael', lastname: 'Weber', email: 'michael@vitakreis.de', phone: '0162-77788899', rate: 40, color: '#8b5cf6', qualifications: 'Pflegehelfer', active: true },
+                        { id: 'emp5', firstname: 'Sarah', lastname: 'Fischer', email: 'sarah@vitakreis.de', phone: '0176-99911122', rate: 46, color: '#ec4899', qualifications: 'Altenpflegerin, Demenzbetreuung', active: true },
+                        { id: 'emp6', firstname: 'Daniel', lastname: 'Schneider', email: 'daniel@vitakreis.de', phone: '0151-33344455', rate: 44, color: '#14b8a6', qualifications: 'Gesundheitspfleger', active: true }
+                    ];
+                    
+                    // DEMO KUNDEN
+                    const demoClients = [
+                        { id: 'cl1', name: 'Maria Musterfrau', address: 'Balinger Weg 12, 72336 Balingen', rate: 45, notes: 'Diabetikerin Typ 2, Insulin morgens. Keine Treppen!' },
+                        { id: 'cl2', name: 'Josef Schmidt', address: 'Kirchplatz 5, 72336 Balingen', rate: 40, notes: 'Rollstuhlfahrer, Transferhilfe erforderlich' },
+                        { id: 'cl3', name: 'Hildegard Weber', address: 'Mühlenstraße 23, 72336 Balingen', rate: 48, notes: 'Wundversorgung Dekubitus, sterile Materialien' },
+                        { id: 'cl4', name: 'Karl Bauer', address: 'Ringstraße 8, 72336 Balingen', rate: 42, notes: 'Demenz mittlerer Grad, feste Tagesstruktur wichtig' },
+                        { id: 'cl5', name: 'Gertrud Meier', address: 'Hauptstraße 45, 72336 Balingen', rate: 45, notes: 'Herzinsuffizienz, Vitalwerte täglich messen' },
+                        { id: 'cl6', name: 'Heinrich Schulz', address: 'Bergstraße 17, 72336 Balingen', rate: 43, notes: 'Parkinson, Medikamente pünktlich!' }
+                    ];
+                    
+                    // DEMO TERMINE (letzte 7 Tage + nächste 14 Tage)
+                    const demoEvents = this.generateDemoEvents(demoClients, demoEmployees);
+                    
+                    localStorage.setItem('vk_employees', JSON.stringify(demoEmployees));
+                    localStorage.setItem('vk_clients', JSON.stringify(demoClients));
+                    localStorage.setItem('vk_events', JSON.stringify(demoEvents));
+                    localStorage.setItem('vk_initialized', 'true');
+                }
+            },
+            
+            generateDemoEvents(clients, employees) {
+                const events = [];
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                let eventId = 1;
+                
+                // Termine für die letzten 7 Tage und nächsten 14 Tage
+                for (let dayOffset = -7; dayOffset <= 14; dayOffset++) {
+                    const currentDay = new Date(today);
+                    currentDay.setDate(currentDay.getDate() + dayOffset);
+                    
+                    // Wochenende weniger Termine
+                    const isWeekend = currentDay.getDay() === 0 || currentDay.getDay() === 6;
+                    const eventsPerDay = isWeekend ? 6 : 12;
+                    
+                    for (let i = 0; i < eventsPerDay; i++) {
+                        const startHour = 8 + Math.floor(i * 1.5);
+                        const startMin = (i % 2) * 30;
+                        const duration = 60 + Math.floor(Math.random() * 60); // 60-120 Minuten
+                        
+                        const start = new Date(currentDay);
+                        start.setHours(startHour, startMin, 0);
+                        
+                        const end = new Date(start);
+                        end.setMinutes(end.getMinutes() + duration);
+                        
+                        const client = clients[i % clients.length];
+                        const employee = employees[i % employees.length];
+                        
+                        const titles = ['Morgentoilette', 'Medikamentengabe', 'Wundversorgung', 'Mobilisation', 'Betreuung', 'Körperpflege'];
+                        
+                        let status = 'planned';
+                        if (dayOffset < -1) status = 'billed';
+                        else if (dayOffset === -1 || (dayOffset === 0 && startHour < new Date().getHours())) status = 'done';
+                        
+                        events.push({
+                            id: 'evt' + eventId++,
+                            title: titles[i % titles.length],
+                            clientId: client.id,
+                            employeeId: employee.id,
+                            start: start.toISOString().substring(0, 16),
+                            end: end.toISOString().substring(0, 16),
+                            status: status,
+                            notes: ''
+                        });
+                    }
+                }
+                
+                return events;
+            },
+            
+            getEvents: () => JSON.parse(localStorage.getItem('vk_events') || '[]'),
+            saveEvents: (evts) => localStorage.setItem('vk_events', JSON.stringify(evts)),
+            getClients: () => JSON.parse(localStorage.getItem('vk_clients') || '[]'),
+            saveClients: (cls) => localStorage.setItem('vk_clients', JSON.stringify(cls)),
+            getEmployees: () => JSON.parse(localStorage.getItem('vk_employees') || '[]'),
+            saveEmployees: (emps) => localStorage.setItem('vk_employees', JSON.stringify(emps)),
+            clearAll: () => { 
+                if (confirm('Wirklich ALLE Daten löschen und neu starten?')) {
+                    localStorage.clear(); 
+                    location.reload(); 
+                }
+            }
+        };
+
+        // ==========================================
+        // 2. KALENDER
+        // ==========================================
+        let calendar;
+        let currentFilter = 'all';
+        let filteredEmployeeId = null;
+        let filteredClientId = null;
+
+        function initCalendar() {
+            const el = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(el, {
+                initialView: 'timeGridWeek',
+                locale: 'de',
+                headerToolbar: { 
+                    left: 'prev,next today', 
+                    center: 'title', 
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' 
+                },
+                slotMinTime: '07:00:00',
+                slotMaxTime: '21:00:00',
+                allDaySlot: false,
+                editable: true,
+                selectable: true,
+                selectMirror: true,
+                dayMaxEvents: true,
+                weekends: true,
+                events: getFilteredEvents(),
+                eventClick: (info) => openEditModal(info.event.id),
+                eventDrop: (info) => handleEventDrop(info.event),
+                eventResize: (info) => handleEventDrop(info.event),
+                dateClick: (info) => openEditModal(null, info.dateStr),
+                select: (info) => openEditModal(null, info.startStr)
+            });
+            calendar.render();
+            updateCalendarStats();
+        }
+
+        function getFilteredEvents() {
+            let events = dataManager.getEvents();
+            
+            if (currentFilter === 'conflicts') {
+                events = events.filter(e => checkEventConflicts(e).length > 0);
+            } else if (filteredEmployeeId) {
+                events = events.filter(e => e.employeeId === filteredEmployeeId);
+            } else if (filteredClientId) {
+                events = events.filter(e => e.clientId === filteredClientId);
+            }
+            
+            return events.map(e => mapEventToCalendar(e));
+        }
+
+        function mapEventToCalendar(e) {
+            const employees = dataManager.getEmployees();
+            const employee = employees.find(emp => emp.id === e.employeeId);
+            
+            let color = employee ? employee.color : '#3b82f6';
+            if (e.status === 'done') color = '#10b981';
+            if (e.status === 'billed') color = '#94a3b8';
+            
+            const conflicts = checkEventConflicts(e);
+            const empName = employee ? employee.firstname : '?';
+            
+            return { 
+                id: e.id, 
+                title: `${e.title} (${empName})`, 
+                start: e.start, 
+                end: e.end, 
+                backgroundColor: color, 
+                borderColor: conflicts.length > 0 ? '#ef4444' : 'transparent',
+                className: conflicts.length > 0 ? 'conflict-warning' : '',
+                extendedProps: { 
+                    status: e.status, 
+                    clientId: e.clientId,
+                    employeeId: e.employeeId,
+                    notes: e.notes
+                } 
+            };
+        }
+
+        function handleEventDrop(event) {
+            const events = dataManager.getEvents();
+            const evt = events.find(e => e.id == event.id);
+            if (evt) {
+                evt.start = event.startStr;
+                evt.end = event.endStr;
+                dataManager.saveEvents(events);
+                refreshAll();
+            }
+        }
+
+        function checkEventConflicts(event) {
+            const events = dataManager.getEvents();
+            const conflicts = [];
+            
+            const eventStart = new Date(event.start);
+            const eventEnd = new Date(event.end);
+            
+            events.forEach(e => {
+                if (e.id === event.id) return;
+                if (e.employeeId !== event.employeeId) return;
+                
+                const eStart = new Date(e.start);
+                const eEnd = new Date(e.end);
+                
+                if (eventStart < eEnd && eventEnd > eStart) {
+                    conflicts.push(e);
+                }
+            });
+            
+            return conflicts;
+        }
+
+        function filterCalendar(type) {
+            currentFilter = type;
+            filteredEmployeeId = null;
+            filteredClientId = null;
+            
+            document.getElementById('filter-employee').value = '';
+            document.getElementById('filter-client').value = '';
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (document.getElementById('filter-' + type)) {
+                document.getElementById('filter-' + type).classList.add('active');
+            }
+            
+            refreshCalendar();
+        }
+
+        function filterByEmployee(empId) {
+            if (!empId) {
+                filterCalendar('all');
+                return;
+            }
+            filteredEmployeeId = empId;
+            currentFilter = 'employee';
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            refreshCalendar();
+        }
+
+        function filterByClient(clientId) {
+            if (!clientId) {
+                filterCalendar('all');
+                return;
+            }
+            filteredClientId = clientId;
+            currentFilter = 'client';
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            refreshCalendar();
+        }
+
+        function refreshCalendar() {
+            calendar.removeAllEvents();
+            calendar.addEventSource(getFilteredEvents());
+            updateCalendarStats();
+        }
+
+        function updateCalendarStats() {
+            const events = dataManager.getEvents();
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const weekEnd = new Date(today);
+            weekEnd.setDate(weekEnd.getDate() + 7);
+            
+            const todayCount = events.filter(e => {
+                const eDate = new Date(e.start);
+                return eDate >= today && eDate < new Date(today.getTime() + 86400000);
+            }).length;
+            
+            const weekCount = events.filter(e => {
+                const eDate = new Date(e.start);
+                return eDate >= today && eDate < weekEnd;
+            }).length;
+            
+            const conflictCount = events.filter(e => checkEventConflicts(e).length > 0).length;
+            
+            document.getElementById('stat-today').textContent = todayCount;
+            document.getElementById('stat-week').textContent = weekCount;
+            document.getElementById('stat-conflicts').textContent = conflictCount;
+        }
+
+        // ==========================================
+        // 3. DASHBOARD
+        // ==========================================
+        function renderDashboard() {
+            const events = dataManager.getEvents();
+            const employees = dataManager.getEmployees();
+            const clients = dataManager.getClients();
+            
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            // KPIs
+            const todayEvents = events.filter(e => {
+                const eDate = new Date(e.start);
+                return eDate >= today && eDate < new Date(today.getTime() + 86400000);
+            });
+            
+            document.getElementById('dash-today').textContent = todayEvents.length;
+            document.getElementById('dash-employees').textContent = employees.filter(e => e.active).length;
+            
+            // Revenue berechnen
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const monthEvents = events.filter(e => {
+                const eDate = new Date(e.start);
+                return eDate >= monthStart && (e.status === 'done' || e.status === 'billed');
+            });
+            
+            let revenue = 0;
+            monthEvents.forEach(e => {
+                const client = clients.find(c => c.id === e.clientId);
+                const duration = (new Date(e.end) - new Date(e.start)) / 3600000;
+                revenue += duration * (client ? client.rate : 45);
+            });
+            
+            document.getElementById('dash-revenue').textContent = revenue.toFixed(0) + '€';
+            
+            // Heute Schedule
+            const scheduleDiv = document.getElementById('today-schedule');
+            const sortedToday = todayEvents.sort((a, b) => new Date(a.start) - new Date(b.start)).slice(0, 8);
+            
+            scheduleDiv.innerHTML = sortedToday.map(e => {
+                const client = clients.find(c => c.id === e.clientId);
+                const employee = employees.find(emp => emp.id === e.employeeId);
+                const start = new Date(e.start);
+                const end = new Date(e.end);
+                
+                let statusColor = 'blue';
+                if (e.status === 'done') statusColor = 'green';
+                if (e.status === 'billed') statusColor = 'slate';
+                
+                return `
+                    <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition cursor-pointer" onclick="openEditModal('${e.id}')">
+                        <div class="text-center">
+                            <p class="text-xs text-slate-400">Start</p>
+                            <p class="font-black text-${statusColor}-600">${start.getHours().toString().padStart(2,'0')}:${start.getMinutes().toString().padStart(2,'0')}</p>
+                        </div>
+                        <div class="w-1 h-12 bg-${statusColor}-600 rounded-full"></div>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800">${client ? client.name : 'Unbekannt'}</p>
+                            <p class="text-xs text-slate-500">${e.title} • ${employee ? employee.firstname + ' ' + employee.lastname : 'N/A'}</p>
+                        </div>
+                        <span class="px-3 py-1 bg-${statusColor}-100 text-${statusColor}-700 rounded-full text-xs font-bold">
+                            ${e.status === 'planned' ? 'Geplant' : e.status === 'done' ? 'Erledigt' : 'Abgerechnet'}
+                        </span>
+                    </div>
+                `;
+            }).join('') || '<p class="text-slate-400 text-center py-8">Keine Termine heute</p>';
+            
+            // Week Overview Chart
+            renderWeekChart();
+        }
+
+        function renderWeekChart() {
+            const ctx = document.getElementById('week-overview-chart');
+            const events = dataManager.getEvents();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const weekData = [];
+            const weekLabels = [];
+            
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(today);
+                day.setDate(day.getDate() - today.getDay() + i + 1); // Mo-So
+                
+                const dayEvents = events.filter(e => {
+                    const eDate = new Date(e.start);
+                    return eDate >= day && eDate < new Date(day.getTime() + 86400000);
+                });
+                
+                weekData.push(dayEvents.length);
+                weekLabels.push(['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][i]);
+            }
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weekLabels,
+                    datasets: [{
+                        label: 'Termine',
+                        data: weekData,
+                        backgroundColor: '#2e8b57',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, ticks: { stepSize: 2 } }
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        // 4. NAVIGATION
+        // ==========================================
+        function showPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById('page-' + pageId).classList.add('active');
+            const btn = document.querySelector(`button[onclick="showPage('${pageId}')"]`);
+            if (btn) btn.classList.add('active');
+            
+            if (pageId === 'calendar') {
+                setTimeout(() => calendar.updateSize(), 100);
+            }
+            if (pageId === 'team') renderEmployees();
+            if (pageId === 'clients') renderClients();
+            if (pageId === 'billing') renderBilling();
+            if (pageId === 'dashboard') renderDashboard();
+        }
+
+        // ==========================================
+        // 5. TERMIN MODAL
+        // ==========================================
+        function openEditModal(id, dateStr) {
+            const modal = document.getElementById('modal-event');
+            const form = document.getElementById('form-event');
+            const clients = dataManager.getClients();
+            const employees = dataManager.getEmployees();
+            
+            document.getElementById('field-client').innerHTML = '<option value="">Bitte wählen...</option>' + 
+                clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            
+            document.getElementById('field-employee').innerHTML = '<option value="">Bitte wählen...</option>' + 
+                employees.filter(e => e.active).map(e => `<option value="${e.id}">${e.firstname} ${e.lastname}</option>`).join('');
+
+            if (id) {
+                const evts = dataManager.getEvents();
+                const evt = evts.find(e => e.id == id);
+                if (!evt) return;
+                
+                document.getElementById('event-modal-title').innerText = "Termin bearbeiten";
+                document.getElementById('field-id').value = evt.id;
+                document.getElementById('field-title').value = evt.title;
+                document.getElementById('field-client').value = evt.clientId;
+                document.getElementById('field-employee').value = evt.employeeId;
+                document.getElementById('field-start').value = evt.start.substring(0,16);
+                document.getElementById('field-end').value = evt.end.substring(0,16);
+                document.getElementById('field-status').value = evt.status;
+                document.getElementById('field-notes').value = evt.notes || '';
+                document.getElementById('btn-delete-event').style.display = 'block';
+            } else {
+                document.getElementById('event-modal-title').innerText = "Neuer Termin";
+                form.reset();
+                document.getElementById('field-id').value = "";
+                const start = dateStr ? new Date(dateStr) : new Date();
+                const end = new Date(start.getTime() + 90*60000);
+                document.getElementById('field-start').value = start.toISOString().substring(0,16);
+                document.getElementById('field-end').value = end.toISOString().substring(0,16);
+                document.getElementById('btn-delete-event').style.display = 'none';
+            }
+            
+            document.getElementById('conflict-warning').style.display = 'none';
+            modal.classList.remove('hidden');
+        }
+
+        document.getElementById('form-event').onsubmit = function(e) {
+            e.preventDefault();
+            const evts = dataManager.getEvents();
+            const id = document.getElementById('field-id').value;
+            
+            const newEvt = {
+                id: id || 'evt_' + Date.now(),
+                title: document.getElementById('field-title').value,
+                clientId: document.getElementById('field-client').value,
+                employeeId: document.getElementById('field-employee').value,
+                start: document.getElementById('field-start').value,
+                end: document.getElementById('field-end').value,
+                status: document.getElementById('field-status').value,
+                notes: document.getElementById('field-notes').value
+            };
+
+            const conflicts = checkEventConflicts(newEvt);
+            if (conflicts.length > 0) {
+                const emp = dataManager.getEmployees().find(e => e.id === newEvt.employeeId);
+                document.getElementById('conflict-details').innerHTML = 
+                    `<strong>${emp ? emp.firstname : 'Mitarbeiter'}</strong> hat bereits ${conflicts.length} Termin(e) in diesem Zeitraum.`;
+                document.getElementById('conflict-warning').style.display = 'block';
+                
+                if (!confirm('Konflikt erkannt! Trotzdem speichern?')) {
+                    return;
+                }
+            }
+
+            if (id) {
+                const idx = evts.findIndex(x => x.id == id);
+                if (idx >= 0) evts[idx] = newEvt;
+            } else {
+                evts.push(newEvt);
+            }
+            
+            dataManager.saveEvents(evts);
+            refreshAll();
+            closeModal('modal-event');
+        };
+
+        document.getElementById('btn-delete-event').onclick = function() {
+            const id = document.getElementById('field-id').value;
+            if (confirm("Termin wirklich löschen?")) {
+                let evts = dataManager.getEvents().filter(e => e.id != id);
+                dataManager.saveEvents(evts);
+                refreshAll();
+                closeModal('modal-event');
+            }
+        };
+
+        // ==========================================
+        // 6. WIEDERKEHRENDE TERMINE
+        // ==========================================
+        function openRecurringModal() {
+            const modal = document.getElementById('modal-recurring');
+            const clients = dataManager.getClients();
+            const employees = dataManager.getEmployees();
+            
+            document.getElementById('recurring-client').innerHTML = clients.map(c => 
+                `<option value="${c.id}">${c.name}</option>`
+            ).join('');
+            
+            document.getElementById('recurring-employee').innerHTML = employees.filter(e => e.active).map(e => 
+                `<option value="${e.id}">${e.firstname} ${e.lastname}</option>`
+            ).join('');
+            
+            const today = new Date();
+            const nextMonth = new Date(today);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            
+            document.getElementById('recurring-start-date').value = today.toISOString().split('T')[0];
+            document.getElementById('recurring-end-date').value = nextMonth.toISOString().split('T')[0];
+            
+            modal.classList.remove('hidden');
+            updateRecurringPreview();
+        }
+
+        document.querySelectorAll('.weekday-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                this.classList.toggle('active');
+                this.classList.toggle('bg-vita-primary');
+                this.classList.toggle('text-white');
+                this.classList.toggle('bg-slate-100');
+                this.classList.toggle('text-slate-600');
+                updateRecurringPreview();
+            });
+        });
+
+        function updateRecurringPreview() {
+            const startDate = document.getElementById('recurring-start-date').value;
+            const endDate = document.getElementById('recurring-end-date').value;
+            
+            if (!startDate || !endDate) return;
+            
+            const selectedDays = Array.from(document.querySelectorAll('.weekday-btn.active')).map(b => parseInt(b.dataset.day));
+            
+            let count = 0;
+            let current = new Date(startDate);
+            const end = new Date(endDate);
+            
+            while (current <= end) {
+                if (selectedDays.includes(current.getDay())) {
+                    count++;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            
+            document.getElementById('recurring-count-preview').textContent = count;
+        }
+
+        ['recurring-pattern', 'recurring-start-date', 'recurring-end-date'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', updateRecurringPreview);
+        });
+
+        document.getElementById('form-recurring').onsubmit = function(e) {
+            e.preventDefault();
+            
+            const clientId = document.getElementById('recurring-client').value;
+            const employeeId = document.getElementById('recurring-employee').value;
+            const title = document.getElementById('recurring-title').value;
+            const timeStart = document.getElementById('recurring-time-start').value;
+            const timeEnd = document.getElementById('recurring-time-end').value;
+            const startDate = new Date(document.getElementById('recurring-start-date').value);
+            const endDate = new Date(document.getElementById('recurring-end-date').value);
+            
+            const selectedDays = Array.from(document.querySelectorAll('.weekday-btn.active')).map(b => parseInt(b.dataset.day));
+            
+            if (selectedDays.length === 0) {
+                alert('Bitte mindestens einen Wochentag auswählen!');
+                return;
+            }
+            
+            const evts = dataManager.getEvents();
+            let current = new Date(startDate);
+            let created = 0;
+            
+            while (current <= endDate) {
+                if (selectedDays.includes(current.getDay())) {
+                    const eventStart = new Date(current);
+                    const [startHour, startMin] = timeStart.split(':');
+                    eventStart.setHours(parseInt(startHour), parseInt(startMin), 0);
+                    
+                    const eventEnd = new Date(current);
+                    const [endHour, endMin] = timeEnd.split(':');
+                    eventEnd.setHours(parseInt(endHour), parseInt(endMin), 0);
+                    
+                    evts.push({
+                        id: 'evt_' + Date.now() + '_' + created,
+                        title: title,
+                        clientId: clientId,
+                        employeeId: employeeId,
+                        start: eventStart.toISOString().substring(0,16),
+                        end: eventEnd.toISOString().substring(0,16),
+                        status: 'planned',
+                        notes: 'Wiederkehrende Serie'
+                    });
+                    created++;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            
+            dataManager.saveEvents(evts);
+            refreshAll();
+            closeModal('modal-recurring');
+            alert(`✅ ${created} Termine erfolgreich erstellt!`);
+        };
+
+        // ==========================================
+        // 7. MITARBEITER
+        // ==========================================
+        function renderEmployees() {
+            const grid = document.getElementById('employee-grid');
+            const employees = dataManager.getEmployees();
+            const events = dataManager.getEvents();
+            
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            const activeCount = employees.filter(e => e.active).length;
+            const todayEvents = events.filter(e => {
+                const eDate = new Date(e.start);
+                return eDate >= today && eDate < new Date(today.getTime() + 86400000);
+            });
+            
+            const workingNow = todayEvents.filter(e => {
+                const start = new Date(e.start);
+                const end = new Date(e.end);
+                return now >= start && now <= end;
+            }).length;
+            
+            document.getElementById('team-count-active').textContent = activeCount;
+            document.getElementById('team-count-today').textContent = todayEvents.length;
+            document.getElementById('team-count-available').textContent = activeCount - workingNow;
+            
+            grid.innerHTML = employees.map(emp => {
+                const empEvents = events.filter(e => e.employeeId === emp.id);
+                const todayEmpEvents = empEvents.filter(e => {
+                    const eDate = new Date(e.start);
+                    return eDate >= today && eDate < new Date(today.getTime() + 86400000);
+                });
+                
+                const isWorkingNow = todayEmpEvents.some(e => {
+                    const start = new Date(e.start);
+                    const end = new Date(e.end);
+                    return now >= start && now <= end;
+                });
+                
+                return `
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative hover:shadow-md transition">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl" style="background-color: ${emp.color}">
+                                ${emp.firstname.charAt(0)}${emp.lastname.charAt(0)}
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-slate-800">${emp.firstname} ${emp.lastname}</h4>
+                                <p class="text-xs text-slate-500">${emp.qualifications || 'Keine Angaben'}</p>
+                                
+                                ${isWorkingNow ? '<span class="inline-block mt-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">🟢 IM EINSATZ</span>' : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-sm mb-4">
+                            <div class="bg-slate-50 p-3 rounded-lg">
+                                <p class="text-slate-400 text-xs">Stundensatz</p>
+                                <p class="font-black text-vita-primary">${emp.rate} €/h</p>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-lg">
+                                <p class="text-slate-400 text-xs">Termine heute</p>
+                                <p class="font-black text-slate-800">${todayEmpEvents.length}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="openEmployeeModal('${emp.id}')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-bold hover:bg-vita-primary hover:text-white transition">
+                                <i class="fas fa-edit"></i> Bearbeiten
+                            </button>
+                            <button onclick="filterByEmployee('${emp.id}'); showPage('calendar')" class="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-100 transition">
+                                <i class="fas fa-calendar"></i> Termine
+                            </button>
+                        </div>
+                        
+                        ${!emp.active ? '<div class="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">INAKTIV</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openEmployeeModal(id) {
+            const modal = document.getElementById('modal-employee');
+            const form = document.getElementById('form-employee');
+            
+            if (id) {
+                const employees = dataManager.getEmployees();
+                const emp = employees.find(e => e.id === id);
+                if (!emp) return;
+                
+                document.getElementById('employee-modal-title').innerText = "Mitarbeiter bearbeiten";
+                document.getElementById('emp-field-id').value = emp.id;
+                document.getElementById('emp-field-firstname').value = emp.firstname;
+                document.getElementById('emp-field-lastname').value = emp.lastname;
+                document.getElementById('emp-field-email').value = emp.email || '';
+                document.getElementById('emp-field-phone').value = emp.phone || '';
+                document.getElementById('emp-field-rate').value = emp.rate;
+                document.getElementById('emp-field-color').value = emp.color;
+                document.getElementById('emp-field-qualifications').value = emp.qualifications || '';
+                document.getElementById('emp-field-active').checked = emp.active;
+                document.getElementById('btn-delete-employee').style.display = 'block';
+            } else {
+                document.getElementById('employee-modal-title').innerText = "Mitarbeiter hinzufügen";
+                form.reset();
+                document.getElementById('emp-field-id').value = "";
+                document.getElementById('emp-field-rate').value = 45;
+                document.getElementById('emp-field-color').value = '#' + Math.floor(Math.random()*16777215).toString(16);
+                document.getElementById('btn-delete-employee').style.display = 'none';
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        document.getElementById('form-employee').onsubmit = function(e) {
+            e.preventDefault();
+            const employees = dataManager.getEmployees();
+            const id = document.getElementById('emp-field-id').value;
+            
+            const newEmp = {
+                id: id || 'emp_' + Date.now(),
+                firstname: document.getElementById('emp-field-firstname').value,
+                lastname: document.getElementById('emp-field-lastname').value,
+                email: document.getElementById('emp-field-email').value,
+                phone: document.getElementById('emp-field-phone').value,
+                rate: parseFloat(document.getElementById('emp-field-rate').value),
+                color: document.getElementById('emp-field-color').value,
+                qualifications: document.getElementById('emp-field-qualifications').value,
+                active: document.getElementById('emp-field-active').checked
+            };
+
+            if (id) {
+                const idx = employees.findIndex(x => x.id == id);
+                if (idx >= 0) employees[idx] = newEmp;
+            } else {
+                employees.push(newEmp);
+            }
+            
+            dataManager.saveEmployees(employees);
+            refreshAll();
+            closeModal('modal-employee');
+        };
+
+        document.getElementById('btn-delete-employee').onclick = function() {
+            const id = document.getElementById('emp-field-id').value;
+            if (confirm("Mitarbeiter wirklich löschen? Alle zugewiesenen Termine bleiben erhalten.")) {
+                let employees = dataManager.getEmployees().filter(e => e.id != id);
+                dataManager.saveEmployees(employees);
+                refreshAll();
+                closeModal('modal-employee');
+            }
+        };
+
+        // ==========================================
+        // 8. KUNDEN
+        // ==========================================
+        function renderClients() {
+            const grid = document.getElementById('client-grid');
+            const clients = dataManager.getClients();
+            const events = dataManager.getEvents();
+            
+            grid.innerHTML = clients.map(c => {
+                const clientEvents = events.filter(e => e.clientId === c.id);
+                const totalHours = clientEvents.reduce((sum, e) => {
+                    const duration = (new Date(e.end) - new Date(e.start)) / 3600000;
+                    return sum + duration;
+                }, 0);
+                
+                return `
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative group hover:shadow-md transition">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-vita-primary to-vita-secondary rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">${c.name.charAt(0)}</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-slate-800">${c.name}</h4>
+                                <p class="text-xs text-slate-500 italic"><i class="fas fa-map-marker-alt"></i> ${c.address}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-sm mb-4">
+                            <div class="bg-slate-50 p-3 rounded-lg">
+                                <p class="text-slate-400 text-xs">Stundensatz</p>
+                                <p class="font-black text-vita-primary">${c.rate} €/h</p>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-lg">
+                                <p class="text-slate-400 text-xs">Gesamt Stunden</p>
+                                <p class="font-black text-slate-800">${totalHours.toFixed(1)}h</p>
+                            </div>
+                        </div>
+                        
+                        ${c.notes ? `<div class="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-4"><p class="text-xs text-amber-800"><i class="fas fa-sticky-note"></i> ${c.notes}</p></div>` : ''}
+                        
+                        <button onclick="filterByClient('${c.id}'); showPage('calendar')" class="w-full py-2 bg-slate-50 text-slate-600 rounded-lg text-sm font-bold hover:bg-vita-primary hover:text-white transition">
+                            <i class="fas fa-calendar-alt"></i> Termine anzeigen (${clientEvents.length})
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openClientModal() {
+            const modal = document.getElementById('modal-client');
+            document.getElementById('form-client').reset();
+            modal.classList.remove('hidden');
+        }
+
+        document.getElementById('form-client').onsubmit = function(e) {
+            e.preventDefault();
+            const clients = dataManager.getClients();
+            
+            const newClient = {
+                id: 'cl_' + Date.now(),
+                name: document.getElementById('client-field-name').value,
+                address: document.getElementById('client-field-address').value,
+                rate: parseFloat(document.getElementById('client-field-rate').value),
+                notes: document.getElementById('client-field-notes').value
+            };
+            
+            clients.push(newClient);
+            dataManager.saveClients(clients);
+            refreshAll();
+            closeModal('modal-client');
+        };
+
+        // ==========================================
+        // 9. ABRECHNUNG
+        // ==========================================
+        function renderBilling() {
+            const tbody = document.getElementById('billing-table-body');
+            const events = dataManager.getEvents();
+            const clients = dataManager.getClients();
+            const employees = dataManager.getEmployees();
+            let revenue = 0;
+            
+            const list = events.filter(e => e.status !== 'planned').sort((a,b) => new Date(b.start) - new Date(a.start)).slice(0, 50);
+            
+            tbody.innerHTML = list.map(e => {
+                const client = clients.find(c => c.id == e.clientId);
+                const employee = employees.find(emp => emp.id == e.employeeId);
+                const durationHours = (new Date(e.end) - new Date(e.start)) / 3600000;
+                const cost = durationHours * (client ? client.rate : 45);
+                if (e.status === 'done' || e.status === 'billed') revenue += cost;
+
+                return `
+                    <tr class="border-b border-slate-50 hover:bg-slate-50">
+                        <td class="p-4 text-sm">${new Date(e.start).toLocaleDateString('de-DE')}</td>
+                        <td class="p-4 font-bold text-slate-700">${client ? client.name : 'Unbekannt'}</td>
+                        <td class="p-4 text-sm text-slate-500">${employee ? employee.firstname + ' ' + employee.lastname : 'N/A'}</td>
+                        <td class="p-4 text-sm text-slate-500">${e.title} (${durationHours.toFixed(1)}h)</td>
+                        <td class="p-4 text-right font-black text-slate-800">${cost.toFixed(2)} €</td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 rounded-full text-[10px] font-black uppercase ${e.status === 'done' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}">
+                                ${e.status === 'done' ? 'Offen' : 'Abgerechnet'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            document.getElementById('billing-revenue').innerText = revenue.toFixed(2) + " €";
+            updateBillingChart();
+        }
+
+        let billingChart;
+        function updateBillingChart() {
+            const ctx = document.getElementById('billing-chart');
+            if (billingChart) billingChart.destroy();
+            
+            const events = dataManager.getEvents();
+            const clients = dataManager.getClients();
+            const now = new Date();
+            
+            // Letzte 6 Monate
+            const monthlyData = [];
+            const monthLabels = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+                
+                const monthEvents = events.filter(e => {
+                    const eDate = new Date(e.start);
+                    return eDate >= monthDate && eDate <= monthEnd && (e.status === 'done' || e.status === 'billed');
+                });
+                
+                let revenue = 0;
+                monthEvents.forEach(e => {
+                    const client = clients.find(c => c.id === e.clientId);
+                    const duration = (new Date(e.end) - new Date(e.start)) / 3600000;
+                    revenue += duration * (client ? client.rate : 45);
+                });
+                
+                monthlyData.push(revenue);
+                monthLabels.push(monthDate.toLocaleDateString('de-DE', { month: 'short' }));
+            }
+            
+            billingChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{ 
+                        label: 'Umsatz 2026', 
+                        data: monthlyData, 
+                        borderColor: '#2e8b57', 
+                        backgroundColor: 'rgba(46, 139, 87, 0.1)',
+                        tension: 0.4, 
+                        fill: true
+                    }]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toFixed(2) + ' €';
+                                }
+                            }
+                        }
+                    }, 
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '€';
+                                }
+                            }
+                        } 
+                    } 
+                }
+            });
+        }
+
+        function processBilling() {
+            const evts = dataManager.getEvents();
+            let count = 0;
+            evts.forEach(e => { 
+                if(e.status === 'done') {
+                    e.status = 'billed';
+                    count++;
+                }
+            });
+            dataManager.saveEvents(evts);
+            refreshAll();
+            alert(`✅ ${count} Termine wurden abgerechnet und archiviert.`);
+        }
+
+        // ==========================================
+        // 10. EXPORT
+        // ==========================================
+        function exportCalendar() {
+            const events = dataManager.getEvents();
+            const employees = dataManager.getEmployees();
+            const clients = dataManager.getClients();
+            
+            let csv = "Datum,Startzeit,Endzeit,Kunde,Mitarbeiter,Bezeichnung,Status,Notizen\n";
+            
+            events.forEach(e => {
+                const client = clients.find(c => c.id === e.clientId);
+                const employee = employees.find(emp => emp.id === e.employeeId);
+                const startDate = new Date(e.start);
+                const endDate = new Date(e.end);
+                
+                csv += `${startDate.toLocaleDateString('de-DE')},`;
+                csv += `${startDate.toLocaleTimeString('de-DE')},`;
+                csv += `${endDate.toLocaleTimeString('de-DE')},`;
+                csv += `"${client ? client.name : 'N/A'}",`;
+                csv += `"${employee ? employee.firstname + ' ' + employee.lastname : 'N/A'}",`;
+                csv += `"${e.title}",`;
+                csv += `${e.status},`;
+                csv += `"${(e.notes || '').replace(/"/g, '""')}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `vitakreis_export_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function printCalendar() {
+            window.print();
+        }
+
+        // ==========================================
+        // 11. HELPER FUNCTIONS
+        // ==========================================
+        function closeModal(id) { 
+            document.getElementById(id).classList.add('hidden'); 
+        }
+
+        function refreshAll() {
+            if (calendar) {
+                refreshCalendar();
+            }
+            renderClients();
+            renderBilling();
+            renderEmployees();
+            renderDashboard();
+            updateFilterDropdowns();
+        }
+
+        function updateFilterDropdowns() {
+            const employees = dataManager.getEmployees();
+            const clients = dataManager.getClients();
+            
+            const empSelect = document.getElementById('filter-employee');
+            if (empSelect) {
+                empSelect.innerHTML = '<option value="">👤 Mitarbeiter</option>' +
+                    employees.filter(e => e.active).map(e => 
+                        `<option value="${e.id}">${e.firstname} ${e.lastname}</option>`
+                    ).join('');
+            }
+            
+            const clientSelect = document.getElementById('filter-client');
+            if (clientSelect) {
+                clientSelect.innerHTML = '<option value="">🏠 Kunde</option>' +
+                    clients.map(c => 
+                        `<option value="${c.id}">${c.name}</option>`
+                    ).join('');
+            }
+        }
+
+        // ==========================================
+        // 12. INIT
+        // ==========================================
+        window.onload = () => {
+            dataManager.init();
+            initCalendar();
+            renderDashboard();
+            renderClients();
+            renderBilling();
+            renderEmployees();
+            updateFilterDropdowns();
+            
+            // Datum im Dashboard
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('dashboard-date').textContent = new Date().toLocaleDateString('de-DE', options);
+        };
+    </script>
+</body>
+</html>
