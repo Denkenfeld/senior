@@ -540,15 +540,15 @@
         <div class="pkg-grid">
             <div class="pkg-card">
                 <div class="pkg-shine-wrap"></div>
-                <h3>Angebot 1: Kennenlernen</h3>
+                <h3>Unser Kennenlernen</h3>
                 <div class="pkg-price">0 €</div>
                 <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">Unkompliziert und zu Ihrem Wunschtermin</p>
                 <ul class="pkg-features">
                     <li><strong>Besuch vor Ort:</strong> Ca 1 Stunde</li>
                     <li><strong>Vitakreis:</strong> Vorstellung Person & Leistungen</li>
-                    <li><strong>Anamnese:</strong> Besprechung Bedarf & Wünsche</li>
+                    <li><strong>Kennenlernen:</strong> Besprechung Bedarf & Wünsche</li>
                     <li><strong>Garantiert:</strong> 100% Unverbindlich</li>
-                    <li><strong>Kosten:</strong> Kostenlos</li>
+                    <li><strong>Kosten:</strong> Natürlich Kostenlos</li>
                 </ul>
                 <a onclick="openRequestModal('Paket: Besuch')" class="btn-card">Online buchen →</a>
             </div>
@@ -557,13 +557,13 @@
 
             <div class="pkg-card featured">
                 <div class="pkg-shine-wrap"></div>
-                <h3>Angebot 2: Tagespakete</h3>
-                <div class="pkg-price">ab 49 €</div>
+                <h3>Tarif Flexi </h3>
+                <div class="pkg-price">ab 69 €</div>
                 <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">Für spontane Ideen oder auch unvorhergesehene Ereignisse</p>
                 <ul class="pkg-features">
                     <li><strong>Verfügbarkeit:</strong> Kurzfristige Alltagshilfe binnen 24h</li>
                     <li><strong>Notfall:</strong> Auch sofort möglich</li>
-                    <li><strong>Dauer:</strong> 1,5 Stunden & länger</li>
+                    <li><strong>Dauer:</strong> ab 2 bis 8 Stunden pro Monat</li>
                     <li><strong>Ort:</strong> Vor Ort & unterwegs</li>
                     <li><strong>Garantiert:</strong> Keine versteckten Kosten</li>
                 </ul>
@@ -575,7 +575,7 @@
             
             <div class="pkg-card">
                 <div class="pkg-shine-wrap"></div>
-                <h3>Angebot 3: Monatsabo <span style="color: #D96C4A; font-size: 1rem; text-transform: uppercase; vertical-align: middle; margin-left: 5px;">Aktion</span> <span id="aktionsmonat"></span> </h3>
+                <h3>Tarif Regelmäßig <span style="color: #D96C4A; font-size: 1rem; text-transform: uppercase; vertical-align: middle; margin-left: 5px;">Aktion</span> <span id="aktionsmonat"></span> </h3>
 <script>
 document.getElementById('aktionsmonat').textContent = 'im ' + new Date().toLocaleString('de-DE', { month: 'long' });
 </script>
@@ -583,13 +583,13 @@ document.getElementById('aktionsmonat').textContent = 'im ' + new Date().toLocal
                 
                 <div class="pkg-price">
                     <span class="schraeg-durchgestrichen">199 €</span>
-                    <span style="color: #D96C4A; margin-left: 5px;">ab 179 €</span> 
+                    <span style="color: #D96C4A; margin-left: 5px;">ab 265 €</span> 
                 </div>
                 <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">Regelmäßige Besuche für Hilfe & Begleitung im Alltag</p>
                 <ul class="pkg-features">
                     <li><strong>Leistung:</strong> Regelmäßige Alltagshilfe</li>
                     <li><strong>Rhythmus:</strong> Täglich oder Wöchentlich</li>
-                    <li><strong>Dauer:</strong> 1 Stunde & länger</li>
+                    <li><strong>Dauer:</strong> ab 9 Stunden pro Monat</li>
                     <li><strong>Flexibel:</strong> Monatlich kündbar</li>
                     <li><strong>Notfall:</strong> 24h erreichbar</li>
                 </ul>
@@ -628,6 +628,582 @@ document.getElementById('aktionsmonat').textContent = 'im ' + new Date().toLocal
         <img src="https://denkenfeld.github.io/senior/18-anliegen-a.jpg" class="b2b-img" alt="Individual Shooting">
     </section>
 
+
+
+
+
+<!-- Vitakreis Kostenrechner - Start -->
+<style>
+    .vitakreis-calculator * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .vitakreis-calculator {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        max-width: 480px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        color: #5d4e37;
+    }
+
+    .vitakreis-calculator .vk-header {
+        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+        padding: 20px 20px;
+        text-align: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .vitakreis-calculator .vk-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, 
+            transparent 30%, 
+            rgba(255,255,255,0.1) 50%, 
+            transparent 70%);
+        animation: vk-shine 3s infinite;
+    }
+
+    @keyframes vk-shine {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .vitakreis-calculator .vk-header h1 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .vitakreis-calculator .vk-header p {
+        font-size: 14px;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+    }
+
+    .vitakreis-calculator .vk-content {
+        padding: 20px;
+    }
+
+    .vitakreis-calculator .vk-tarif-indicator {
+        background: linear-gradient(135deg, #e3e8e3 0%, #d6ded6 100%);
+        border: 2px solid #889e88;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(136, 158, 136, 0.15);
+    }
+
+    .vitakreis-calculator .vk-tarif-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .vitakreis-calculator .vk-tarif-name-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .vitakreis-calculator .vk-tarif-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #889e88;
+        text-shadow: 0 1px 2px rgba(136, 158, 136, 0.2);
+    }
+
+    .vitakreis-calculator .vk-tarif-info {
+        font-size: 12px;
+        color: #8b7355;
+        font-weight: 500;
+    }
+
+    .vitakreis-calculator .vk-tarif-rate {
+        font-size: 22px;
+        font-weight: 800;
+        color: #889e88;
+        text-shadow: 0 1px 3px rgba(136, 158, 136, 0.3);
+    }
+
+    .vitakreis-calculator .vk-tarif-progress {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .vitakreis-calculator .vk-progress-segment {
+        flex: 1;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .vitakreis-calculator .vk-progress-segment.active {
+        background: linear-gradient(90deg, #889e88 0%, #6f856f 100%);
+        box-shadow: 0 2px 8px rgba(136, 158, 136, 0.5);
+    }
+
+    .vitakreis-calculator .vk-progress-segment.active::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255,255,255,0.4), 
+            transparent);
+        animation: vk-progressShine 2s infinite;
+    }
+
+    @keyframes vk-progressShine {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    .vitakreis-calculator .vk-progress-segment.completed {
+        background: linear-gradient(135deg, #b0c4b0 0%, #9fb09f 100%);
+    }
+
+    .vitakreis-calculator .vk-tarif-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #8b7355;
+        margin-top: 6px;
+    }
+
+    .vitakreis-calculator .vk-tarif-label {
+        flex: 1;
+        text-align: center;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .vitakreis-calculator .vk-tarif-label.active {
+        color: #889e88;
+        font-weight: 700;
+    }
+
+    .vitakreis-calculator .vk-input-group {
+        margin-bottom: 16px;
+    }
+
+    .vitakreis-calculator .vk-input-label {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+        color: #5d4e37;
+        margin-bottom: 8px;
+    }
+
+    .vitakreis-calculator input[type="range"] {
+        width: 100%;
+        -webkit-appearance: none;
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        outline: none;
+    }
+
+    .vitakreis-calculator input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+        cursor: pointer;
+        border-radius: 50%;
+        box-shadow: 0 3px 10px rgba(136, 158, 136, 0.5);
+        animation: vk-pulse 2s ease-in-out infinite;
+        transition: transform 0.2s ease;
+    }
+
+    .vitakreis-calculator input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
+        animation: none;
+    }
+
+    .vitakreis-calculator input[type="range"]::-webkit-slider-thumb:active {
+        transform: scale(1.05);
+        animation: none;
+    }
+
+    .vitakreis-calculator input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+        cursor: pointer;
+        border-radius: 50%;
+        border: none;
+        box-shadow: 0 3px 10px rgba(136, 158, 136, 0.5);
+        animation: vk-pulse 2s ease-in-out infinite;
+        transition: transform 0.2s ease;
+    }
+
+    .vitakreis-calculator input[type="range"]::-moz-range-thumb:hover {
+        transform: scale(1.15);
+        animation: none;
+    }
+
+    .vitakreis-calculator input[type="range"]::-moz-range-thumb:active {
+        transform: scale(1.05);
+        animation: none;
+    }
+
+    @keyframes vk-pulse {
+        0%, 100% {
+            box-shadow: 0 3px 10px rgba(136, 158, 136, 0.5);
+            transform: scale(1);
+        }
+        50% {
+            box-shadow: 0 3px 15px rgba(136, 158, 136, 0.8), 0 0 20px rgba(136, 158, 136, 0.4);
+            transform: scale(1.08);
+        }
+    }
+
+    .vitakreis-calculator .vk-range-value {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: #889e88;
+        margin-top: 8px;
+    }
+
+    .vitakreis-calculator .vk-checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: #f9fafb;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-bottom: 8px;
+    }
+
+    .vitakreis-calculator .vk-checkbox-group:hover {
+        background: #e3e8e3;
+    }
+
+    .vitakreis-calculator .vk-checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #889e88;
+    }
+
+    .vitakreis-calculator .vk-checkbox-label {
+        font-size: 15px;
+        font-weight: 500;
+        color: #5d4e37;
+        cursor: pointer;
+        flex: 1;
+    }
+
+    .vitakreis-calculator .vk-result-box {
+        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        color: white;
+        margin: 20px 0;
+        box-shadow: 0 6px 20px rgba(136, 158, 136, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .vitakreis-calculator .vk-result-box::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: vk-glow 4s ease-in-out infinite;
+    }
+
+    @keyframes vk-glow {
+        0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+        50% { transform: translate(-20%, -20%); opacity: 0.6; }
+    }
+
+    .vitakreis-calculator .vk-result-label {
+        font-size: 13px;
+        opacity: 0.95;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .vitakreis-calculator .vk-result-price {
+        font-size: 38px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .vitakreis-calculator .vk-result-breakdown {
+        display: flex;
+        justify-content: space-around;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255,255,255,0.3);
+        font-size: 13px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .vitakreis-calculator .vk-breakdown-item {
+        text-align: center;
+    }
+
+    .vitakreis-calculator .vk-breakdown-label {
+        opacity: 0.9;
+        margin-bottom: 3px;
+        font-size: 12px;
+    }
+
+    .vitakreis-calculator .vk-breakdown-value {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .vitakreis-calculator .vk-cta-button {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(136, 158, 136, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .vitakreis-calculator .vk-cta-button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .vitakreis-calculator .vk-cta-button:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .vitakreis-calculator .vk-cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(136, 158, 136, 0.5);
+    }
+
+    .vitakreis-calculator .vk-cta-button:active {
+        transform: translateY(0);
+    }
+</style>
+
+<div class="vitakreis-calculator">
+    <div class="vk-header">
+        <h1>Vitakreis Kostenrechner</h1>
+        <p>Transparente Preise für individuelle Alltagshilfe</p>
+    </div>
+
+    <div class="vk-content">
+        <div class="vk-tarif-indicator">
+            <div class="vk-tarif-header">
+                <div class="vk-tarif-name-group">
+                    <span class="vk-tarif-name" id="vkTarifName">Tarif Flexi</span>
+                    <span class="vk-tarif-info" id="vkTarifInfo">Bis 8 Std./Monat</span>
+                </div>
+                <div class="vk-tarif-rate" id="vkTarifRate">34,50€</div>
+            </div>
+
+            <div class="vk-tarif-progress">
+                <div class="vk-progress-segment" id="vkSegment1"></div>
+                <div class="vk-progress-segment" id="vkSegment2"></div>
+                <div class="vk-progress-segment" id="vkSegment3"></div>
+            </div>
+
+            <div class="vk-tarif-labels">
+                <div class="vk-tarif-label" id="vkLabel1">34,50€/Std.</div>
+                <div class="vk-tarif-label" id="vkLabel2">29,50€/Std.</div>
+                <div class="vk-tarif-label" id="vkLabel3">27,50€/Std.</div>
+            </div>
+        </div>
+
+        <div class="vk-input-group">
+            <label class="vk-input-label">Stunden pro Monat</label>
+            <input type="range" id="vkHoursRange" min="1" max="40" value="8" step="1">
+            <div class="vk-range-value"><span id="vkHoursValue">8</span> Std.</div>
+        </div>
+
+        <div class="vk-input-group">
+            <label class="vk-checkbox-group">
+                <input type="checkbox" id="vkWeekend" value="5">
+                <span class="vk-checkbox-label">Wochenende/Feiertage <strong>+5€/Std.</strong></span>
+            </label>
+        </div>
+
+        <div class="vk-result-box">
+            <div class="vk-result-label">Monatliche Kosten</div>
+            <div class="vk-result-price" id="vkTotalPrice">276€</div>
+
+            <div class="vk-result-breakdown">
+                <div class="vk-breakdown-item">
+                    <div class="vk-breakdown-label">Stundensatz</div>
+                    <div class="vk-breakdown-value" id="vkHourlyRate">34,50€</div>
+                </div>
+                <div class="vk-breakdown-item">
+                    <div class="vk-breakdown-label">Stunden/Monat</div>
+                    <div class="vk-breakdown-value" id="vkTotalHours">8</div>
+                </div>
+                <div class="vk-breakdown-item">
+                    <div class="vk-breakdown-label">Ersparnis</div>
+                    <div class="vk-breakdown-value" id="vkSavings">-</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="vk-cta-button" onclick="window.location.href='mailto:kontakt@vitakreis.de'">
+            <span style="position: relative; z-index: 1;">📧 Jetzt unverbindlich anfragen</span>
+        </button>
+    </div>
+</div>
+
+<script>
+(function() {
+    const vkTarifs = {
+        flexi: { name: 'Tarif Flexi ⭐', rate: 34.50, info: 'Bis 8 Std./Monat', min: 1, max: 8, segment: 1 },
+        regelmaessig: { name: 'Tarif Regelmäßig ⭐⭐', rate: 29.50, info: '9-25 Std./Monat', min: 9, max: 25, segment: 2 },
+        plus: { name: 'Tarif Plus ⭐⭐⭐', rate: 27.50, info: 'Ab 30 Std./Monat', min: 30, max: 999, segment: 3 }
+    };
+
+    function vkGetTarifByHours(hours) {
+        if (hours >= 30) return vkTarifs.plus;
+        if (hours >= 9) return vkTarifs.regelmaessig;
+        return vkTarifs.flexi;
+    }
+
+    function vkUpdateProgressBar(currentSegment) {
+        for (let i = 1; i <= 3; i++) {
+            const segment = document.getElementById('vkSegment' + i);
+            const label = document.getElementById('vkLabel' + i);
+
+            segment.classList.remove('active', 'completed');
+            label.classList.remove('active');
+
+            if (i < currentSegment) {
+                segment.classList.add('completed');
+            } else if (i === currentSegment) {
+                segment.classList.add('active');
+                label.classList.add('active');
+            }
+        }
+    }
+
+    function vkFormatPrice(price) {
+        return price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace('.', ',');
+    }
+
+    function vkCalculate() {
+        const hours = parseInt(document.getElementById('vkHoursRange').value);
+        const weekendChecked = document.getElementById('vkWeekend').checked;
+
+        const tarif = vkGetTarifByHours(hours);
+        let hourlyRate = tarif.rate;
+
+        if (weekendChecked) {
+            hourlyRate += 5;
+        }
+
+        let total = hourlyRate * hours;
+
+        const baseCost = vkTarifs.flexi.rate * hours;
+        const actualCost = tarif.rate * hours;
+        const savings = baseCost - actualCost;
+
+        vkUpdateProgressBar(tarif.segment);
+
+        document.getElementById('vkTarifName').textContent = tarif.name;
+        document.getElementById('vkTarifInfo').textContent = tarif.info;
+        document.getElementById('vkTarifRate').textContent = vkFormatPrice(tarif.rate) + '€';
+        document.getElementById('vkTotalPrice').textContent = vkFormatPrice(total) + '€';
+        document.getElementById('vkHourlyRate').textContent = vkFormatPrice(hourlyRate) + '€';
+        document.getElementById('vkTotalHours').textContent = hours;
+        document.getElementById('vkSavings').textContent = savings > 0 ? vkFormatPrice(savings) + '€' : '-';
+    }
+
+    const vkHoursRange = document.getElementById('vkHoursRange');
+    const vkHoursValue = document.getElementById('vkHoursValue');
+
+    vkHoursRange.addEventListener('input', function() {
+        vkHoursValue.textContent = this.value;
+        vkCalculate();
+    });
+
+    document.getElementById('vkWeekend').addEventListener('change', vkCalculate);
+
+    vkCalculate();
+})();
+</script>
+<!-- Vitakreis Kostenrechner - Ende -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     <section class="faq-wrap reveal">
         <div class="faq-img-container">
             <h2>Häufige Fragen zur Betreuung</h2>
