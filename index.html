@@ -585,7 +585,7 @@
 
 
                 
-                <h3>Tarif S Flexi </h3>
+                <h3>Tarif "S" Flexi <br> 2 bis 8 Stunden pro Monat </h3>
                 <div class="pkg-price"> 34,50 € /Std</div>
                 <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">Für spontane Ideen oder auch unvorhergesehene Ereignisse</p>
                 
@@ -593,7 +593,7 @@
                 <ul class="pkg-features">
                     <li><strong>Verfügbarkeit:</strong> Kurzfristige Alltagshilfe binnen 24h</li>
                     <li><strong>Notfall:</strong> Auch sofort möglich</li>
-                    <li><strong>Dauer:</strong> ab 2 bis 8 Stunden pro Monat</li>
+                    <li><strong>Dauer:</strong> Unregelmäßige Begleitung möglich</li>
                     <li><strong>Ort:</strong> Vor Ort & unterwegs</li>
                     <li><strong>Garantiert:</strong> Keine versteckten Kosten</li>
                 </ul>
@@ -607,7 +607,7 @@
                 <div class="pkg-shine-wrap"></div>
 
 
-                <h3>Tarif M Regelmäßig</h3>
+                <h3>Tarif "M" Regelmäßige Besuche <br> ab 9 Stunden pro Monat</h3>
 
                 <div class="pkg-price">29,50 € /Std</div>
 
@@ -616,7 +616,7 @@
                 <ul class="pkg-features">
                     <li><strong>Leistung:</strong> Regelmäßige Alltagshilfe</li>
                     <li><strong>Rhythmus:</strong> Täglich oder Wöchentlich</li>
-                    <li><strong>Dauer:</strong> ab 9 Stunden pro Monat</li>
+                    <li><strong>Dauer:</strong> Täglich oder Wöchentlich</li>
                     <li><strong>Flexibel:</strong> Monatlich kündbar</li>
                     <li><strong>Notfall:</strong> 24h erreichbar</li>
                 </ul>
@@ -658,7 +658,6 @@
 
 
 
-
 <!-- Vitakreis Kostenrechner - Start -->
 <style>
     .vitakreis-calculator * {
@@ -676,37 +675,6 @@
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         overflow: hidden;
         color: #5d4e37;
-    }
-
-    @media (min-width: 768px) {
-        .vitakreis-calculator {
-            max-width: 900px;
-        }
-
-        .vitakreis-calculator .vk-desktop-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            align-items: stretch;
-        }
-
-        .vitakreis-calculator .vk-left-column,
-        .vitakreis-calculator .vk-right-column {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .vitakreis-calculator .vk-right-column {
-            justify-content: space-between;
-        }
-
-        .vitakreis-calculator .vk-result-box {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            margin-bottom: 16px;
-        }
     }
 
     .vitakreis-calculator .vk-header {
@@ -761,8 +729,8 @@
         border: 2px solid #889e88;
         border-radius: 12px;
         padding: 14px 16px;
-        margin-bottom: 20px;
         box-shadow: 0 2px 10px rgba(136, 158, 136, 0.15);
+        margin-bottom: 20px;
     }
 
     .vitakreis-calculator .vk-tarif-header {
@@ -978,16 +946,18 @@
         flex: 1;
     }
 
+    /* Result Box - Mobile first (mit margin) */
     .vitakreis-calculator .vk-result-box {
         background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
         border-radius: 12px;
         padding: 20px;
         text-align: center;
         color: white;
-        margin: 20px 0;
         box-shadow: 0 6px 20px rgba(136, 158, 136, 0.4);
         position: relative;
         overflow: hidden;
+        margin-top: 20px;
+        margin-bottom: 20px;
     }
 
     .vitakreis-calculator .vk-result-box::before {
@@ -1092,12 +1062,32 @@
     .vitakreis-calculator .vk-cta-button:active {
         transform: translateY(0);
     }
+
+    /* Desktop Layout ab 768px */
+    @media (min-width: 768px) {
+        .vitakreis-calculator {
+            max-width: 900px;
+        }
+
+        .vitakreis-calculator .vk-desktop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* WICHTIG: Result-Box margin auf 0 im Desktop */
+        .vitakreis-calculator .vk-result-box {
+            margin-top: 0;
+            margin-bottom: 16px;
+            flex: 1;
+        }
+    }
 </style>
 
 <div class="vitakreis-calculator">
     <div class="vk-header">
         <h1>Vitakreis Kostenrechner</h1>
-        <p>Transparente Preise fÃ¼r individuelle Alltagshilfe</p>
+        <p>Transparente Preise f&uuml;r individuelle Alltagshilfe</p>
     </div>
 
     <div class="vk-content">
@@ -1142,7 +1132,7 @@
             <div class="vk-right-column">
                 <div class="vk-result-box">
                     <div class="vk-result-label">Monatliche Kosten</div>
-                    <div class="vk-result-price" id="vkTotalPrice">276&euro;</div>
+                    <div class="vk-result-price" id="vkTotalPrice">276,00&euro;</div>
 
                     <div class="vk-result-breakdown">
                         <div class="vk-breakdown-item">
@@ -1245,8 +1235,6 @@
 })();
 </script>
 <!-- Vitakreis Kostenrechner - Ende -->
-
-
 
 
 
