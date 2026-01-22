@@ -1416,12 +1416,27 @@
 
     const URL = 'https://lqrxqwrzuhsaeocppdfm.supabase.co';
     const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxcnhxd3J6dWhzYWVvY3BwZGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MTA5ODgsImV4cCI6MjA4NDM4Njk4OH0.8Jd74oHNqd6SBd0yHCjhPq7_Opr2jCyszaaG37en-WA';
-    
+
     const supabase = createClient(URL, KEY);
     window.sb = supabase; 
-    
+
     // Globale Variable: Verhindert Speichern beim Start
     window.isAppReady = false;
+
+    // NEU: Debounce Timer für Autosave
+    let saveTimeout;
+
+    // NEU: Trigger Save mit Debounce
+    window.triggerSave = function() {
+        if (!window.isAppReady) return;
+
+        window.parent.postMessage('status:dirty', '*');
+
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(async () => {
+            await window.saveToCloud();
+        }, 2000);
+    };
 
     // === SAVE FUNKTION (Verbessert mit textContent) ===
     window.saveToCloud = async function() {
@@ -1435,7 +1450,7 @@
         if (!user) return;
 
         const phases = [...document.querySelectorAll('.phase')].map(p => ({
-            title: p.querySelector('.phase-title')?.textContent ?? '', // textContent statt innerText!
+            title: p.querySelector('.phase-title')?.textContent ?? '',
             duration: p.querySelector('.phase-duration')?.textContent ?? '',
             items: [...p.querySelectorAll('.timeline-item')].map(i => ({
                 text: i.querySelector('.item-title')?.textContent ?? '', 
@@ -1447,7 +1462,7 @@
 
         const team = [...document.querySelectorAll('#team-container .person-chip')].map(chip => {
             const nameInput = chip.querySelector('.person-name-input');
-            const name = (nameInput?.textContent || '').trim(); // textContent!
+            const name = (nameInput?.textContent || '').trim();
             const avatar = chip.querySelector('.person-chip-avatar');
             return { 
                 id: chip.dataset.id, 
@@ -1471,7 +1486,10 @@
             });
 
         if (error) console.error('Fehler:', error);
-        else console.log('✅ Cloud gespeichert!');
+        else {
+            console.log('✅ Cloud gespeichert!');
+            window.parent.postMessage('status:saved', '*');
+        }
     };
 
     // === LOAD FUNKTION ===
@@ -1504,8 +1522,7 @@
                 div.draggable = true;
                 div.dataset.id = person.id;
                 div.dataset.type = 'person';
-                
-                // Event Listener für Drag & Drop wieder anhängen
+
                 div.addEventListener('dragstart', (e) => window.dragStartPerson(e, person.id));
 
                 const isMain = person.id === 'main';
@@ -1547,8 +1564,7 @@
             console.log("User gefunden:", data.user.email);
             await window.loadFromCloud();
         }
-        
-        // WICHTIG: Speicher-Schutz aufheben nach 1 Sekunde
+
         setTimeout(() => {
             window.isAppReady = true;
             console.log("🛡️ App bereit - Speichern aktiviert.");
@@ -1557,19 +1573,19 @@
 
     initApp();
 
-    // === KOMMUNIKATION MIT SHELL (Mit Schutz) ===
+    // === INPUT EVENT -> TRIGGER SAVE ===
     document.body.addEventListener('input', () => {
-        // Nur "Dirty" melden, wenn App fertig geladen ist!
         if (window.isAppReady) {
-            window.parent.postMessage('status:dirty', '*');
+            window.triggerSave();
         }
     });
 
+    // === KOMMUNIKATION MIT SHELL ===
     window.addEventListener('message', async (event) => {
         if (event.data === 'cmd:save') {
             if (window.isAppReady && window.saveToCloud) {
+                clearTimeout(saveTimeout);
                 await window.saveToCloud(); 
-                window.parent.postMessage('status:saved', '*');
             }
         }
     });
