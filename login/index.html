@@ -40,9 +40,8 @@
     .save-status.saving { color: #ed8936; animation: pulse 1.5s infinite; }
     .save-status.saved { color: #48bb78; }
     
-    .user-profile { display: flex; align-items: center; gap: 10px; } /* Cursor pointer weg, da nur Info */
+    .user-profile { display: flex; align-items: center; gap: 10px; }
     
-    /* Avatar und Name Styling */
     .avatar { 
         width: 32px; height: 32px; background: #cbd5e0; border-radius: 50%; 
         display: flex; align-items: center; justify-content: center; 
@@ -70,6 +69,13 @@
     .login-btn { width: 100%; padding: 12px; margin-top: 15px; background: #48bb78; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
     .login-btn:hover { background: #38a169; }
 
+    /* Kleine Links unter Login */
+    .login-links {
+        margin-top: 15px; display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0 5px;
+    }
+    .login-links a { color: #718096; text-decoration: none; transition: color 0.2s; }
+    .login-links a:hover { color: #48bb78; text-decoration: underline; }
+
     @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
   </style>
 </head>
@@ -87,6 +93,12 @@
       <button id="sb-btn-login" class="login-btn">Anmelden</button>
       <button id="sb-btn-signup" class="login-btn" style="background:#edf2f7; color:#4a5568; margin-top:10px;">Registrieren</button>
       
+      <!-- NEU: Kleine Links -->
+      <div class="login-links">
+          <a href="#" id="link-forgot-pw">Passwort vergessen?</a>
+          <a href="https://www.vitakreis.de" target="_blank">Zu Vitakreis.de &rarr;</a>
+      </div>
+
       <p id="sb-msg" style="margin-top: 15px; font-size: 0.9rem; color: #718096; min-height: 20px;"></p>
     </div>
   </div>
@@ -120,7 +132,6 @@
         <i class="fa-solid fa-check-circle"></i> <span>Aktuell</span>
       </div>
       
-      <!-- NEU: User Profil Bereich mit Name und Avatar -->
       <div class="user-profile">
           <div id="user-avatar" class="avatar" title="Dein Profil">
             <i class="fa-solid fa-user"></i>
@@ -150,12 +161,9 @@
     const msgEl = document.getElementById('sb-msg');
     const iframe = document.getElementById('app-frame');
     const statusDisplay = document.getElementById('status-display');
-    
-    // UI Elemente für User
     const userAvatar = document.getElementById('user-avatar');
     const userDisplayName = document.getElementById('user-display-name');
 
-    // Globale Variable für den aktuellen User
     let currentUserEmail = '';
 
     // === 1. LOGIN ===
@@ -172,35 +180,49 @@
       setMsg('Registrieren...', '#4a5568');
       const email = document.getElementById('sb-email').value.trim();
       const password = document.getElementById('sb-password').value;
-      
-      const { error } = await sb.auth.signUp({
-        email, 
-        password
-      });
-
-      if (error) {
-          setMsg(error.message, 'red');
-      } else {
-          setMsg('Account erstellt! Du bist eingeloggt.', 'green');
-      }
+      const { error } = await sb.auth.signUp({ email, password });
+      if (error) setMsg(error.message, 'red');
+      else setMsg('Account erstellt! Du bist eingeloggt.', 'green');
     });
 
-    // === 3. AUTH STATUS ===
+    // === 3. PASSWORT VERGESSEN ===
+    document.getElementById('link-forgot-pw').addEventListener('click', async (e) => {
+        e.preventDefault(); // Kein Sprung
+        const email = document.getElementById('sb-email').value.trim();
+        
+        if (!email) {
+            setMsg('Bitte erst E-Mail oben eingeben.', 'orange');
+            return;
+        }
+
+        setMsg('Sende Reset-Link...', '#4a5568');
+        const { error } = await sb.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.href, // User kommt hierher zurück
+        });
+
+        if (error) setMsg(error.message, 'red');
+        else setMsg('Reset-E-Mail wurde gesendet!', 'green');
+    });
+
+    // === 4. AUTH STATUS & DEFAULT APP LOAD ===
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        // User speichern & UI updaten
         currentUserEmail = session.user.email;
         updateUserProfile(currentUserEmail);
 
         overlay.style.display = 'none';
         
-        // Wenn Frame noch leer, Kalender als Standard laden
-        if(iframe.src === 'about:blank') {
-            const firstTab = document.querySelector('.nav-tab'); 
-            switchApp('gookal.html', firstTab);
+        // STANDARD-APP: Wir laden IMMER den Kalender, wenn wir frisch reinkommen
+        // oder wenn der Frame noch leer ist.
+        // Hinweis: Wir suchen den Button, der gookal.html öffnet
+        const calBtn = document.querySelector("button[onclick*='gookal.html']");
+        
+        if(iframe.src === 'about:blank' || iframe.src === '' || iframe.contentWindow.location.href === 'about:blank') {
+            switchApp('gookal.html', calBtn);
         }
+
       } else {
-        // Reset bei Logout
+        // Logout Zustand
         currentUserEmail = '';
         userDisplayName.textContent = '';
         userAvatar.style.backgroundColor = '#cbd5e0';
@@ -211,21 +233,14 @@
       }
     });
 
-    // === HELPER: Profil UI aktualisieren ===
+    // === HELPER ===
     function updateUserProfile(email) {
-        // Name anzeigen (nur den Teil vor @ für Kurzform, oder ganz)
-        // userDisplayName.textContent = email; // Lang
         userDisplayName.textContent = email; 
-
-        // Initialen im Avatar
         const initial = email.charAt(0).toUpperCase();
         userAvatar.innerHTML = initial;
-
-        // Farbe generieren basierend auf Email String
         userAvatar.style.backgroundColor = stringToColor(email);
     }
 
-    // Erzeugt immer die gleiche Farbe für den gleichen String (Hash)
     function stringToColor(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
@@ -240,7 +255,7 @@
         msgEl.style.color = color;
     }
 
-    // === 4. SHELL LOGIK ===
+    // === 5. SHELL LOGIK ===
     window.handleLogout = async function() {
         triggerSave();
         statusDisplay.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sichere Daten...';
@@ -251,14 +266,13 @@
     };
 
     window.switchApp = function(url, btn) {
-        // UI Tabs umschalten
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         if(btn) btn.classList.add('active');
 
-        // Speichern auslösen bevor wir wechseln
-        if(iframe.src !== 'about:blank' && iframe.src !== window.location.href) triggerSave();
+        // Autosave beim Wechseln
+        if(iframe.src !== 'about:blank' && !iframe.src.endsWith('about:blank')) triggerSave();
 
-        // LOGIK: User-Email an Kalender-URL anhängen
+        // Email anhängen für Kalender
         let finalUrl = url;
         if (url.includes('gookal.html') && currentUserEmail) {
             finalUrl = url + '?user=' + encodeURIComponent(currentUserEmail);
@@ -274,7 +288,6 @@
         }
     }
 
-    // === 5. KOMMUNIKATION MIT IFRAME ===
     window.addEventListener('message', (event) => {
         const msg = event.data;
         if (msg === 'status:dirty') {
