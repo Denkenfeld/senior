@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitaKreis – Prozess & Abrechnung</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Slide Animation */
+        .panel-enter { transform: translateX(100%); }
+        .panel-active { transform: translateX(0); }
+        
+        /* Graph Background Pattern */
+        #cy { background-color: #f8fafc; background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px; }
+        
+        /* Checkbox Custom Style */
+        .custom-checkbox:checked + div {
+            text-decoration: line-through;
+            color: #16a34a;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden font-sans">
+
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between z-20 shadow-sm shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="bg-indigo-600 text-white w-12 h-12 rounded-xl flex items-center justify-center font-bold text-2xl shadow-lg shadow-indigo-500/30">V</div>
+            <div>
+                <h1 class="font-bold text-xl leading-tight text-slate-900">VitaKreis Prozess-Planer</h1>
+                <p class="text-sm text-slate-500 font-medium">Von der Gründung bis zur Abrechnung</p>
+            </div>
+        </div>
+
+        <!-- 3 PROGRESS BARS -->
+        <div class="hidden lg:flex flex-col gap-2 w-1/3">
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-emerald-700 w-20">Pfad A</span>
+                <div class="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="progress-a" class="bg-emerald-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+                </div>
+                <span id="progress-a-text" class="text-xs font-bold text-slate-600 w-10 text-right">0%</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-blue-700 w-20">Pfad B</span>
+                <div class="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="progress-b" class="bg-blue-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+                </div>
+                <span id="progress-b-text" class="text-xs font-bold text-slate-600 w-10 text-right">0%</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-purple-700 w-20">Pfad C</span>
+                <div class="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="progress-c" class="bg-purple-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+                </div>
+                <span id="progress-c-text" class="text-xs font-bold text-slate-600 w-10 text-right">0%</span>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="app.exportPNG()" class="h-10 px-4 flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition border border-slate-200 font-medium">
+                <i class="fa-solid fa-camera"></i> <span class="hidden lg:inline">Bild</span>
+            </button>
+            <button onclick="app.resetData()" class="h-10 px-4 flex items-center gap-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition border border-slate-200 font-medium">
+                <i class="fa-solid fa-trash"></i> <span class="hidden lg:inline">Reset</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 relative overflow-hidden">
+        
+        <div id="cy" class="w-full h-full relative">
+            <div class="absolute bottom-6 left-6 bg-white/95 backdrop-blur p-4 rounded-xl border border-slate-200 shadow-xl text-sm z-10 flex flex-col gap-2">
+                <div class="font-bold text-slate-400 uppercase text-xs mb-1">Legende</div>
+                <div class="flex items-center gap-3"><span class="w-4 h-4 rounded bg-slate-100 border-2 border-slate-400"></span> <span>Vorbereitung</span></div>
+                <div class="flex items-center gap-3"><span class="w-4 h-4 rounded bg-emerald-50 border-2 border-emerald-500"></span> <span>A: Nachbarschaft</span></div>
+                <div class="flex items-center gap-3"><span class="w-4 h-4 rounded bg-blue-50 border-2 border-blue-500"></span> <span>B: Gewerbe (§45a)</span></div>
+                <div class="flex items-center gap-3"><span class="w-4 h-4 rounded bg-purple-50 border-2 border-purple-500"></span> <span>C: Profi-Dienst</span></div>
+            </div>
+        </div>
+
+        <div id="detail-panel" class="absolute top-0 right-0 h-full w-full md:w-[600px] bg-white shadow-2xl border-l border-slate-200 z-30 transform transition-transform duration-300 ease-in-out panel-enter flex flex-col">
+            
+            <div class="p-6 border-b border-slate-100 bg-white/80 backdrop-blur shrink-0 flex justify-between items-start z-40">
+                <div class="flex-1 pr-4">
+                    <span id="panel-tag" class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 text-slate-500 mb-3 inline-block">Phase</span>
+                    <h2 id="panel-title" class="text-2xl font-bold text-slate-900 leading-tight">Details</h2>
+                </div>
+                <button onclick="ui.closePanel()" class="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-8 space-y-8 bg-white" id="panel-scroll-area">
+                
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-indigo-500"></i> Info & Hintergründe
+                    </h3>
+                    <div id="panel-desc" class="text-lg text-slate-600 leading-relaxed mb-4"></div>
+                    <div id="panel-extra-content"></div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-500"></i> Deine Aufgaben
+                    </h3>
+                    <div id="checklist-container" class="space-y-3">
+                        </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-indigo-500"></i> Persönliche Notizen
+                    </h3>
+                    <textarea id="user-notes" class="w-full bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-base text-slate-700 focus:ring-2 focus:ring-yellow-400 focus:outline-none resize-none shadow-sm" rows="5" placeholder="Schreibe hier deine Gedanken, Fragen oder Kontakte auf... (Speichert automatisch)"></textarea>
+                </div>
+
+                <div class="border-t border-slate-100 pt-6 pb-10">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-link text-indigo-500"></i> Links & Downloads
+                    </h3>
+                    <div id="links-container" class="grid grid-cols-1 gap-3"></div>
+                </div>
+
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-200 text-sm text-slate-500 flex justify-between shrink-0">
+                <span id="node-id-display">ID</span>
+                <button onclick="ui.toggleEditMode()" class="hover:text-indigo-600 font-medium"><i class="fa-solid fa-gear"></i> Texte bearbeiten</button>
+            </div>
+
+            <div id="edit-overlay" class="hidden absolute inset-0 bg-white z-50 p-6 flex flex-col">
+                <h3 class="font-bold text-xl mb-4">Schritt bearbeiten</h3>
+                <label class="block text-sm font-bold mb-1">Titel</label>
+                <input id="edit-title" class="w-full border p-3 rounded-lg mb-4 text-lg">
+                <label class="block text-sm font-bold mb-1">Beschreibung</label>
+                <textarea id="edit-desc" class="w-full border p-3 rounded-lg flex-1 mb-4 text-base"></textarea>
+                <div class="flex justify-end gap-3">
+                    <button onclick="ui.toggleEditMode()" class="px-4 py-2 text-slate-500">Abbrechen</button>
+                    <button onclick="app.saveEdit()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    /**
+     * DATEN-MODELL - 3 PFADE
+     * A: Nachbarschaftshilfe (Ehrenamt)
+     * B: Gewerblich § 45a (30h Kurs)
+     * C: Professioneller Betreuungsdienst (160h + ambulante Zulassung)
+     */
+    const initialData = {
+        "start": {
+            title: "Start: Vorbereitung & Analyse",
+            tag: "Vorbereitung", tagColor: "bg-slate-200 text-slate-700",
+            desc: "Bevor es losgeht: Klären wir die Grundlagen. Ziel ist es, den Entlastungsbetrag (125 € - 131 €) abrechnen zu können. Dafür brauchst du eine Anerkennung nach Landesrecht (§ 45a SGB XI).",
+            content: `<div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded text-base text-blue-900"><strong>Wichtig:</strong> Ohne Anerkennung müssen Kunden alles selbst zahlen. Mit Anerkennung zahlt die Pflegekasse.</div>`,
+            checklist: ["Bedarfsanalyse: Gibt es genug Kunden in deiner Region?", "Zeitbudget klären: Wieviel Stunden pro Woche?", "Entscheidung vorbereiten: Privat, Gewerbe oder Profi-Dienst?"],
+            path: "root"
+        },
+        "decision": {
+            title: "DIE ENTSCHEIDUNG: Welches Modell?",
+            tag: "Weiche", tagColor: "bg-amber-100 text-amber-800 border border-amber-200",
+            desc: "Dies ist der wichtigste Schritt. Du musst dich entscheiden, welchen Weg du gehen willst: Privat als Nachbar, gewerblich nach §45a SGB XI oder als professioneller Betreuungsdienst.",
+            content: `
+                <div class="grid gap-4 mt-2">
+                    <div class="bg-emerald-50 p-5 rounded-xl border border-emerald-200 shadow-sm">
+                        <h4 class="font-bold text-emerald-800 text-lg mb-2"><i class="fa-solid fa-user"></i> A) Nachbarschaftshilfe (Ehrenamt)</h4>
+                        <ul class="list-disc list-inside text-emerald-900 space-y-1 text-base">
+                            <li>Maximal 2 Kunden gleichzeitig</li>
+                            <li>Keine Gewinnabsicht (Aufwandsentschädigung)</li>
+                            <li>Steuerfrei bis 3.000 € / Jahr (Übungsleiter)</li>
+                            <li>Ideal für: Einzelpersonen, Rentner, Nebenbei</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 shadow-sm">
+                        <h4 class="font-bold text-blue-800 text-lg mb-2"><i class="fa-solid fa-building"></i> B) Gewerblicher Anbieter (§45a UstA-VO)</h4>
+                        <ul class="list-disc list-inside text-blue-900 space-y-1 text-base">
+                            <li>Unbegrenzte Kundenanzahl</li>
+                            <li>30-40h Basisqualifikation</li>
+                            <li>Fachkraft-Anleitung zwingend</li>
+                            <li>Fokus: Betreuung & Alltagsbegleitung</li>
+                        </ul>
+                    </div>
+                    <div class="bg-purple-50 p-5 rounded-xl border border-purple-200 shadow-sm">
+                        <h4 class="font-bold text-purple-800 text-lg mb-2"><i class="fa-solid fa-hospital"></i> C) Professioneller Betreuungsdienst</h4>
+                        <ul class="list-disc list-inside text-purple-900 space-y-1 text-base">
+                            <li>160h Qualifikation §53b/43b SGB XI</li>
+                            <li>Ambulante Zulassung nach §72 SGB XI</li>
+                            <li>Körperbezogene Pflegemaßnahmen möglich</li>
+                            <li>Höchste Professionalität & Abrechnungsmöglichkeiten</li>
+                        </ul>
+                    </div>
+                </div>
+            `,
+            checklist: ["Modell A, B oder C wählen"],
+            path: "root"
+        },
+
+        // --- PFAD A: NACHBARSCHAFTSHILFE (EHRENAMT) ---
+        "a_rules": {
+            title: "A1: Regeln & Grenzen",
+            tag: "Nachbarschaft", tagColor: "bg-emerald-100 text-emerald-800",
+            desc: "Damit es als Nachbarschaftshilfe gilt, musst du strenge Kriterien erfüllen. Du bist hier kein Unternehmer, sondern ein engagierter Bürger.",
+            checklist: ["Max. 2 Pflegebedürftige pro Monat", "Keine Verwandtschaft bis zum 2. Grad", "Du lebst nicht im selben Haushalt", "Stundensatz unter Mindestlohn (ca. 10-12 € gilt als Aufwandsentschädigung)"],
+            path: "a"
+        },
+        "a_reg": {
+            title: "A2: Registrierung & Kurs",
+            tag: "Bürokratie Light", tagColor: "bg-emerald-100 text-emerald-800",
+            desc: "In Baden-Württemberg brauchst du als Einzelhelfer die Bestätigung deiner persönlichen und fachlichen Eignung durch eine Fachkraft. Oft reicht ein Erste-Hilfe-Kurs.",
+            content: `<div class="bg-yellow-50 p-4 rounded text-base text-yellow-800 border border-yellow-200"><strong>Tipp:</strong> Kontaktiere die Fachstelle Unterstützungsangebote BW oder das Landratsamt für Beratung.</div>`,
+            checklist: ["Kontakt zur Anerkennungsstelle (Stadt-/Landkreis) aufnehmen", "Nachweis persönliche & fachliche Eignung organisieren", "Erste-Hilfe-Kurs absolvieren", "Antragsformular ausfüllen & einreichen"],
+            links: [
+                { txt: "Fachstelle UstA BW - Alzheimer Gesellschaft", url: "https://www.usta-bw.de" },
+                { txt: "Landratsamt Zollernalbkreis - Kontakt", url: "https://www.zollernalbkreis.de" }
+            ],
+            path: "a"
+        },
+        "a_billing": {
+            title: "A3: Einfache Abrechnung",
+            tag: "Geldfluss", tagColor: "bg-emerald-100 text-emerald-800",
+            desc: "Als Nachbar schreibst du keine gewerblichen Rechnungen mit USt. Du nutzt ein Formular für die Kostenerstattung.",
+            content: `
+                <div class="mt-2 space-y-2 text-base text-slate-700">
+                    <p><strong>Variante 1 (Klassisch):</strong> Der Kunde zahlt dich bar. Du quittierst das auf dem Formular. Der Kunde reicht es bei der Kasse ein und kriegt das Geld zurück.</p>
+                    <p><strong>Variante 2 (Abtretung):</strong> Der Kunde unterschreibt eine 'Abtretungserklärung'. Du schickst das Formular direkt an die Kasse und bekommst das Geld.</p>
+                </div>
+            `,
+            checklist: ["Abrechnungsformular bei Pflegekasse anfordern", "Monatlich vom Kunden unterschreiben lassen", "Einreichen & Zahlung erhalten"],
+            path: "a"
+        },
+
+        // --- PFAD B: GEWERBLICH (§45a SGB XI) ---
+        "b_qual": {
+            title: "B1: Qualifikation (30-40h Kurs)",
+            tag: "Pflicht", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Für gewerbliche Angebote nach §45a SGB XI (UstA-VO) brauchst du oder deine leitende Kraft eine Basisqualifikation von 30-40 Unterrichtseinheiten.",
+            content: `<div class="bg-blue-50 p-4 rounded border border-blue-200 text-blue-900 text-base"><strong>Achtung:</strong> Dies ist NICHT die 160h-Betreuungskraft! Das ist eine separate Schulung speziell für §45a.</div>`,
+            checklist: ["30-40 UE Kurs für Alltagsbegleiter (§45a BW) suchen", "Online oder Präsenz absolvieren", "Zertifikat sicher ablegen"],
+            links: [
+                { txt: "Online-Pflege-Akademie - Schulung §45a BW", url: "https://www.onlinepflegeakademie.de/schulung-45a-sgb-xi/" },
+                { txt: "Deutsches Pflegeportal - Alltagsbegleiter BW", url: "https://www.deutsches-pflegeportal.de" },
+                { txt: "Malteser Pflegekurse", url: "https://www.malteser.de/pflegekurse" }
+            ],
+            path: "b"
+        },
+        "b_concept": {
+            title: "B2: Konzept & Fachkraft",
+            tag: "Fundament", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Das Herzstück des Antrags. Du brauchst ein schriftliches Konzept und – ganz wichtig – eine qualifizierte Fachkraft (examinierte Pflegekraft), die die fachliche Anleitung übernimmt.",
+            content: `<div class="bg-red-50 p-4 rounded border border-red-100 text-red-800 text-base"><strong>Ohne Fachkraft keine Zulassung!</strong> Du brauchst einen Kooperationsvertrag mit einer examinierten Pflegekraft (auch stundenweise möglich).</div>`,
+            checklist: ["Leistungsbeschreibung erstellen (Was bietest du an?)", "Zielgruppe definieren (Wer sind deine Kunden?)", "Qualifizierte Fachkraft finden & Vertrag schließen", "Preise kalkulieren (Wirtschaftlichkeit!)", "Qualitätssicherungs-Konzept entwickeln"],
+            links: [
+                { txt: "Muster-Konzept Fachstelle UstA BW", url: "https://www.usta-bw.de/anerkennung" }
+            ],
+            path: "b"
+        },
+        "b_apply": {
+            title: "B3: Antrag Anerkennung §45a",
+            tag: "Landratsamt", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Einreichen der Unterlagen bei der zuständigen Anerkennungsstelle (Stadt- oder Landkreis). Nach Prüfung erhältst du die Anerkennung.",
+            content: `<div class="bg-slate-100 p-4 rounded text-base text-slate-700">Die Anerkennung gilt auf unbestimmte Zeit, aber du musst jährlich bis 30. April bestätigen, dass die Voraussetzungen weiter vorliegen.</div>`,
+            checklist: ["Antragsformular beim Landkreis/Stadt anfordern", "Konzept & Fachkraft-Vertrag beilegen", "Gewerbeanmeldung Kopie (falls vorhanden)", "Führungszeugnis & Haftpflichtversicherung", "Antrag einreichen & auf Bescheid warten"],
+            links: [
+                { txt: "Fachstelle UstA BW - Anerkennungsverfahren", url: "https://www.usta-bw.de/anerkennung/wichtigste-informationen/" },
+                { txt: "Kontaktdaten Anerkennungsstellen BW", url: "https://www.usta-bw.de" }
+            ],
+            path: "b"
+        },
+        "b_operations": {
+            title: "B4: Betrieb & Abrechnung starten",
+            tag: "Praxis", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Mit der Anerkennung kannst du starten. Die Abrechnung erfolgt meist direkt mit dem Kunden, der das Geld von der Pflegekasse zurückerhält (Kostenerstattungsprinzip).",
+            content: `
+                <div class="space-y-3 mt-2 text-base">
+                    <p><strong>Abrechnungsoptionen:</strong></p>
+                    <ul class="list-disc list-inside space-y-1 pl-2">
+                        <li><strong>Kostenerstattung:</strong> Kunde zahlt dich, du stellst Rechnung, Kunde holt Geld bei Kasse zurück.</li>
+                        <li><strong>Abtretung:</strong> Kunde tritt Anspruch ab, du rechnest direkt mit Pflegekasse ab (einfacher für Kunden).</li>
+                    </ul>
+                    <p class="text-sm text-slate-600 mt-2">Für größere Dienste: Abrechnungssoftware oder Rechenzentrum nutzen.</p>
+                </div>
+            `,
+            checklist: ["Kunden akquirieren & Verträge schließen", "Leistungen dokumentieren", "Monatlich abrechnen", "Qualitätssicherung & Fortbildungen organisieren"],
+            path: "b"
+        },
+        "b_growth": {
+            title: "B5: Wachstum & Förderung",
+            tag: "Expansion", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Wenn das Geschäft läuft: Prüfe Fördermittel für Digitalisierung, Anschubfinanzierung (§45c SGB XI) oder den Ausbau von Gruppenangeboten.",
+            checklist: ["Förderung § 45c (Anschubfinanzierung) beim Land BW prüfen", "Mitarbeiter einstellen & schulen", "Weitere Angebote entwickeln (Betreuungsgruppen etc.)", "Marketing & Netzwerk ausbauen"],
+            links: [
+                { txt: "VwV Ambulante Hilfen BW - Förderung", url: "https://sozialministerium.baden-wuerttemberg.de" }
+            ],
+            path: "b"
+        },
+
+        // --- PFAD C: PROFESSIONELLER BETREUUNGSDIENST ---
+        "c_decision": {
+            title: "C1: Entscheidung Profi-Dienst",
+            tag: "Strategie", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Dieser Pfad ist für dich, wenn du MEHR als nur Alltagsbegleitung anbieten willst. Mit 160h-Qualifikation und ambulanter Zulassung kannst du körperbezogene Pflegemaßnahmen abrechnen.",
+            content: `
+                <div class="bg-purple-50 p-5 rounded-xl border border-purple-200 mt-2">
+                    <h4 class="font-bold text-purple-800 mb-2">Was ist der Unterschied?</h4>
+                    <ul class="list-disc list-inside text-purple-900 space-y-1 text-base">
+                        <li><strong>Pfad B (§45a):</strong> Nur Betreuung & Alltagshilfe (putzen, kochen, spazieren). Abrechnung über Entlastungsbetrag (125€).</li>
+                        <li><strong>Pfad C (§72 SGB XI):</strong> Körperbezogene Pflege (waschen, anziehen) + Betreuung. Abrechnung über Pflegesachleistung (bis 1.612€+ je nach Pflegegrad).</li>
+                    </ul>
+                </div>
+            `,
+            checklist: ["Businessplan erstellen: Lohnt sich der Aufwand?", "Finanzierung klären (höhere Anfangsinvestition)", "Team-Planung: Pflegefachkräfte & Betreuungskräfte"],
+            path: "c"
+        },
+        "c_qual160": {
+            title: "C2: Qualifikation 160h Betreuungskraft",
+            tag: "Ausbildung", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Die 160 Unterrichtseinheiten Qualifikation nach §53b/43b SGB XI ist die Basis für professionelle Betreuungskräfte. Diese arbeiten typischerweise in Pflegeheimen, aber auch in ambulanten Diensten.",
+            content: `<div class="bg-yellow-50 p-4 rounded text-base text-yellow-800 border border-yellow-200"><strong>Hinweis:</strong> Diese Qualifikation allein reicht NICHT für die ambulante Zulassung! Sie ist aber ein wichtiger Baustein.</div>`,
+            checklist: ["160 UE Kurs zur Betreuungskraft (§53b SGB XI) suchen", "Basismodul (100h) + Aufbaumodul (60h) absolvieren", "2-wöchiges Praktikum in Pflegeeinrichtung", "Zertifikat erhalten"],
+            links: [
+                { txt: "Malteser - Betreuungskraft Qualifizierung", url: "https://www.malteser.de/pflegekurse/betreuungskraft.html" },
+                { txt: "DAA Baden-Württemberg - Betreuungskraft", url: "https://daa-bawue.de/gesundheit-pflege/fort-und-weiterbildung/betreuungskraft" }
+            ],
+            path: "c"
+        },
+        "c_pflegefach": {
+            title: "C3: Pflegefachkraft einstellen",
+            tag: "Team-Building", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Für die ambulante Zulassung nach §72 SGB XI brauchst du zwingend eine verantwortliche Pflegefachkraft (examinierte Altenpfleger/Krankenschwester). Diese Person muss die fachliche Leitung übernehmen.",
+            content: `<div class="bg-red-50 p-4 rounded border border-red-100 text-red-800 text-base"><strong>Kritisch!</strong> Ohne Pflegefachkraft keine Zulassung. Du kannst auch selbst die Ausbildung machen (3 Jahre) oder eine Fachkraft als verantwortliche Leitung anstellen.</div>`,
+            checklist: ["Pflegefachkraft rekrutieren (Stellenanzeige, Netzwerk)", "Arbeitsvertrag mit klarer Rollenverteilung", "Alternativ: Kooperationsvertrag mit erfahrener Pflegekraft", "Organisationsstruktur festlegen (Wer macht was?)"],
+            path: "c"
+        },
+        "c_zulassung": {
+            title: "C4: Ambulante Zulassung §72 SGB XI",
+            tag: "Behörde", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Die ambulante Zulassung ist das Herzstück. Du schließt einen Versorgungsvertrag mit den Pflegekassen ab. Das Verfahren ist streng und dauert mehrere Monate.",
+            content: `
+                <div class="space-y-3 mt-2 text-base">
+                    <p><strong>Voraussetzungen:</strong></p>
+                    <ul class="list-disc list-inside space-y-1 pl-2">
+                        <li>Leistungs-, Qualitäts- und Vergütungsvereinbarung mit Pflegekassen</li>
+                        <li>Verantwortliche Pflegefachkraft nachweisen</li>
+                        <li>Wirtschaftlicher Businessplan</li>
+                        <li>Geeignete Räumlichkeiten & Infrastruktur</li>
+                        <li>Qualitätsmanagementsystem (QM)</li>
+                    </ul>
+                </div>
+            `,
+            checklist: ["Kontakt zu AOK Pflegekasse (Vertragspartner) aufnehmen", "Versorgungsvertrag vorbereiten & verhandeln", "Leistungskatalog definieren", "Preisverhandlungen führen", "Zulassungsbescheid abwarten"],
+            links: [
+                { txt: "AOK Baden-Württemberg - Pflegedienstgründung", url: "https://www.aok-bw.de" },
+                { txt: "Bundesgesundheitsministerium - §72 SGB XI", url: "https://www.bundesgesundheitsministerium.de" }
+            ],
+            path: "c"
+        },
+        "c_ik": {
+            title: "C5: IK-Nummer & DTA-Abrechnung",
+            tag: "Technik", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Wie bei Pfad B brauchst du ein Institutionskennzeichen (IK) für die elektronische Abrechnung. Aber hier kommt noch die DTA-Abrechnung (Datenträgeraustausch) hinzu.",
+            checklist: ["IK-Nummer bei ARGE IK beantragen", "DTA-Software anschaffen oder Rechenzentrum beauftragen (DMRZ, OptaData)", "Verschlüsselte Datenübertragung einrichten", "Testabrechnung mit einer Pflegekasse durchführen"],
+            links: [
+                { txt: "ARGE IK - Antrag Institutionskennzeichen", url: "https://www.arge-ik.de" },
+                { txt: "DMRZ - Deutsches Medizinrechenzentrum", url: "https://www.dmrz.de" }
+            ],
+            path: "c"
+        },
+        "c_qm": {
+            title: "C6: Qualitätsmanagement & MDK-Prüfung",
+            tag: "Compliance", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Als ambulanter Pflegedienst wirst du regelmäßig vom Medizinischen Dienst (MD) geprüft. Ab 1. Juli 2026 gelten neue Qualitätsprüfungs-Richtlinien (QPR ambulante Pflege Teil 1a/1b).",
+            content: `<div class="bg-blue-50 p-4 rounded border border-blue-200 text-blue-900 text-base"><strong>Neu ab Juli 2026:</strong> Stärkerer Fokus auf Ergebnisqualität statt nur Prozess-Dokumentation.</div>`,
+            checklist: ["QM-System aufbauen (ISO 9001 oder pflegespezifisch)", "Pflegedokumentation digital einführen", "Mitarbeiter regelmäßig schulen", "Interne Audits durchführen", "Auf MDK-Prüfung vorbereiten (Checklisten, Unterlagen)"],
+            links: [
+                { txt: "Qualitätsprüfungs-Richtlinien 2026 - MD Bund", url: "https://md-bund.de/themen/pflegequalitaet/qualitaetspruefungen-ambulante-pflege.html" },
+                { txt: "AOK - Neue QPR ab Juli 2026", url: "https://www.aok.de/gp/news-pflege/neue-qualitaetspruefungs-richtlinien-fuer-ambulante-pflegedienste-ab-juli-2026" }
+            ],
+            path: "c"
+        },
+        "c_operations": {
+            title: "C7: Betrieb & Mitarbeiter-Management",
+            tag: "Daily Business", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Der laufende Betrieb eines ambulanten Pflegedienstes ist komplex: Tourenplanung, Personaleinsatz, Abrechnungen, Kundenkommunikation. Software ist unverzichtbar.",
+            checklist: ["Pflegesoftware anschaffen (z.B. Vivendi, DAN, Connext)", "Tourenplanung optimieren", "Mitarbeiter-Dienstpläne erstellen", "Kundendokumentation führen", "Monatliche Abrechnungen durchführen"],
+            links: [
+                { txt: "Connext Pflegesoftware", url: "https://www.connext.de" },
+                { txt: "Vivendi PD - Pflege & Dokumentation", url: "https://www.vivendi.de" }
+            ],
+            path: "c"
+        },
+        "c_growth": {
+            title: "C8: Skalierung & Spezialisierung",
+            tag: "Zukunft", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Mit einer stabilen Basis kannst du expandieren: Weitere Standorte, Spezialisierung (z.B. Intensivpflege), oder Zusatzangebote wie Tagespflege.",
+            checklist: ["Zusätzliche Pflegefachkräfte & Betreuungskräfte einstellen", "Spezialisierung prüfen (Demenzpflege, Intensivpflege)", "Weitere Standorte eröffnen", "Kooperationen mit Ärzten & Krankenhäusern", "Digitalisierung vorantreiben (Telemedizin, Apps)"],
+            links: [
+                { txt: "Förderung Digitalisierung Pflege - BMG", url: "https://www.bundesgesundheitsministerium.de" }
+            ],
+            path: "c"
+        }
+    };
+
+    /**
+     * APP LOGIC
+     */
+    const app = {
+        data: JSON.parse(JSON.stringify(initialData)),
+        state: { checked: [], notes: {} },
+        currentNodeId: null,
+
+        init() {
+            const saved = localStorage.getItem('vita_state_v4');
+            if(saved) this.state = JSON.parse(saved);
+            
+            const savedData = localStorage.getItem('vita_data_v4');
+            if(savedData) this.data = JSON.parse(savedData);
+
+            graph.init();
+            this.updateProgress();
+        },
+
+        save() {
+            localStorage.setItem('vita_state_v4', JSON.stringify(this.state));
+            localStorage.setItem('vita_data_v4', JSON.stringify(this.data));
+            this.updateProgress();
+            graph.refreshColors();
+        },
+
+        toggleCheck(id, idx) {
+            const key = `${id}_${idx}`;
+            if(this.state.checked.includes(key)) {
+                this.state.checked = this.state.checked.filter(k => k !== key);
+            } else {
+                this.state.checked.push(key);
+            }
+            this.save();
+            ui.renderChecklist(id);
+        },
+
+        saveNote(id, text) {
+            this.state.notes[id] = text;
+            this.save();
+        },
+
+        saveEdit() {
+            const t = document.getElementById('edit-title').value;
+            const d = document.getElementById('edit-desc').value;
+            if(this.currentNodeId) {
+                this.data[this.currentNodeId].title = t;
+                this.data[this.currentNodeId].desc = d;
+                this.save();
+                ui.renderPanel(this.currentNodeId);
+                ui.toggleEditMode();
+                graph.cy.getElementById(this.currentNodeId).data('label', t);
+            }
+        },
+
+        updateProgress() {
+            const paths = {a: [], b: [], c: []};
+            
+            // Assign nodes to paths
+            Object.entries(this.data).forEach(([id, node]) => {
+                if(node.path === 'a') paths.a.push(id);
+                else if(node.path === 'b') paths.b.push(id);
+                else if(node.path === 'c') paths.c.push(id);
+            });
+
+            // Calculate progress per path
+            ['a', 'b', 'c'].forEach(path => {
+                let total = 0;
+                let done = 0;
+                
+                paths[path].forEach(id => {
+                    const node = this.data[id];
+                    if(node.checklist) {
+                        total += node.checklist.length;
+                        node.checklist.forEach((_, idx) => {
+                            if(this.state.checked.includes(`${id}_${idx}`)) done++;
+                        });
+                    }
+                });
+
+                const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+                document.getElementById(`progress-${path}`).style.width = `${pct}%`;
+                document.getElementById(`progress-${path}-text`).innerText = `${pct}%`;
+            });
+        },
+
+        resetData() {
+            if(confirm("Alles zurücksetzen? Diese Aktion kann nicht rückgängig gemacht werden.")) {
+                localStorage.removeItem('vita_state_v4');
+                localStorage.removeItem('vita_data_v4');
+                location.reload();
+            }
+        },
+
+        exportPNG() {
+            const png = graph.cy.png({full:true, scale: 2, bg: 'white'});
+            const a = document.createElement('a');
+            a.href = png;
+            a.download = 'vitakreis_plan.png';
+            a.click();
+        },
+        
+        isComplete(id) {
+            const node = this.data[id];
+            if(!node.checklist) return false;
+            return node.checklist.every((_, idx) => this.state.checked.includes(`${id}_${idx}`));
+        }
+    };
+
+    /**
+     * UI MANAGER
+     */
+    const ui = {
+        panel: document.getElementById('detail-panel'),
+        
+        openPanel() {
+            this.panel.classList.remove('panel-enter');
+            this.panel.classList.add('panel-active');
+        },
+        
+        closePanel() {
+            this.panel.classList.remove('panel-active');
+            this.panel.classList.add('panel-enter');
+            graph.cy.$(':selected').unselect();
+        },
+
+        toggleEditMode() {
+            const el = document.getElementById('edit-overlay');
+            const isHidden = el.classList.contains('hidden');
+            if(isHidden) {
+                el.classList.remove('hidden');
+                const d = app.data[app.currentNodeId];
+                document.getElementById('edit-title').value = d.title;
+                document.getElementById('edit-desc').value = d.desc;
+            } else {
+                el.classList.add('hidden');
+            }
+        },
+
+        renderPanel(id) {
+            app.currentNodeId = id;
+            const d = app.data[id];
+
+            document.getElementById('panel-title').innerText = d.title;
+            const tag = document.getElementById('panel-tag');
+            tag.innerText = d.tag;
+            tag.className = `text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3 inline-block ${d.tagColor}`;
+            document.getElementById('node-id-display').innerText = `ID: ${id}`;
+
+            document.getElementById('panel-desc').innerText = d.desc;
+            document.getElementById('panel-extra-content').innerHTML = d.content || "";
+
+            this.renderChecklist(id);
+
+            const area = document.getElementById('user-notes');
+            area.value = app.state.notes[id] || "";
+            area.oninput = (e) => app.saveNote(id, e.target.value);
+
+            const linkCont = document.getElementById('links-container');
+            linkCont.innerHTML = "";
+            if(d.links) {
+                d.links.forEach(l => {
+                    linkCont.innerHTML += `
+                        <a href="${l.url}" target="_blank" class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition group">
+                            <span class="font-bold text-blue-600">${l.txt}</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400 group-hover:text-blue-500"></i>
+                        </a>
+                    `;
+                });
+            } else {
+                linkCont.innerHTML = `<div class="text-slate-400 italic">Keine Links hinterlegt.</div>`;
+            }
+
+            this.openPanel();
+        },
+
+        renderChecklist(id) {
+            const con = document.getElementById('checklist-container');
+            con.innerHTML = "";
+            const list = app.data[id].checklist;
+            
+            if(!list || list.length === 0) {
+                con.innerHTML = `<div class="text-slate-400">Keine Aufgaben definiert.</div>`;
+                return;
+            }
+
+            list.forEach((txt, idx) => {
+                const key = `${id}_${idx}`;
+                const checked = app.state.checked.includes(key);
+                con.innerHTML += `
+                    <label class="flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition select-none ${checked ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200 hover:border-indigo-300'}">
+                        <input type="checkbox" class="custom-checkbox w-6 h-6 mt-0.5 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300" 
+                            ${checked ? 'checked' : ''} onchange="app.toggleCheck('${id}', ${idx})">
+                        <div class="text-lg leading-snug ${checked ? 'text-green-700' : 'text-slate-700'}">${txt}</div>
+                    </label>
+                `;
+            });
+        }
+    };
+
+    /**
+     * GRAPH MANAGER
+     */
+    const graph = {
+        cy: null,
+        init() {
+            this.cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: [
+                    // Nodes
+                    { data: { id: 'start', label: 'Start:\nAnalyse' }, classes: 'root' },
+                    { data: { id: 'decision', label: 'ENTSCHEIDUNG:\nA / B / C' }, classes: 'diamond' },
+                    
+                    // Path A
+                    { data: { id: 'a_rules', label: 'A1: Regeln' }, classes: 'path-a' },
+                    { data: { id: 'a_reg', label: 'A2: Registrierung' }, classes: 'path-a' },
+                    { data: { id: 'a_billing', label: 'A3: Abrechnung' }, classes: 'path-a' },
+
+                    // Path B
+                    { data: { id: 'b_qual', label: 'B1: Kurs 30h' }, classes: 'path-b' },
+                    { data: { id: 'b_concept', label: 'B2: Konzept' }, classes: 'path-b' },
+                    { data: { id: 'b_apply', label: 'B3: Anerkennung' }, classes: 'path-b' },
+                    { data: { id: 'b_operations', label: 'B4: Betrieb' }, classes: 'path-b' },
+                    { data: { id: 'b_growth', label: 'B5: Wachstum' }, classes: 'path-b' },
+
+                    // Path C
+                    { data: { id: 'c_decision', label: 'C1: Strategie' }, classes: 'path-c' },
+                    { data: { id: 'c_qual160', label: 'C2: Kurs 160h' }, classes: 'path-c' },
+                    { data: { id: 'c_pflegefach', label: 'C3: Pflegefachkraft' }, classes: 'path-c' },
+                    { data: { id: 'c_zulassung', label: 'C4: Zulassung §72' }, classes: 'path-c' },
+                    { data: { id: 'c_ik', label: 'C5: IK & DTA' }, classes: 'path-c' },
+                    { data: { id: 'c_qm', label: 'C6: QM & MDK' }, classes: 'path-c' },
+                    { data: { id: 'c_operations', label: 'C7: Operations' }, classes: 'path-c' },
+                    { data: { id: 'c_growth', label: 'C8: Skalierung' }, classes: 'path-c' },
+
+                    // Edges
+                    { data: { source: 'start', target: 'decision' } },
+                    // A
+                    { data: { source: 'decision', target: 'a_rules' } },
+                    { data: { source: 'a_rules', target: 'a_reg' } },
+                    { data: { source: 'a_reg', target: 'a_billing' } },
+                    // B
+                    { data: { source: 'decision', target: 'b_qual' } },
+                    { data: { source: 'b_qual', target: 'b_concept' } },
+                    { data: { source: 'b_concept', target: 'b_apply' } },
+                    { data: { source: 'b_apply', target: 'b_operations' } },
+                    { data: { source: 'b_operations', target: 'b_growth' } },
+                    // C
+                    { data: { source: 'decision', target: 'c_decision' } },
+                    { data: { source: 'c_decision', target: 'c_qual160' } },
+                    { data: { source: 'c_qual160', target: 'c_pflegefach' } },
+                    { data: { source: 'c_pflegefach', target: 'c_zulassung' } },
+                    { data: { source: 'c_zulassung', target: 'c_ik' } },
+                    { data: { source: 'c_ik', target: 'c_qm' } },
+                    { data: { source: 'c_qm', target: 'c_operations' } },
+                    { data: { source: 'c_operations', target: 'c_growth' } },
+                ],
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'width': '180px', 'height': '80px', 'shape': 'round-rectangle',
+                            'background-color': 'white', 'border-width': 2, 'border-color': '#94a3b8',
+                            'label': 'data(label)', 'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'wrap',
+                            'font-size': '14px', 'font-weight': 'bold', 'color': '#334155',
+                            'shadow-blur': 12, 'shadow-color': '#000', 'shadow-opacity': 0.1, 'shadow-offset-y': 4
+                        }
+                    },
+                    {
+                        selector: 'node:selected',
+                        style: { 'border-width': 4, 'border-color': '#4f46e5', 'background-color': '#eef2ff' }
+                    },
+                    {
+                        selector: '.root', style: { 'background-color': '#f1f5f9', 'width': '160px', 'height': '70px' }
+                    },
+                    {
+                        selector: '.diamond', style: { 'shape': 'diamond', 'width': '140px', 'height': '140px', 'background-color': '#fffbeb', 'border-color': '#f59e0b', 'color': '#92400e' }
+                    },
+                    {
+                        selector: '.path-a', style: { 'border-bottom-width': 5, 'border-bottom-color': '#10b981', 'background-color': '#f0fdf4' }
+                    },
+                    {
+                        selector: '.path-b', style: { 'border-bottom-width': 5, 'border-bottom-color': '#3b82f6', 'background-color': '#eff6ff' }
+                    },
+                    {
+                        selector: '.path-c', style: { 'border-bottom-width': 5, 'border-bottom-color': '#a855f7', 'background-color': '#faf5ff' }
+                    },
+                    {
+                        selector: '.done', style: { 'background-color': '#dcfce7', 'border-color': '#16a34a', 'color': '#166534' }
+                    },
+                    {
+                        selector: 'edge',
+                        style: { 'width': 2, 'line-color': '#cbd5e1', 'target-arrow-color': '#cbd5e1', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' }
+                    }
+                ],
+                layout: { name: 'dagre', rankDir: 'TB', spacingFactor: 1.2 },
+                minZoom: 0.4, maxZoom: 2.5
+            });
+
+            this.cy.on('tap', 'node', e => ui.renderPanel(e.target.id()));
+            this.cy.on('tap', e => { if(e.target === this.cy) ui.closePanel(); });
+            
+            this.refreshColors();
+        },
+
+        refreshColors() {
+            this.cy.nodes().forEach(n => {
+                if(app.isComplete(n.id())) n.addClass('done');
+                else n.removeClass('done');
+            });
+        }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => app.init());
+
+</script>
+</body>
+</html>
