@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mein Kalender</title>
+    <title>Wochenplaner</title>
     <style>
         body {
             margin: 0; padding: 0; height: 100vh;
@@ -26,55 +26,91 @@
             transition: background 0.2s;
         }
         .btn-edit:hover { background-color: #1765cc; }
+        .btn-edit:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; }
 
         main { flex: 1; position: relative; width: 100%; background: #fff; }
 
         iframe { width: 100%; height: 100%; border: none; display: block; }
         
-        /* Lade-Overlay */
-        #loading {
+        /* Meldungen und Lade-Overlay */
+        .overlay-msg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8); display: none;
+            background: rgba(255,255,255,0.9); display: none;
+            flex-direction: column;
             align-items: center; justify-content: center; z-index: 20;
-            color: #1a73e8; font-weight: 500;
+            color: #5f6368; font-weight: 500;
         }
+        .error-text { color: #d93025; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>
+        <h1 id="page-title">
             <svg style="width:24px;height:24px;fill:#1a73e8" viewBox="0 0 24 24">
                 <path d="M19,4H18V2H16V4H8V2H6V4H5A2,2 0 0,0 3,6V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V6A2,2 0 0,0 19,4M19,20H5V10H19V20M19,8H5V6H19V8Z" />
             </svg>
-            Wochenplaner
+            <span id="header-text">Wochenplaner</span>
         </h1>
-        <button class="btn-edit" onclick="openEditor()">
+        <button id="edit-btn" class="btn-edit" onclick="openEditor()" disabled>
             <span>✎</span> Termine bearbeiten
         </button>
     </header>
 
     <main>
-        <div id="loading">Aktualisiere Kalender...</div>
-        <iframe 
-            id="cal-frame"
-            src="https://calendar.google.com/calendar/embed?src=vitakreisbalingen%40gmail.com&ctz=Europe%2FBerlin&mode=WEEK&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0"
-            scrolling="no">
-        </iframe>
+        <!-- Lade-Nachricht -->
+        <div id="loading" class="overlay-msg" style="display:flex; color: #1a73e8;">
+            Lade Kalender...
+        </div>
+
+        <!-- Fehler-Nachricht (wenn kein User angegeben) -->
+        <div id="no-user-msg" class="overlay-msg">
+            <svg style="width:48px;height:48px;fill:#ccc" viewBox="0 0 24 24">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A1,1 0 0,0 11,7A1,1 0 0,0 12,8A1,1 0 0,0 13,7A1,1 0 0,0 12,6M11,10V16H13V10H11Z" />
+            </svg>
+            <span class="error-text">Kein Kalender-Konto angegeben.</span>
+            <span style="font-size: 12px; margin-top:5px;">Bitte URL prüfen (?user=...)</span>
+        </div>
+
+        <iframe id="cal-frame" src="" scrolling="no"></iframe>
     </main>
 
     <script>
+        // Wir holen die Email NUR aus der URL. Kein Fallback auf Balingen.
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentUserEmail = urlParams.get('user'); 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loading = document.getElementById('loading');
+            const noUserMsg = document.getElementById('no-user-msg');
+            const editBtn = document.getElementById('edit-btn');
+
+            // Sicherheits-Check: Ist überhaupt ein User angegeben?
+            if (!currentUserEmail) {
+                console.warn("Kein User-Parameter gefunden.");
+                loading.style.display = 'none';      // Laden ausblenden
+                noUserMsg.style.display = 'flex';    // Fehlermeldung zeigen
+                editBtn.disabled = true;             // Button deaktivieren
+                editBtn.style.opacity = "0.5";
+                return; // Abbruch
+            }
+
+            // Wenn User da ist -> Button aktivieren und Kalender laden
+            editBtn.disabled = false;
+            reloadCalendar();
+        });
+
         function openEditor() {
+            if (!currentUserEmail) return; // Doppelte Sicherheit
+
             const w = 1200; const h = 800;
             const left = (window.screen.width - w) / 2;
             const top = (window.screen.height - h) / 2;
 
-            // FIX: Parameter authuser hinzugefügt, um das richtige Konto zu erzwingen
-            const accountEmail = 'vitakreisbalingen@gmail.com';
-            
-            const popup = window.open(
-                `https://calendar.google.com/calendar/r/week?authuser=${accountEmail}`, 
-                'GoogleCalEdit', 
+            // authuser sorgt dafür, dass Google nach DEM Login fragt, der hier steht
+            const editUrl = `https://calendar.google.com/calendar/r/week?authuser=${currentUserEmail}`;
+
+            const popup = window.open(editUrl, 'GoogleCalEdit', 
                 `width=${w},height=${h},top=${top},left=${left},resizable=yes,scrollbars=yes`
             );
 
@@ -91,7 +127,16 @@
             const loading = document.getElementById('loading');
             
             loading.style.display = 'flex';
-            iframe.src = iframe.src;
+
+            const baseUrl = "https://calendar.google.com/calendar/embed";
+            const params = [
+                `src=${encodeURIComponent(currentUserEmail)}`,
+                "ctz=Europe%2FBerlin",
+                "mode=WEEK",
+                "showTitle=0", "showPrint=0", "showTabs=0", "showCalendars=0", "showTz=0"
+            ];
+            
+            iframe.src = `${baseUrl}?${params.join("&")}`;
 
             iframe.onload = function() {
                 loading.style.display = 'none';
