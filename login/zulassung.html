@@ -3,463 +3,690 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zulassungsmanagement</title>
+    <title>VitaKreis – Prozess & Abrechnung</title>
+    
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            padding: 30px; 
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            color: #2d3748; 
-            min-height: 100vh;
-        }
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        h2 { 
-            border-bottom: 3px solid #48bb78; 
-            padding-bottom: 12px; 
-            color: #2d3748; 
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.8rem;
-        }
-
-        /* === FORMULAR DESIGN === */
-        .form-container {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-        }
-
-        .form-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 20px; 
-            margin-bottom: 20px; 
-        }
-
-        .form-group { 
-            display: flex; 
-            flex-direction: column; 
-        }
-
-        label { 
-            font-size: 0.9rem; 
-            font-weight: 600; 
-            margin-bottom: 8px; 
-            color: #4a5568; 
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        input, select, textarea { 
-            padding: 12px; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 8px; 
-            font-size: 1rem; 
-            transition: all 0.2s ease;
-            font-family: inherit;
-        }
-
-        input:focus, select:focus, textarea:focus { 
-            outline: none; 
-            border-color: #48bb78; 
-            box-shadow: 0 0 0 3px rgba(72,187,120,0.15); 
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        button.btn-add { 
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            color: white; 
-            border: none; 
-            padding: 14px 30px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            margin-top: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(72,187,120,0.3);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: center;
-        }
-
-        button.btn-add:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(72,187,120,0.4);
-        }
-
-        /* === LISTEN DESIGN === */
-        .list-container { 
-            margin-top: 40px; 
-        }
-
-        .list-header {
-            background: white;
-            padding: 20px 25px;
-            border-radius: 12px 12px 0 0;
-            border-bottom: 2px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .list-header h3 {
-            font-size: 1.4rem;
-            color: #2d3748;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .list-body {
-            background: white;
-            border-radius: 0 0 12px 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        .zulassung-item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 20px 25px; 
-            border-bottom: 1px solid #f1f3f5; 
-            transition: all 0.2s ease;
-        }
-
-        .zulassung-item:last-child {
-            border-bottom: none;
-        }
-
-        .zulassung-item:hover { 
-            background: #f0fff4;
-        }
-
-        .zulassung-info {
-            flex: 1;
-        }
-
-        .zulassung-name {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #2d3748;
-            margin-bottom: 4px;
-        }
-
-        .zulassung-details {
-            color: #718096;
-            font-size: 0.9rem;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status-badge { 
-            padding: 6px 14px; 
-            border-radius: 20px; 
-            font-size: 0.75rem; 
-            font-weight: 700; 
-            text-transform: uppercase;
-        }
-
-        .status-neu { background: #bee3f8; color: #1a365d; }
-        .status-in_bearbeitung { background: #feebc8; color: #744210; }
-        .status-abgeschlossen { background: #c6f6d5; color: #22543d; }
+        /* Slide Animation */
+        .panel-enter { transform: translateX(100%); }
+        .panel-active { transform: translateX(0); }
         
-        .actions button { 
-            background: #fff5f5; 
-            border: 2px solid #feb2b2; 
-            cursor: pointer; 
-            color: #c53030;
-            padding: 8px 12px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-
-        .actions button:hover { 
-            background: #c53030;
-            color: white;
-        }
-
-        /* === STATES === */
-        .empty-state { text-align: center; padding: 60px 20px; color: #a0aec0; }
-        .empty-state i { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
+        /* Graph Background Pattern */
+        #cy { background-color: #f8fafc; background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px; }
         
-        .loading { text-align: center; padding: 40px; color: #718096; }
-        .spinner {
-            display: inline-block; width: 40px; height: 40px;
-            border: 4px solid #e2e8f0; border-top-color: #48bb78;
-            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        @media (max-width: 768px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .zulassung-item { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .actions { margin-left: 0; width: 100%; }
+        /* Checkbox Custom Style */
+        .custom-checkbox:checked + div {
+            text-decoration: line-through;
+            color: #16a34a;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden font-sans">
 
-    <h2><i class="fa-solid fa-file-contract"></i> Einzugsmanagement</h2>
-
-    <!-- FORMULAR -->
-    <div class="form-container">
-        <div class="form-grid" id="input-form">
-            <div class="form-group">
-                <label><i class="fa-solid fa-user"></i> Name des Klienten</label>
-                <input type="text" id="inp-name" placeholder="z.B. Max Mustermann" oninput="markDirty()">
-            </div>
-            <div class="form-group">
-                <label><i class="fa-solid fa-calendar-day"></i> Einzugsdatum</label>
-                <input type="date" id="inp-date" onchange="markDirty()">
-            </div>
-            <div class="form-group">
-                <label><i class="fa-solid fa-door-open"></i> Zimmer Nr.</label>
-                <input type="text" id="inp-zimmer" placeholder="z.B. 104" oninput="markDirty()">
-            </div>
-            <div class="form-group">
-                <label><i class="fa-solid fa-tasks"></i> Status</label>
-                <select id="inp-status" onchange="markDirty()">
-                    <option value="neu">Neu</option>
-                    <option value="in_bearbeitung">In Bearbeitung</option>
-                    <option value="abgeschlossen">Abgeschlossen</option>
-                </select>
-            </div>
-            <div class="form-group" style="grid-column: span 2;">
-                <label><i class="fa-solid fa-sticky-note"></i> Bemerkungen</label>
-                <textarea id="inp-notes" rows="3" placeholder="Besondere Hinweise..." oninput="markDirty()"></textarea>
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between z-20 shadow-sm shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="bg-indigo-600 text-white w-12 h-12 rounded-xl flex items-center justify-center font-bold text-2xl shadow-lg shadow-indigo-500/30">V</div>
+            <div>
+                <h1 class="font-bold text-xl leading-tight text-slate-900">VitaKreis Prozess-Planer</h1>
+                <p class="text-sm text-slate-500 font-medium">Von der Gründung bis zur Abrechnung</p>
             </div>
         </div>
-        <button class="btn-add" onclick="saveNewEntry()">
-            <i class="fa-solid fa-save"></i> Eintrag Speichern
-        </button>
-    </div>
 
-    <!-- LISTE -->
-    <div class="list-container">
-        <div class="list-header">
-            <h3><i class="fa-solid fa-list"></i> Aktuelle Einzüge</h3>
-        </div>
-        <div class="list-body">
-            <div id="list-target">
-                <div class="loading"><div class="spinner"></div><p>Lade Daten...</p></div>
+        <!-- 3 PROGRESS BARS -->
+        <div class="hidden lg:flex flex-col gap-2 w-1/3">
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-emerald-700 w-20">Pfad A</span>
+                <div class="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="progress-a" class="bg-emerald-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+                </div>
+                <span id="progress-a-text" class="text-xs font-bold text-slate-600 w-10 text-right">0%</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-blue-700 w-20">Pfad B</span>
+                <div class="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="progress-b" class="bg-blue-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+                </div>
+                <span id="progress-b-text" class="text-xs font-bold text-slate-600 w-10 text-right">0%</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-purple-700 w-20">Pfad C</span>
+                <div class="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div id="progress-c" class="bg-purple-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+                </div>
+                <span id="progress-c-text" class="text-xs font-bold text-slate-600 w-10 text-right">0%</span>
             </div>
         </div>
-    </div>
 
-    <!-- LOGIK -->
-    <script type="module">
-        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+        <div class="flex gap-3">
+            <button onclick="app.exportPNG()" class="h-10 px-4 flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition border border-slate-200 font-medium">
+                <i class="fa-solid fa-camera"></i> <span class="hidden lg:inline">Bild</span>
+            </button>
+            <button onclick="app.resetData()" class="h-10 px-4 flex items-center gap-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition border border-slate-200 font-medium">
+                <i class="fa-solid fa-trash"></i> <span class="hidden lg:inline">Reset</span>
+            </button>
+        </div>
+    </header>
 
-        const SUPABASE_URL = 'https://lqrxqwrzuhsaeocppdfm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxcnhxd3J6dWhzYWVvY3BwZGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MTA5ODgsImV4cCI6MjA4NDM4Njk4OH0.8Jd74oHNqd6SBd0yHCjhPq7_Opr2jCyszaaG37en-WA';
-        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    <div class="flex flex-1 relative overflow-hidden">
+        
+        <div id="cy" class="w-full h-full relative">
+            <div class="absolute bottom-6 left-6 bg-white/95 backdrop-blur p-4 rounded-xl border border-slate-200 shadow-xl text-sm z-10 flex flex-col gap-2">
+                <div class="font-bold text-slate-400 uppercase text-xs mb-1">Legende</div>
+                <div class="flex items-center gap-3"><span class="w-4 h-4 rounded bg-slate-100 border-2 border-slate-400"></span> <span>Vorbereitung</span></div>
+                <div class="flex items-center gap-3"><span class="w-4 h-4 rounded bg-emerald-50 border-2 border-emerald-500"></span> <span>A: Nachbarschaft</span></div>
+                <div class="flex items-center gap-3"><span class="w-4 h-4 rounded bg-blue-50 border-2 border-blue-500"></span> <span>B: Gewerbe (§45a)</span></div>
+                <div class="flex items-center gap-3"><span class="w-4 h-4 rounded bg-purple-50 border-2 border-purple-500"></span> <span>C: Profi-Dienst</span></div>
+            </div>
+        </div>
 
-        let isDirty = false;
+        <div id="detail-panel" class="absolute top-0 right-0 h-full w-full md:w-[600px] bg-white shadow-2xl border-l border-slate-200 z-30 transform transition-transform duration-300 ease-in-out panel-enter flex flex-col">
+            
+            <div class="p-6 border-b border-slate-100 bg-white/80 backdrop-blur shrink-0 flex justify-between items-start z-40">
+                <div class="flex-1 pr-4">
+                    <span id="panel-tag" class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 text-slate-500 mb-3 inline-block">Phase</span>
+                    <h2 id="panel-title" class="text-2xl font-bold text-slate-900 leading-tight">Details</h2>
+                </div>
+                <button onclick="ui.closePanel()" class="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
 
-        // === 1. START ===
-        window.onload = function() {
-            setTodayAsDefault();
-            loadEntries();
-        };
-
-        function setTodayAsDefault() {
-            document.getElementById('inp-date').value = new Date().toISOString().split('T')[0];
-        }
-
-        // === 2. HELPER: User & Daten holen ===
-        async function getUserId() {
-            const { data: { user } } = await sb.auth.getUser();
-            return user?.id;
-        }
-
-        async function fetchUserPlanData(userId) {
-            // Holt die Spalte zulassung_data aus user_plans
-            const { data, error } = await sb
-                .from('user_plans')
-                .select('zulassung_data')
-                .eq('user_id', userId)
-                .single();
-
-            if (error) {
-                // Falls keine Row existiert oder Fehler, leeres Array zurückgeben
-                console.log("Fetch Info: ", error.message);
-                return [];
-            }
-            // Falls Feld NULL ist, leeres Array
-            return data.zulassung_data || [];
-        }
-
-        // === 3. DATEN LADEN & ANZEIGEN ===
-        async function loadEntries() {
-            const list = document.getElementById('list-target');
-            const uid = await getUserId();
-
-            if(!uid) {
-                list.innerHTML = `<div class="empty-state"><p>Bitte einloggen.</p></div>`;
-                return;
-            }
-
-            const currentList = await fetchUserPlanData(uid);
-
-            if(!currentList || currentList.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fa-solid fa-inbox"></i>
-                        <p style="font-weight:600;">Noch keine Einträge</p>
-                    </div>`;
-                return;
-            }
-
-            // Rendern
-            list.innerHTML = '';
-            // Sortieren nach Datum (neueste oben), falls Datum vorhanden
-            currentList.sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-
-            currentList.forEach(item => {
-                const el = document.createElement('div');
-                el.className = 'zulassung-item';
+            <div class="flex-1 overflow-y-auto p-8 space-y-8 bg-white" id="panel-scroll-area">
                 
-                const dateFormatted = item.einzugs_datum 
-                    ? new Date(item.einzugs_datum).toLocaleDateString('de-DE') 
-                    : '-';
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-indigo-500"></i> Info & Hintergründe
+                    </h3>
+                    <div id="panel-desc" class="text-lg text-slate-600 leading-relaxed mb-4"></div>
+                    <div id="panel-extra-content"></div>
+                </div>
 
-                el.innerHTML = `
-                    <div class="zulassung-info">
-                        <div class="zulassung-name">
-                            <i class="fa-solid fa-user-circle" style="color:#48bb78; margin-right:5px;"></i>
-                            ${item.klient_name}
+                <div class="border-t border-slate-100 pt-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-500"></i> Deine Aufgaben
+                    </h3>
+                    <div id="checklist-container" class="space-y-3">
                         </div>
-                        <div class="zulassung-details">
-                            <div class="detail-item"><i class="fa-solid fa-door-open"></i> Zimmer ${item.zimmer_nummer || '-'}</div>
-                            <div class="detail-item"><i class="fa-solid fa-calendar"></i> ${dateFormatted}</div>
-                            ${item.bemerkungen ? `<div class="detail-item"><i class="fa-solid fa-comment"></i> ...</div>` : ''}
-                        </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-indigo-500"></i> Persönliche Notizen
+                    </h3>
+                    <textarea id="user-notes" class="w-full bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-base text-slate-700 focus:ring-2 focus:ring-yellow-400 focus:outline-none resize-none shadow-sm" rows="5" placeholder="Schreibe hier deine Gedanken, Fragen oder Kontakte auf... (Speichert automatisch)"></textarea>
+                </div>
+
+                <div class="border-t border-slate-100 pt-6 pb-10">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-link text-indigo-500"></i> Links & Downloads
+                    </h3>
+                    <div id="links-container" class="grid grid-cols-1 gap-3"></div>
+                </div>
+
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-200 text-sm text-slate-500 flex justify-between shrink-0">
+                <span id="node-id-display">ID</span>
+                <button onclick="ui.toggleEditMode()" class="hover:text-indigo-600 font-medium"><i class="fa-solid fa-gear"></i> Texte bearbeiten</button>
+            </div>
+
+            <div id="edit-overlay" class="hidden absolute inset-0 bg-white z-50 p-6 flex flex-col">
+                <h3 class="font-bold text-xl mb-4">Schritt bearbeiten</h3>
+                <label class="block text-sm font-bold mb-1">Titel</label>
+                <input id="edit-title" class="w-full border p-3 rounded-lg mb-4 text-lg">
+                <label class="block text-sm font-bold mb-1">Beschreibung</label>
+                <textarea id="edit-desc" class="w-full border p-3 rounded-lg flex-1 mb-4 text-base"></textarea>
+                <div class="flex justify-end gap-3">
+                    <button onclick="ui.toggleEditMode()" class="px-4 py-2 text-slate-500">Abbrechen</button>
+                    <button onclick="app.saveEdit()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+    // === SUPABASE CONFIG ===
+    const SUPABASE_URL = 'https://lqrxqwrzuhsaeocppdfm.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxcnhxd3J6dWhzYWVvY3BwZGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MTA5ODgsImV4cCI6MjA4NDM4Njk4OH0.8Jd74oHNqd6SBd0yHCjhPq7_Opr2jCyszaaG37en-WA';
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const initialData = {
+        "start": {
+            title: "Start: Vorbereitung & Analyse",
+            tag: "Vorbereitung", tagColor: "bg-slate-200 text-slate-700",
+            desc: "Bevor es losgeht: Klären wir die Grundlagen. Ziel ist es, den Entlastungsbetrag (125 € - 131 €) abrechnen zu können. Dafür brauchst du eine Anerkennung nach Landesrecht (§ 45a SGB XI).",
+            content: `<div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded text-base text-blue-900"><strong>Wichtig:</strong> Ohne Anerkennung müssen Kunden alles selbst zahlen. Mit Anerkennung zahlt die Pflegekasse.</div>`,
+            checklist: ["Bedarfsanalyse: Gibt es genug Kunden in deiner Region?", "Zeitbudget klären: Wieviel Stunden pro Woche?", "Entscheidung vorbereiten: Privat, Gewerbe oder Profi-Dienst?"],
+            path: "root"
+        },
+        "decision": {
+            title: "DIE ENTSCHEIDUNG: Welches Modell?",
+            tag: "Weiche", tagColor: "bg-amber-100 text-amber-800 border border-amber-200",
+            desc: "Dies ist der wichtigste Schritt. Du musst dich entscheiden, welchen Weg du gehen willst: Privat als Nachbar, gewerblich nach §45a SGB XI oder als professioneller Betreuungsdienst.",
+            content: `
+                <div class="grid gap-4 mt-2">
+                    <div class="bg-emerald-50 p-5 rounded-xl border border-emerald-200 shadow-sm">
+                        <h4 class="font-bold text-emerald-800 text-lg mb-2"><i class="fa-solid fa-user"></i> A) Nachbarschaftshilfe (Ehrenamt)</h4>
+                        <ul class="list-disc list-inside text-emerald-900 space-y-1 text-base">
+                            <li>Maximal 2 Kunden gleichzeitig</li>
+                            <li>Keine Gewinnabsicht (Aufwandsentschädigung)</li>
+                            <li>Steuerfrei bis 3.000 € / Jahr (Übungsleiter)</li>
+                        </ul>
                     </div>
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <span class="status-badge status-${item.status}">${item.status.replace('_', ' ')}</span>
-                        <div class="actions">
-                            <button onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 shadow-sm">
+                        <h4 class="font-bold text-blue-800 text-lg mb-2"><i class="fa-solid fa-building"></i> B) Gewerblicher Anbieter (§45a UstA-VO)</h4>
+                        <ul class="list-disc list-inside text-blue-900 space-y-1 text-base">
+                            <li>Unbegrenzte Kundenanzahl</li>
+                            <li>30-40h Basisqualifikation</li>
+                            <li>Fachkraft-Anleitung zwingend</li>
+                        </ul>
                     </div>
-                `;
-                list.appendChild(el);
-            });
+                    <div class="bg-purple-50 p-5 rounded-xl border border-purple-200 shadow-sm">
+                        <h4 class="font-bold text-purple-800 text-lg mb-2"><i class="fa-solid fa-hospital"></i> C) Professioneller Betreuungsdienst</h4>
+                        <ul class="list-disc list-inside text-purple-900 space-y-1 text-base">
+                            <li>160h Qualifikation §53b/43b SGB XI</li>
+                            <li>Ambulante Zulassung nach §72 SGB XI</li>
+                            <li>Höchste Professionalität & Abrechnung</li>
+                        </ul>
+                    </div>
+                </div>
+            `,
+            checklist: ["Modell A, B oder C wählen"],
+            path: "root"
+        },
+        "a_rules": {
+            title: "A1: Regeln & Grenzen",
+            tag: "Nachbarschaft", tagColor: "bg-emerald-100 text-emerald-800",
+            desc: "Damit es als Nachbarschaftshilfe gilt, musst du strenge Kriterien erfüllen. Du bist hier kein Unternehmer, sondern ein engagierter Bürger.",
+            checklist: ["Max. 2 Pflegebedürftige pro Monat", "Keine Verwandtschaft bis zum 2. Grad", "Du lebst nicht im selben Haushalt", "Stundensatz unter Mindestlohn (ca. 10-12 € gilt als Aufwandsentschädigung)"],
+            path: "a"
+        },
+        "a_reg": {
+            title: "A2: Registrierung & Kurs",
+            tag: "Bürokratie Light", tagColor: "bg-emerald-100 text-emerald-800",
+            desc: "In Baden-Württemberg brauchst du als Einzelhelfer die Bestätigung deiner persönlichen und fachlichen Eignung durch eine Fachkraft. Oft reicht ein Erste-Hilfe-Kurs.",
+            content: `<div class="bg-yellow-50 p-4 rounded text-base text-yellow-800 border border-yellow-200"><strong>Tipp:</strong> Kontaktiere die Fachstelle Unterstützungsangebote BW oder das Landratsamt für Beratung.</div>`,
+            checklist: ["Kontakt zur Anerkennungsstelle (Stadt-/Landkreis) aufnehmen", "Nachweis persönliche & fachliche Eignung organisieren", "Erste-Hilfe-Kurs absolvieren", "Antragsformular ausfüllen & einreichen"],
+            links: [
+                { txt: "Fachstelle UstA BW - Alzheimer Gesellschaft", url: "https://www.usta-bw.de" },
+                { txt: "Landratsamt Zollernalbkreis - Kontakt", url: "https://www.zollernalbkreis.de" }
+            ],
+            path: "a"
+        },
+        "a_billing": {
+            title: "A3: Einfache Abrechnung",
+            tag: "Geldfluss", tagColor: "bg-emerald-100 text-emerald-800",
+            desc: "Als Nachbar schreibst du keine gewerblichen Rechnungen mit USt. Du nutzt ein Formular für die Kostenerstattung.",
+            content: `
+                <div class="mt-2 space-y-2 text-base text-slate-700">
+                    <p><strong>Variante 1 (Klassisch):</strong> Der Kunde zahlt dich bar. Du quittierst das auf dem Formular. Der Kunde reicht es bei der Kasse ein und kriegt das Geld zurück.</p>
+                    <p><strong>Variante 2 (Abtretung):</strong> Der Kunde unterschreibt eine 'Abtretungserklärung'. Du schickst das Formular direkt an die Kasse und bekommst das Geld.</p>
+                </div>
+            `,
+            checklist: ["Abrechnungsformular bei Pflegekasse anfordern", "Monatlich vom Kunden unterschreiben lassen", "Einreichen & Zahlung erhalten"],
+            path: "a"
+        },
+        "b_qual": {
+            title: "B1: Qualifikation (30-40h Kurs)",
+            tag: "Pflicht", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Für gewerbliche Angebote nach §45a SGB XI (UstA-VO) brauchst du oder deine leitende Kraft eine Basisqualifikation von 30-40 Unterrichtseinheiten.",
+            content: `<div class="bg-blue-50 p-4 rounded border border-blue-200 text-blue-900 text-base"><strong>Achtung:</strong> Dies ist NICHT die 160h-Betreuungskraft! Das ist eine separate Schulung speziell für §45a.</div>`,
+            checklist: ["30-40 UE Kurs für Alltagsbegleiter (§45a BW) suchen", "Online oder Präsenz absolvieren", "Zertifikat sicher ablegen"],
+            links: [
+                { txt: "Online-Pflege-Akademie - Schulung §45a BW", url: "https://www.onlinepflegeakademie.de/schulung-45a-sgb-xi/" },
+                { txt: "Deutsches Pflegeportal - Alltagsbegleiter BW", url: "https://www.deutsches-pflegeportal.de" }
+            ],
+            path: "b"
+        },
+        "b_concept": {
+            title: "B2: Konzept & Fachkraft",
+            tag: "Fundament", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Das Herzstück des Antrags. Du brauchst ein schriftliches Konzept und – ganz wichtig – eine qualifizierte Fachkraft (examinierte Pflegekraft), die die fachliche Anleitung übernimmt.",
+            content: `<div class="bg-red-50 p-4 rounded border border-red-100 text-red-800 text-base"><strong>Ohne Fachkraft keine Zulassung!</strong> Du brauchst einen Kooperationsvertrag mit einer examinierten Pflegekraft (auch stundenweise möglich).</div>`,
+            checklist: ["Leistungsbeschreibung erstellen (Was bietest du an?)", "Zielgruppe definieren", "Qualifizierte Fachkraft finden & Vertrag schließen", "Preise kalkulieren (Wirtschaftlichkeit!)", "QS-Konzept entwickeln"],
+            links: [
+                { txt: "Muster-Konzept Fachstelle UstA BW", url: "https://www.usta-bw.de/anerkennung" }
+            ],
+            path: "b"
+        },
+        "b_apply": {
+            title: "B3: Antrag Anerkennung §45a",
+            tag: "Landratsamt", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Einreichen der Unterlagen bei der zuständigen Anerkennungsstelle (Stadt- oder Landkreis). Nach Prüfung erhältst du die Anerkennung.",
+            checklist: ["Antragsformular beim Landkreis/Stadt anfordern", "Konzept & Fachkraft-Vertrag beilegen", "Gewerbeanmeldung Kopie", "Führungszeugnis & Haftpflicht", "Antrag einreichen"],
+            links: [
+                { txt: "Fachstelle UstA BW - Anerkennungsverfahren", url: "https://www.usta-bw.de/anerkennung/wichtigste-informationen/" }
+            ],
+            path: "b"
+        },
+        "b_operations": {
+            title: "B4: Betrieb & Abrechnung starten",
+            tag: "Praxis", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Mit der Anerkennung kannst du starten. Die Abrechnung erfolgt meist direkt mit dem Kunden, der das Geld von der Pflegekasse zurückerhält (Kostenerstattungsprinzip).",
+            checklist: ["Kunden akquirieren & Verträge schließen", "Leistungen dokumentieren", "Monatlich abrechnen", "Qualitätssicherung & Fortbildungen organisieren"],
+            path: "b"
+        },
+        "b_growth": {
+            title: "B5: Wachstum & Förderung",
+            tag: "Expansion", tagColor: "bg-blue-100 text-blue-800",
+            desc: "Wenn das Geschäft läuft: Prüfe Fördermittel für Digitalisierung, Anschubfinanzierung (§45c SGB XI) oder den Ausbau von Gruppenangeboten.",
+            checklist: ["Förderung § 45c (Anschubfinanzierung) prüfen", "Mitarbeiter einstellen & schulen", "Weitere Angebote entwickeln", "Marketing & Netzwerk ausbauen"],
+            path: "b"
+        },
+        "c_decision": {
+            title: "C1: Entscheidung Profi-Dienst",
+            tag: "Strategie", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Dieser Pfad ist für dich, wenn du MEHR als nur Alltagsbegleitung anbieten willst. Mit 160h-Qualifikation und ambulanter Zulassung kannst du körperbezogene Pflegemaßnahmen abrechnen.",
+            checklist: ["Businessplan erstellen: Lohnt sich der Aufwand?", "Finanzierung klären", "Team-Planung: Pflegefachkräfte & Betreuungskräfte"],
+            path: "c"
+        },
+        "c_qual160": {
+            title: "C2: Qualifikation 160h Betreuungskraft",
+            tag: "Ausbildung", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Die 160 Unterrichtseinheiten Qualifikation nach §53b/43b SGB XI ist die Basis für professionelle Betreuungskräfte.",
+            checklist: ["160 UE Kurs zur Betreuungskraft (§53b SGB XI) suchen", "Basismodul + Aufbaumodul absolvieren", "2-wöchiges Praktikum", "Zertifikat erhalten"],
+            links: [
+                { txt: "Malteser - Betreuungskraft Qualifizierung", url: "https://www.malteser.de" }
+            ],
+            path: "c"
+        },
+        "c_pflegefach": {
+            title: "C3: Pflegefachkraft einstellen",
+            tag: "Team-Building", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Für die ambulante Zulassung nach §72 SGB XI brauchst du zwingend eine verantwortliche Pflegefachkraft.",
+            content: `<div class="bg-red-50 p-4 rounded border border-red-100 text-red-800 text-base"><strong>Kritisch!</strong> Ohne Pflegefachkraft keine Zulassung.</div>`,
+            checklist: ["Pflegefachkraft rekrutieren", "Arbeitsvertrag mit klarer Rollenverteilung", "Organisationsstruktur festlegen"],
+            path: "c"
+        },
+        "c_zulassung": {
+            title: "C4: Ambulante Zulassung §72 SGB XI",
+            tag: "Behörde", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Die ambulante Zulassung ist das Herzstück. Du schließt einen Versorgungsvertrag mit den Pflegekassen ab.",
+            checklist: ["Kontakt zu AOK Pflegekasse aufnehmen", "Versorgungsvertrag vorbereiten & verhandeln", "Leistungskatalog definieren", "Zulassungsbescheid abwarten"],
+            path: "c"
+        },
+        "c_ik": {
+            title: "C5: IK-Nummer & DTA-Abrechnung",
+            tag: "Technik", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Du brauchst ein Institutionskennzeichen (IK) und musst elektronisch (DTA) abrechnen.",
+            checklist: ["IK-Nummer bei ARGE IK beantragen", "DTA-Software anschaffen oder Rechenzentrum beauftragen", "Testabrechnung durchführen"],
+            path: "c"
+        },
+        "c_qm": {
+            title: "C6: Qualitätsmanagement & MDK-Prüfung",
+            tag: "Compliance", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Als ambulanter Pflegedienst wirst du regelmäßig vom Medizinischen Dienst (MD) geprüft.",
+            checklist: ["QM-System aufbauen", "Pflegedokumentation digital einführen", "Mitarbeiter schulen", "Auf MDK-Prüfung vorbereiten"],
+            path: "c"
+        },
+        "c_operations": {
+            title: "C7: Betrieb & Mitarbeiter-Management",
+            tag: "Daily Business", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Der laufende Betrieb: Tourenplanung, Personaleinsatz, Abrechnungen.",
+            checklist: ["Pflegesoftware anschaffen", "Tourenplanung optimieren", "Mitarbeiter-Dienstpläne erstellen", "Monatliche Abrechnungen durchführen"],
+            path: "c"
+        },
+        "c_growth": {
+            title: "C8: Skalierung & Spezialisierung",
+            tag: "Zukunft", tagColor: "bg-purple-100 text-purple-800",
+            desc: "Mit einer stabilen Basis kannst du expandieren.",
+            checklist: ["Zusätzliche Kräfte einstellen", "Spezialisierung prüfen", "Weitere Standorte eröffnen"],
+            path: "c"
         }
+    };
 
-        // === 4. SPEICHERN (UPDATE in JSONB) ===
-        window.saveNewEntry = async function() {
-            const name = document.getElementById('inp-name').value.trim();
-            if(!name) { alert("Bitte Name eingeben"); return; }
+    let saveTimeout;
 
-            const uid = await getUserId();
-            if(!uid) return alert("Nicht eingeloggt!");
+    // === GLOBAL OBJECTS ===
+    window.app = {
+        data: JSON.parse(JSON.stringify(initialData)),
+        state: { checked: [], notes: {} },
+        currentNodeId: null,
 
-            // 1. Aktuelle Liste holen
-            let currentList = await fetchUserPlanData(uid);
+        async init() {
+            // SUPABASE LOAD
+            const { data: { user } } = await sb.auth.getUser();
+            if(user) {
+                const { data, error } = await sb
+                    .from('user_plans')
+                    .select('zulassung_data')
+                    .eq('user_id', user.id)
+                    .single();
 
-            // 2. Neues Objekt bauen
-            const newEntry = {
-                id: crypto.randomUUID(),
-                created_at: new Date().toISOString(),
-                klient_name: name,
-                einzugs_datum: document.getElementById('inp-date').value,
-                zimmer_nummer: document.getElementById('inp-zimmer').value,
-                status: document.getElementById('inp-status').value,
-                bemerkungen: document.getElementById('inp-notes').value
-            };
-
-            // 3. Hinzufügen (Vorne anstellen)
-            const newList = [newEntry, ...currentList];
-
-            // 4. Update in DB schreiben (Wir updaten nur dieses Feld, lassen plan_data in Ruhe!)
-            const { error } = await sb
-                .from('user_plans')
-                .update({ zulassung_data: newList })
-                .eq('user_id', uid);
-
-            if(error) {
-                // Fallback: Falls Row noch gar nicht existiert, Insert versuchen
-                if(error.code === 'PGRST116' || error.details?.includes('0 rows')) {
-                   const { error: insError } = await sb.from('user_plans').insert({
-                       user_id: uid,
-                       zulassung_data: newList
-                   });
-                   if(insError) return alert('Fehler (Insert): ' + insError.message);
-                } else {
-                   return alert('Fehler (Update): ' + error.message);
+                if(data && data.zulassung_data) {
+                    // Wir laden den gespeicherten Zustand
+                    // Wir müssen aufpassen, dass wir data.zulassung_data.state und .data unterscheiden
+                    if(data.zulassung_data.state) this.state = data.zulassung_data.state;
+                    if(data.zulassung_data.data) this.data = data.zulassung_data.data;
                 }
             }
 
-            // Reset & Refresh
-            document.getElementById('inp-name').value = '';
-            document.getElementById('inp-zimmer').value = '';
-            document.getElementById('inp-notes').value = '';
-            markSaved();
-            loadEntries();
-        };
+            window.graph.init();
+            this.updateProgress();
+        },
 
-        // === 5. LÖSCHEN (Filter & Update) ===
-        window.deleteEntry = async function(id) {
-            if(!confirm("Löschen?")) return;
+        triggerSave() {
+            // 1. Mark Dirty immediately
+            window.parent.postMessage('status:dirty', '*');
+            
+            // 2. Debounce Save (Auto-Save nach 2s)
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                this.saveToSupabase();
+            }, 2000);
+        },
 
-            const uid = await getUserId();
-            let currentList = await fetchUserPlanData(uid);
+        async saveToSupabase() {
+            const { data: { user } } = await sb.auth.getUser();
+            if(!user) return;
 
-            // Filtern
-            const newList = currentList.filter(item => item.id !== id);
+            const fullObject = {
+                state: this.state,
+                data: this.data
+            };
 
-            // Speichern
             const { error } = await sb
                 .from('user_plans')
-                .update({ zulassung_data: newList })
-                .eq('user_id', uid);
+                .update({ zulassung_data: fullObject })
+                .eq('user_id', user.id);
 
-            if(error) alert(error.message);
-            else {
-                markSaved();
-                loadEntries();
+            if(!error) {
+                window.parent.postMessage('status:saved', '*');
+            } else {
+                // Fallback Insert falls Update fehlschlägt (erste Nutzung)
+                await sb.from('user_plans').insert({
+                    user_id: user.id,
+                    zulassung_data: fullObject
+                });
+                window.parent.postMessage('status:saved', '*');
             }
-        };
+        },
 
-        // === 6. SHELL KOMMUNIKATION ===
-        window.markDirty = function() {
-            if(!isDirty) {
-                isDirty = true;
-                window.parent.postMessage('status:dirty', '*');
+        toggleCheck(id, idx) {
+            const key = `${id}_${idx}`;
+            if(this.state.checked.includes(key)) {
+                this.state.checked = this.state.checked.filter(k => k !== key);
+            } else {
+                this.state.checked.push(key);
             }
-        };
+            this.triggerSave();
+            this.updateProgress();
+            window.ui.renderChecklist(id);
+            window.graph.refreshColors();
+        },
 
-        function markSaved() {
-            isDirty = false;
-            window.parent.postMessage('status:saved', '*');
+        saveNote(id, text) {
+            this.state.notes[id] = text;
+            this.triggerSave();
+        },
+
+        saveEdit() {
+            const t = document.getElementById('edit-title').value;
+            const d = document.getElementById('edit-desc').value;
+            if(this.currentNodeId) {
+                this.data[this.currentNodeId].title = t;
+                this.data[this.currentNodeId].desc = d;
+                
+                this.triggerSave(); // SAVE
+
+                window.ui.renderPanel(this.currentNodeId);
+                window.ui.toggleEditMode();
+                window.graph.cy.getElementById(this.currentNodeId).data('label', t);
+            }
+        },
+
+        updateProgress() {
+            const paths = {a: [], b: [], c: []};
+            Object.entries(this.data).forEach(([id, node]) => {
+                if(node.path === 'a') paths.a.push(id);
+                else if(node.path === 'b') paths.b.push(id);
+                else if(node.path === 'c') paths.c.push(id);
+            });
+
+            ['a', 'b', 'c'].forEach(path => {
+                let total = 0;
+                let done = 0;
+                paths[path].forEach(id => {
+                    const node = this.data[id];
+                    if(node.checklist) {
+                        total += node.checklist.length;
+                        node.checklist.forEach((_, idx) => {
+                            if(this.state.checked.includes(`${id}_${idx}`)) done++;
+                        });
+                    }
+                });
+                const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+                document.getElementById(`progress-${path}`).style.width = `${pct}%`;
+                document.getElementById(`progress-${path}-text`).innerText = `${pct}%`;
+            });
+        },
+
+        resetData() {
+            if(confirm("Alles zurücksetzen?")) {
+                this.data = JSON.parse(JSON.stringify(initialData));
+                this.state = { checked: [], notes: {} };
+                this.triggerSave();
+                location.reload();
+            }
+        },
+
+        exportPNG() {
+            const png = window.graph.cy.png({full:true, scale: 2, bg: 'white'});
+            const a = document.createElement('a');
+            a.href = png;
+            a.download = 'vitakreis_plan.png';
+            a.click();
+        },
+        
+        isComplete(id) {
+            const node = this.data[id];
+            if(!node.checklist) return false;
+            return node.checklist.every((_, idx) => this.state.checked.includes(`${id}_${idx}`));
         }
+    };
 
-        window.addEventListener('message', async (event) => {
-            if (event.data === 'cmd:save' && isDirty) {
-                await saveNewEntry();
+    window.ui = {
+        panel: document.getElementById('detail-panel'),
+        
+        openPanel() {
+            this.panel.classList.remove('panel-enter');
+            this.panel.classList.add('panel-active');
+        },
+        
+        closePanel() {
+            this.panel.classList.remove('panel-active');
+            this.panel.classList.add('panel-enter');
+            window.graph.cy.$(':selected').unselect();
+        },
+
+        toggleEditMode() {
+            const el = document.getElementById('edit-overlay');
+            const isHidden = el.classList.contains('hidden');
+            if(isHidden) {
+                el.classList.remove('hidden');
+                const d = window.app.data[window.app.currentNodeId];
+                document.getElementById('edit-title').value = d.title;
+                document.getElementById('edit-desc').value = d.desc;
+            } else {
+                el.classList.add('hidden');
             }
-        });
+        },
 
-    </script>
+        renderPanel(id) {
+            window.app.currentNodeId = id;
+            const d = window.app.data[id];
+
+            document.getElementById('panel-title').innerText = d.title;
+            const tag = document.getElementById('panel-tag');
+            tag.innerText = d.tag;
+            tag.className = `text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3 inline-block ${d.tagColor}`;
+            document.getElementById('node-id-display').innerText = `ID: ${id}`;
+
+            document.getElementById('panel-desc').innerText = d.desc;
+            document.getElementById('panel-extra-content').innerHTML = d.content || "";
+
+            this.renderChecklist(id);
+
+            const area = document.getElementById('user-notes');
+            area.value = window.app.state.notes[id] || "";
+            area.oninput = (e) => window.app.saveNote(id, e.target.value);
+
+            const linkCont = document.getElementById('links-container');
+            linkCont.innerHTML = "";
+            if(d.links) {
+                d.links.forEach(l => {
+                    linkCont.innerHTML += `
+                        <a href="${l.url}" target="_blank" class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition group">
+                            <span class="font-bold text-blue-600">${l.txt}</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400 group-hover:text-blue-500"></i>
+                        </a>
+                    `;
+                });
+            } else {
+                linkCont.innerHTML = `<div class="text-slate-400 italic">Keine Links hinterlegt.</div>`;
+            }
+
+            this.openPanel();
+        },
+
+        renderChecklist(id) {
+            const con = document.getElementById('checklist-container');
+            con.innerHTML = "";
+            const list = window.app.data[id].checklist;
+            
+            if(!list || list.length === 0) {
+                con.innerHTML = `<div class="text-slate-400">Keine Aufgaben definiert.</div>`;
+                return;
+            }
+
+            list.forEach((txt, idx) => {
+                const key = `${id}_${idx}`;
+                const checked = window.app.state.checked.includes(key);
+                con.innerHTML += `
+                    <label class="flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition select-none ${checked ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200 hover:border-indigo-300'}">
+                        <input type="checkbox" class="custom-checkbox w-6 h-6 mt-0.5 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300" 
+                            ${checked ? 'checked' : ''} onchange="app.toggleCheck('${id}', ${idx})">
+                        <div class="text-lg leading-snug ${checked ? 'text-green-700' : 'text-slate-700'}">${txt}</div>
+                    </label>
+                `;
+            });
+        }
+    };
+
+    window.graph = {
+        cy: null,
+        init() {
+            this.cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: [
+                    // Nodes
+                    { data: { id: 'start', label: 'Start:\nAnalyse' }, classes: 'root' },
+                    { data: { id: 'decision', label: 'ENTSCHEIDUNG:\nA / B / C' }, classes: 'diamond' },
+                    
+                    // Path A
+                    { data: { id: 'a_rules', label: 'A1: Regeln' }, classes: 'path-a' },
+                    { data: { id: 'a_reg', label: 'A2: Registrierung' }, classes: 'path-a' },
+                    { data: { id: 'a_billing', label: 'A3: Abrechnung' }, classes: 'path-a' },
+
+                    // Path B
+                    { data: { id: 'b_qual', label: 'B1: Kurs 30h' }, classes: 'path-b' },
+                    { data: { id: 'b_concept', label: 'B2: Konzept' }, classes: 'path-b' },
+                    { data: { id: 'b_apply', label: 'B3: Anerkennung' }, classes: 'path-b' },
+                    { data: { id: 'b_operations', label: 'B4: Betrieb' }, classes: 'path-b' },
+                    { data: { id: 'b_growth', label: 'B5: Wachstum' }, classes: 'path-b' },
+
+                    // Path C
+                    { data: { id: 'c_decision', label: 'C1: Strategie' }, classes: 'path-c' },
+                    { data: { id: 'c_qual160', label: 'C2: Kurs 160h' }, classes: 'path-c' },
+                    { data: { id: 'c_pflegefach', label: 'C3: Pflegefachkraft' }, classes: 'path-c' },
+                    { data: { id: 'c_zulassung', label: 'C4: Zulassung §72' }, classes: 'path-c' },
+                    { data: { id: 'c_ik', label: 'C5: IK & DTA' }, classes: 'path-c' },
+                    { data: { id: 'c_qm', label: 'C6: QM & MDK' }, classes: 'path-c' },
+                    { data: { id: 'c_operations', label: 'C7: Operations' }, classes: 'path-c' },
+                    { data: { id: 'c_growth', label: 'C8: Skalierung' }, classes: 'path-c' },
+
+                    // Edges
+                    { data: { source: 'start', target: 'decision' } },
+                    { data: { source: 'decision', target: 'a_rules' } },
+                    { data: { source: 'a_rules', target: 'a_reg' } },
+                    { data: { source: 'a_reg', target: 'a_billing' } },
+                    { data: { source: 'decision', target: 'b_qual' } },
+                    { data: { source: 'b_qual', target: 'b_concept' } },
+                    { data: { source: 'b_concept', target: 'b_apply' } },
+                    { data: { source: 'b_apply', target: 'b_operations' } },
+                    { data: { source: 'b_operations', target: 'b_growth' } },
+                    { data: { source: 'decision', target: 'c_decision' } },
+                    { data: { source: 'c_decision', target: 'c_qual160' } },
+                    { data: { source: 'c_qual160', target: 'c_pflegefach' } },
+                    { data: { source: 'c_pflegefach', target: 'c_zulassung' } },
+                    { data: { source: 'c_zulassung', target: 'c_ik' } },
+                    { data: { source: 'c_ik', target: 'c_qm' } },
+                    { data: { source: 'c_qm', target: 'c_operations' } },
+                    { data: { source: 'c_operations', target: 'c_growth' } },
+                ],
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'width': '180px', 'height': '80px', 'shape': 'round-rectangle',
+                            'background-color': 'white', 'border-width': 2, 'border-color': '#94a3b8',
+                            'label': 'data(label)', 'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'wrap',
+                            'font-size': '14px', 'font-weight': 'bold', 'color': '#334155',
+                            'shadow-blur': 12, 'shadow-color': '#000', 'shadow-opacity': 0.1, 'shadow-offset-y': 4
+                        }
+                    },
+                    { selector: 'node:selected', style: { 'border-width': 4, 'border-color': '#4f46e5', 'background-color': '#eef2ff' } },
+                    { selector: '.root', style: { 'background-color': '#f1f5f9', 'width': '160px', 'height': '70px' } },
+                    { selector: '.diamond', style: { 'shape': 'diamond', 'width': '140px', 'height': '140px', 'background-color': '#fffbeb', 'border-color': '#f59e0b', 'color': '#92400e' } },
+                    { selector: '.path-a', style: { 'border-bottom-width': 5, 'border-bottom-color': '#10b981', 'background-color': '#f0fdf4' } },
+                    { selector: '.path-b', style: { 'border-bottom-width': 5, 'border-bottom-color': '#3b82f6', 'background-color': '#eff6ff' } },
+                    { selector: '.path-c', style: { 'border-bottom-width': 5, 'border-bottom-color': '#a855f7', 'background-color': '#faf5ff' } },
+                    { selector: '.done', style: { 'background-color': '#dcfce7', 'border-color': '#16a34a', 'color': '#166534' } },
+                    { selector: 'edge', style: { 'width': 2, 'line-color': '#cbd5e1', 'target-arrow-color': '#cbd5e1', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' } }
+                ],
+                layout: { name: 'dagre', rankDir: 'TB', spacingFactor: 1.2 },
+                minZoom: 0.4, maxZoom: 2.5
+            });
+
+            this.cy.on('tap', 'node', e => window.ui.renderPanel(e.target.id()));
+            this.cy.on('tap', e => { if(e.target === this.cy) window.ui.closePanel(); });
+            this.refreshColors();
+        },
+
+        refreshColors() {
+            this.cy.nodes().forEach(n => {
+                if(window.app.isComplete(n.id())) n.addClass('done');
+                else n.removeClass('done');
+            });
+        }
+    };
+
+    // === LISTEN FOR SHELL SAVE CMD ===
+    window.addEventListener('message', async (event) => {
+        if (event.data === 'cmd:save') {
+            await window.app.saveToSupabase();
+        }
+    });
+
+    // Start
+    window.addEventListener('DOMContentLoaded', () => window.app.init());
+</script>
 </body>
 </html>
