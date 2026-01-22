@@ -40,9 +40,17 @@
     .save-status.saving { color: #ed8936; animation: pulse 1.5s infinite; }
     .save-status.saved { color: #48bb78; }
     
-    .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-    .avatar { width: 32px; height: 32px; background: #cbd5e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+    .user-profile { display: flex; align-items: center; gap: 10px; } /* Cursor pointer weg, da nur Info */
     
+    /* Avatar und Name Styling */
+    .avatar { 
+        width: 32px; height: 32px; background: #cbd5e0; border-radius: 50%; 
+        display: flex; align-items: center; justify-content: center; 
+        color: white; font-weight: bold; font-size: 14px; text-transform: uppercase;
+        transition: background 0.3s;
+    }
+    .user-name { font-size: 0.9rem; color: #4a5568; font-weight: 500; }
+
     .logout-btn { background: #fff0f0; border: 1px solid #feb2b2; color: #c53030; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
     .logout-btn:hover { background: #c53030; color: white; }
 
@@ -98,7 +106,6 @@
         <i class="fa-solid fa-folder-open"></i> Onboarding
       </button>
       
-      <!-- NEUER BUTTON FÜR ZULASSUNG -->
       <button class="nav-tab" onclick="switchApp('zulassung.html', this)">
         <i class="fa-solid fa-file-contract"></i> Einzüge
       </button>
@@ -112,7 +119,15 @@
       <div id="status-display" class="save-status saved">
         <i class="fa-solid fa-check-circle"></i> <span>Aktuell</span>
       </div>
-      <div class="avatar" title="Angemeldet"><i class="fa-solid fa-user"></i></div>
+      
+      <!-- NEU: User Profil Bereich mit Name und Avatar -->
+      <div class="user-profile">
+          <div id="user-avatar" class="avatar" title="Dein Profil">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <span id="user-display-name" class="user-name"></span>
+      </div>
+
       <button class="logout-btn" onclick="handleLogout()">
         <i class="fa-solid fa-sign-out-alt"></i> Logout
       </button>
@@ -135,6 +150,13 @@
     const msgEl = document.getElementById('sb-msg');
     const iframe = document.getElementById('app-frame');
     const statusDisplay = document.getElementById('status-display');
+    
+    // UI Elemente für User
+    const userAvatar = document.getElementById('user-avatar');
+    const userDisplayName = document.getElementById('user-display-name');
+
+    // Globale Variable für den aktuellen User
+    let currentUserEmail = '';
 
     // === 1. LOGIN ===
     document.getElementById('sb-btn-login').addEventListener('click', async () => {
@@ -166,14 +188,52 @@
     // === 3. AUTH STATUS ===
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
+        // User speichern & UI updaten
+        currentUserEmail = session.user.email;
+        updateUserProfile(currentUserEmail);
+
         overlay.style.display = 'none';
+        
         // Wenn Frame noch leer, Kalender als Standard laden
-        if(iframe.src === 'about:blank') switchApp('gookal.html', document.querySelector('.nav-tab'));
+        if(iframe.src === 'about:blank') {
+            const firstTab = document.querySelector('.nav-tab'); 
+            switchApp('gookal.html', firstTab);
+        }
       } else {
+        // Reset bei Logout
+        currentUserEmail = '';
+        userDisplayName.textContent = '';
+        userAvatar.style.backgroundColor = '#cbd5e0';
+        userAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
+        
         overlay.style.display = 'flex';
         iframe.src = 'about:blank';
       }
     });
+
+    // === HELPER: Profil UI aktualisieren ===
+    function updateUserProfile(email) {
+        // Name anzeigen (nur den Teil vor @ für Kurzform, oder ganz)
+        // userDisplayName.textContent = email; // Lang
+        userDisplayName.textContent = email; 
+
+        // Initialen im Avatar
+        const initial = email.charAt(0).toUpperCase();
+        userAvatar.innerHTML = initial;
+
+        // Farbe generieren basierend auf Email String
+        userAvatar.style.backgroundColor = stringToColor(email);
+    }
+
+    // Erzeugt immer die gleiche Farbe für den gleichen String (Hash)
+    function stringToColor(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        return '#' + "00000".substring(0, 6 - c.length) + c;
+    }
 
     function setMsg(text, color) {
         msgEl.textContent = text;
@@ -195,10 +255,17 @@
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         if(btn) btn.classList.add('active');
 
-        // Speichern auslösen bevor wir wechseln (Sicherheitsnetz)
-        if(iframe.src !== 'about:blank') triggerSave();
+        // Speichern auslösen bevor wir wechseln
+        if(iframe.src !== 'about:blank' && iframe.src !== window.location.href) triggerSave();
 
-        iframe.src = url;
+        // LOGIK: User-Email an Kalender-URL anhängen
+        let finalUrl = url;
+        if (url.includes('gookal.html') && currentUserEmail) {
+            finalUrl = url + '?user=' + encodeURIComponent(currentUserEmail);
+        }
+
+        console.log("Lade App:", finalUrl);
+        iframe.src = finalUrl;
     };
 
     function triggerSave() {
@@ -207,7 +274,7 @@
         }
     }
 
-    // === 5. KOMMUNIKATION MIT IFRAME (Status empfangen) ===
+    // === 5. KOMMUNIKATION MIT IFRAME ===
     window.addEventListener('message', (event) => {
         const msg = event.data;
         if (msg === 'status:dirty') {
@@ -219,7 +286,6 @@
             statusDisplay.className = 'save-status saved';
         }
     });
-
   </script>
 </body>
 </html>
