@@ -93,7 +93,7 @@
       <button id="sb-btn-login" class="login-btn">Anmelden</button>
       <button id="sb-btn-signup" class="login-btn" style="background:#edf2f7; color:#4a5568; margin-top:10px;">Registrieren</button>
       
-      <!-- NEU: Kleine Links -->
+      <!-- Kleine Links -->
       <div class="login-links">
           <a href="#" id="link-forgot-pw">Passwort vergessen?</a>
           <a href="https://www.vitakreis.de" target="_blank">Zu Vitakreis.de &rarr;</a>
@@ -152,7 +152,6 @@
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-    // DEINE SUPABASE CONFIG
     const SUPABASE_URL = 'https://lqrxqwrzuhsaeocppdfm.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxcnhxd3J6dWhzYWVvY3BwZGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MTA5ODgsImV4cCI6MjA4NDM4Njk4OH0.8Jd74oHNqd6SBd0yHCjhPq7_Opr2jCyszaaG37en-WA';
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -165,6 +164,7 @@
     const userDisplayName = document.getElementById('user-display-name');
 
     let currentUserEmail = '';
+    let isFirstLoad = true;
 
     // === 1. LOGIN ===
     document.getElementById('sb-btn-login').addEventListener('click', async () => {
@@ -187,7 +187,7 @@
 
     // === 3. PASSWORT VERGESSEN ===
     document.getElementById('link-forgot-pw').addEventListener('click', async (e) => {
-        e.preventDefault(); // Kein Sprung
+        e.preventDefault();
         const email = document.getElementById('sb-email').value.trim();
         
         if (!email) {
@@ -197,7 +197,7 @@
 
         setMsg('Sende Reset-Link...', '#4a5568');
         const { error } = await sb.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.href, // User kommt hierher zurück
+            redirectTo: window.location.href,
         });
 
         if (error) setMsg(error.message, 'red');
@@ -206,24 +206,30 @@
 
     // === 4. AUTH STATUS & DEFAULT APP LOAD ===
     sb.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth Event:", event, "Session:", session ? "vorhanden" : "keine");
+      
       if (session) {
         currentUserEmail = session.user.email;
+        console.log("✅ User eingeloggt:", currentUserEmail);
+        
         updateUserProfile(currentUserEmail);
-
         overlay.style.display = 'none';
         
-        // STANDARD-APP: Wir laden IMMER den Kalender, wenn wir frisch reinkommen
-        // oder wenn der Frame noch leer ist.
-        // Hinweis: Wir suchen den Button, der gookal.html öffnet
-        const calBtn = document.querySelector("button[onclick*='gookal.html']");
-        
-        if(iframe.src === 'about:blank' || iframe.src === '' || iframe.contentWindow.location.href === 'about:blank') {
-            switchApp('gookal.html', calBtn);
+        // Kleine Verzögerung, dann Kalender laden (nur beim ersten Login)
+        if (isFirstLoad) {
+            isFirstLoad = false;
+            setTimeout(() => {
+                console.log("🔄 Lade Standard-App (Kalender)...");
+                const calBtn = document.querySelector("button[onclick*='gookal.html']");
+                switchApp('gookal.html', calBtn);
+            }, 300);
         }
 
       } else {
-        // Logout Zustand
+        console.log("❌ User ausgeloggt");
         currentUserEmail = '';
+        isFirstLoad = true;
+        
         userDisplayName.textContent = '';
         userAvatar.style.backgroundColor = '#cbd5e0';
         userAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
@@ -266,25 +272,37 @@
     };
 
     window.switchApp = function(url, btn) {
+        console.log("📂 switchApp aufgerufen mit:", url, "User:", currentUserEmail);
+        
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         if(btn) btn.classList.add('active');
 
         // Autosave beim Wechseln
-        if(iframe.src !== 'about:blank' && !iframe.src.endsWith('about:blank')) triggerSave();
+        if(iframe.src && iframe.src !== 'about:blank' && iframe.src !== '') {
+            triggerSave();
+        }
 
         // Email anhängen für Kalender
         let finalUrl = url;
+        
         if (url.includes('gookal.html') && currentUserEmail) {
             finalUrl = url + '?user=' + encodeURIComponent(currentUserEmail);
+            console.log("✅ User-Parameter hinzugefügt:", finalUrl);
+        } else if (url.includes('gookal.html')) {
+            console.warn("⚠️ WARNUNG: gookal.html wird geladen, aber kein User gefunden!");
         }
 
-        console.log("Lade App:", finalUrl);
+        console.log("🚀 Lade jetzt:", finalUrl);
         iframe.src = finalUrl;
     };
 
     function triggerSave() {
-        if(iframe.contentWindow) {
-            iframe.contentWindow.postMessage('cmd:save', '*');
+        try {
+            if(iframe.contentWindow) {
+                iframe.contentWindow.postMessage('cmd:save', '*');
+            }
+        } catch(e) {
+            // Cross-origin Fehler ignorieren
         }
     }
 
