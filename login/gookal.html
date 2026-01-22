@@ -56,9 +56,10 @@
 
     <main>
         <div id="loading">Aktualisiere Kalender...</div>
+        <!-- Kalender-URL aktualisiert: vitakreisbalingen@gmail.com -->
         <iframe 
             id="cal-frame"
-            src="https://calendar.google.com/calendar/embed?src=53c1a2a613734b65573dd9d9fa6d7a51881dd2c57a8c983457f0870bec8c386b%40group.calendar.google.com&ctz=Europe%2FBerlin&mode=WEEK&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0"
+            src="https://calendar.google.com/calendar/embed?src=vitakreisbalingen%40gmail.com&ctz=Europe%2FBerlin&mode=WEEK&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0"
             scrolling="no">
         </iframe>
     </main>
@@ -69,13 +70,14 @@
             const left = (window.screen.width - w) / 2;
             const top = (window.screen.height - h) / 2;
 
+            // Öffnet die Standard-Ansicht von Google Calendar zum Bearbeiten
             const popup = window.open(
                 'https://calendar.google.com/calendar/r/week', 
                 'GoogleCalEdit', 
                 `width=${w},height=${h},top=${top},left=${left},resizable=yes,scrollbars=yes`
             );
 
-            // Prüft jede Sekunde
+            // Prüft jede Sekunde ob das Fenster geschlossen wurde
             const timer = setInterval(() => { 
                 if (popup.closed) {
                     clearInterval(timer);
@@ -91,11 +93,10 @@
             // Lade-Animation zeigen
             loading.style.display = 'flex';
 
-            // TRICK: Wir setzen die Source neu, um den Refresh zu erzwingen
-            // (Das umgeht die Sicherheitsblockade von contentWindow.location)
+            // TRICK: Iframe neu laden, um Änderungen sichtbar zu machen
             iframe.src = iframe.src;
 
-            // Nach kurz warten Ladebildschirm weg (Iframe lädt im Hintergrund)
+            // Nach dem Laden Ladebildschirm ausblenden
             iframe.onload = function() {
                 loading.style.display = 'none';
             };
