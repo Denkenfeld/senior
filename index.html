@@ -651,450 +651,523 @@
 
 
 <!-- Vitakreis Kostenrechner - Start -->
-<style>
-    .vitakreis-calculator * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
 
-    .vitakreis-calculator {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        /* Mobile Layout Adjustments */
-        width: calc(100% - 40px); /* 20px margin left & right on mobile */
-        max-width: 480px;
-        margin: 20px auto; /* 20px top/bottom, centered horizontally */
-
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        overflow: hidden;
-        color: #5d4e37;
-    }
-
-    .vitakreis-calculator .vk-header {
-        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
-        padding: 20px 20px;
-        text-align: center;
-        color: white;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .vitakreis-calculator .vk-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(45deg, 
-            transparent 30%, 
-            rgba(255,255,255,0.1) 50%, 
-            transparent 70%);
-        animation: vk-shine 3s infinite;
-    }
-
-    @keyframes vk-shine {
-        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-    }
-
-    .vitakreis-calculator .vk-header h1 {
-        font-size: 22px;
-        font-weight: 700;
-        margin-bottom: 4px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .vitakreis-calculator .vk-header p {
-        font-size: 14px;
-        opacity: 0.95;
-        position: relative;
-        z-index: 1;
-    }
-
-    .vitakreis-calculator .vk-content {
-        padding: 20px;
-    }
-
-    .vitakreis-calculator .vk-tarif-indicator {
-        background: linear-gradient(135deg, #e3e8e3 0%, #d6ded6 100%);
-        border: 2px solid #889e88;
-        border-radius: 12px;
-        padding: 14px 16px;
-        box-shadow: 0 2px 10px rgba(136, 158, 136, 0.15);
-        margin-bottom: 20px;
-    }
-
-    .vitakreis-calculator .vk-tarif-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-
-    .vitakreis-calculator .vk-tarif-name-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .vitakreis-calculator .vk-tarif-name {
-        font-size: 15px;
-        font-weight: 700;
-        color: #889e88;
-        text-shadow: 0 1px 2px rgba(136, 158, 136, 0.2);
-    }
-
-    .vitakreis-calculator .vk-tarif-info {
-        font-size: 12px;
-        color: #8b7355;
-        font-weight: 500;
-    }
-
-    .vitakreis-calculator .vk-tarif-rate {
-        font-size: 22px;
-        font-weight: 800;
-        color: #889e88;
-        text-shadow: 0 1px 3px rgba(136, 158, 136, 0.3);
-    }
-
-    .vitakreis-calculator .vk-tarif-progress {
-        display: flex;
-        gap: 4px;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .vitakreis-calculator .vk-progress-segment {
-        flex: 1;
-        height: 8px;
-        background: #e5e7eb;
-        border-radius: 4px;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .vitakreis-calculator .vk-progress-segment.active {
-        background: linear-gradient(90deg, #889e88 0%, #6f856f 100%);
-        box-shadow: 0 2px 8px rgba(136, 158, 136, 0.5);
-    }
-
-    .vitakreis-calculator .vk-progress-segment.active::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, 
-            transparent, 
-            rgba(255,255,255,0.4), 
-            transparent);
-        animation: vk-progressShine 2s infinite;
-    }
-
-    @keyframes vk-progressShine {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-
-    .vitakreis-calculator .vk-progress-segment.completed {
-        background: linear-gradient(135deg, #b0c4b0 0%, #9fb09f 100%);
-    }
-
-    .vitakreis-calculator .vk-tarif-labels {
-        display: flex;
-        justify-content: space-between;
-        font-size: 11px;
-        color: #8b7355;
-        margin-top: 6px;
-    }
-
-    .vitakreis-calculator .vk-tarif-label {
-        flex: 1;
-        text-align: center;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .vitakreis-calculator .vk-tarif-label.active {
-        color: #889e88;
-        font-weight: 700;
-    }
-
-    .vitakreis-calculator .vk-input-group {
-        margin-bottom: 16px;
-    }
-
-    .vitakreis-calculator .vk-input-label {
-        display: block;
-        font-size: 15px;
-        font-weight: 600;
-        color: #5d4e37;
-        margin-bottom: 8px;
-    }
-
-    .vitakreis-calculator input[type="range"] {
-        width: 100%;
-        -webkit-appearance: none;
-        height: 6px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        outline: none;
-    }
-
-    .vitakreis-calculator input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 24px;
-        height: 24px;
-        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
-        cursor: pointer;
-        border-radius: 50%;
-        box-shadow: 0 3px 10px rgba(136, 158, 136, 0.5);
-        animation: vk-pulse 2s ease-in-out infinite;
-        transition: transform 0.2s ease;
-    }
-
-    .vitakreis-calculator input[type="range"]::-webkit-slider-thumb:hover {
-        transform: scale(1.15);
-        animation: none;
-    }
-
-    .vitakreis-calculator input[type="range"]::-webkit-slider-thumb:active {
-        transform: scale(1.05);
-        animation: none;
-    }
-
-    .vitakreis-calculator input[type="range"]::-moz-range-thumb {
-        width: 24px;
-        height: 24px;
-        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
-        cursor: pointer;
-        border-radius: 50%;
-        border: none;
-        box-shadow: 0 3px 10px rgba(136, 158, 136, 0.5);
-        animation: vk-pulse 2s ease-in-out infinite;
-        transition: transform 0.2s ease;
-    }
-
-    .vitakreis-calculator input[type="range"]::-moz-range-thumb:hover {
-        transform: scale(1.15);
-        animation: none;
-    }
-
-    .vitakreis-calculator input[type="range"]::-moz-range-thumb:active {
-        transform: scale(1.05);
-        animation: none;
-    }
-
-    @keyframes vk-pulse {
-        0%, 100% {
-            box-shadow: 0 3px 10px rgba(136, 158, 136, 0.5);
-            transform: scale(1);
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
-        50% {
-            box-shadow: 0 3px 15px rgba(136, 158, 136, 0.8), 0 0 20px rgba(136, 158, 136, 0.4);
-            transform: scale(1.08);
+
+        .vitakreis-calculator * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    }
 
-    .vitakreis-calculator .vk-range-value {
-        text-align: center;
-        font-size: 24px;
-        font-weight: 700;
-        color: #889e88;
-        margin-top: 8px;
-    }
-
-    .vitakreis-calculator .vk-checkbox-group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        background: #f9fafb;
-        border-radius: 10px;
-        cursor: pointer;
-        margin-bottom: 8px;
-    }
-
-    .vitakreis-calculator .vk-checkbox-group:hover {
-        background: #e3e8e3;
-    }
-
-    .vitakreis-calculator .vk-checkbox-group input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        accent-color: #889e88;
-    }
-
-    .vitakreis-calculator .vk-checkbox-label {
-        font-size: 15px;
-        font-weight: 500;
-        color: #5d4e37;
-        cursor: pointer;
-        flex: 1;
-    }
-
-    /* Result Box - Mobile first (mit margin) */
-    .vitakreis-calculator .vk-result-box {
-        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        color: white;
-        box-shadow: 0 6px 20px rgba(136, 158, 136, 0.4);
-        position: relative;
-        overflow: hidden;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-
-    .vitakreis-calculator .vk-result-box::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        animation: vk-glow 4s ease-in-out infinite;
-    }
-
-    @keyframes vk-glow {
-        0%, 100% { transform: translate(0, 0); opacity: 0.3; }
-        50% { transform: translate(-20%, -20%); opacity: 0.6; }
-    }
-
-    .vitakreis-calculator .vk-result-label {
-        font-size: 13px;
-        opacity: 0.95;
-        margin-bottom: 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .vitakreis-calculator .vk-result-price {
-        font-size: 38px;
-        font-weight: 800;
-        margin-bottom: 12px;
-        position: relative;
-        z-index: 1;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-
-    .vitakreis-calculator .vk-result-breakdown {
-        display: flex;
-        justify-content: space-around;
-        padding-top: 14px;
-        border-top: 1px solid rgba(255,255,255,0.3);
-        font-size: 13px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .vitakreis-calculator .vk-breakdown-item {
-        text-align: center;
-    }
-
-    .vitakreis-calculator .vk-breakdown-label {
-        opacity: 0.9;
-        margin-bottom: 3px;
-        font-size: 12px;
-    }
-
-    .vitakreis-calculator .vk-breakdown-value {
-        font-size: 16px;
-        font-weight: 700;
-    }
-
-    .vitakreis-calculator .vk-cta-button {
-        width: 100%;
-        padding: 14px;
-        background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 15px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(136, 158, 136, 0.4);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .vitakreis-calculator .vk-cta-button::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.2);
-        transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
-    }
-
-    .vitakreis-calculator .vk-cta-button:hover::before {
-        width: 300px;
-        height: 300px;
-    }
-
-    .vitakreis-calculator .vk-cta-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(136, 158, 136, 0.5);
-    }
-
-    .vitakreis-calculator .vk-cta-button:active {
-        transform: translateY(0);
-    }
-
-    /* Desktop Layout ab 768px */
-    @media (min-width: 768px) {
         .vitakreis-calculator {
-            max-width: 900px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            width: calc(100% - 40px);
+            max-width: 480px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            color: #5d4e37;
         }
 
-        .vitakreis-calculator .vk-desktop-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
+        .vitakreis-calculator .vk-header {
+            background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+            padding: 20px 20px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* WICHTIG: Result-Box margin auf 0 im Desktop */
-        .vitakreis-calculator .vk-result-box {
-            margin-top: 0;
+        .vitakreis-calculator .vk-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(255,255,255,0.1) 50%, 
+                transparent 70%);
+            animation: vk-shine 3s infinite;
+        }
+
+        @keyframes vk-shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .vitakreis-calculator .vk-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vitakreis-calculator .vk-header p {
+            font-size: 14px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vitakreis-calculator .vk-content {
+            padding: 20px;
+        }
+
+        .vitakreis-calculator .vk-tarif-indicator {
+            background: linear-gradient(135deg, #e3e8e3 0%, #d6ded6 100%);
+            border: 2px solid #889e88;
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 10px rgba(136, 158, 136, 0.15);
+            margin-bottom: 20px;
+        }
+
+        .vitakreis-calculator .vk-tarif-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .vitakreis-calculator .vk-tarif-name-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .vitakreis-calculator .vk-tarif-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #889e88;
+            text-shadow: 0 1px 2px rgba(136, 158, 136, 0.2);
+        }
+
+        .vitakreis-calculator .vk-tarif-info {
+            font-size: 12px;
+            color: #8b7355;
+            font-weight: 500;
+        }
+
+        .vitakreis-calculator .vk-tarif-rate {
+            font-size: 22px;
+            font-weight: 800;
+            color: #889e88;
+            text-shadow: 0 1px 3px rgba(136, 158, 136, 0.3);
+        }
+
+        .vitakreis-calculator .vk-tarif-progress {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .vitakreis-calculator .vk-progress-segment {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .vitakreis-calculator .vk-progress-segment.active {
+            background: linear-gradient(90deg, #889e88 0%, #6f856f 100%);
+            box-shadow: 0 2px 8px rgba(136, 158, 136, 0.5);
+        }
+
+        .vitakreis-calculator .vk-progress-segment.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.4), 
+                transparent);
+            animation: vk-progressShine 2s infinite;
+        }
+
+        @keyframes vk-progressShine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .vitakreis-calculator .vk-progress-segment.completed {
+            background: linear-gradient(135deg, #b0c4b0 0%, #9fb09f 100%);
+        }
+
+        .vitakreis-calculator .vk-tarif-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #8b7355;
+            margin-top: 6px;
+        }
+
+        .vitakreis-calculator .vk-tarif-label {
+            flex: 1;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .vitakreis-calculator .vk-tarif-label.active {
+            color: #889e88;
+            font-weight: 700;
+        }
+
+        .vitakreis-calculator .vk-input-group {
             margin-bottom: 16px;
+        }
+
+        .vitakreis-calculator .vk-input-label {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            color: #5d4e37;
+            margin-bottom: 8px;
+        }
+
+        .vitakreis-calculator input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .vitakreis-calculator input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 3px 10px rgba(136, 158, 136, 0.5);
+            animation: vk-pulse 2s ease-in-out infinite;
+            transition: transform 0.2s ease;
+        }
+
+        .vitakreis-calculator input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            animation: none;
+        }
+
+        .vitakreis-calculator input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.05);
+            animation: none;
+        }
+
+        .vitakreis-calculator input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 3px 10px rgba(136, 158, 136, 0.5);
+            animation: vk-pulse 2s ease-in-out infinite;
+            transition: transform 0.2s ease;
+        }
+
+        .vitakreis-calculator input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.15);
+            animation: none;
+        }
+
+        .vitakreis-calculator input[type="range"]::-moz-range-thumb:active {
+            transform: scale(1.05);
+            animation: none;
+        }
+
+        @keyframes vk-pulse {
+            0%, 100% {
+                box-shadow: 0 3px 10px rgba(136, 158, 136, 0.5);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 3px 15px rgba(136, 158, 136, 0.8), 0 0 20px rgba(136, 158, 136, 0.4);
+                transform: scale(1.08);
+            }
+        }
+
+        .vitakreis-calculator .vk-range-value {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #889e88;
+            margin-top: 8px;
+        }
+
+        .vitakreis-calculator .vk-checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #f9fafb;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .vitakreis-calculator .vk-checkbox-group:hover {
+            background: #e3e8e3;
+        }
+
+        .vitakreis-calculator .vk-checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #889e88;
+        }
+
+        .vitakreis-calculator .vk-checkbox-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: #5d4e37;
+            cursor: pointer;
             flex: 1;
         }
-    }
-</style>
+
+        /* Insurance Section */
+        .vitakreis-calculator .vk-insurance-section {
+            background: #f0f4f0;
+            border: 2px solid #b0c4b0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .vitakreis-calculator .vk-insurance-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #5d4e37;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .vitakreis-calculator .vk-pflegegrad-list {
+            margin-top: 8px;
+            margin-left: 32px;
+        }
+
+        .vitakreis-calculator .vk-pflegegrad-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .vitakreis-calculator .vk-pflegegrad-item:hover {
+            background: #e3e8e3;
+        }
+
+        .vitakreis-calculator .vk-pflegegrad-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #889e88;
+        }
+
+        .vitakreis-calculator .vk-pflegegrad-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #5d4e37;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Result Box */
+        .vitakreis-calculator .vk-result-box {
+            background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 6px 20px rgba(136, 158, 136, 0.4);
+            position: relative;
+            overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .vitakreis-calculator .vk-result-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: vk-glow 4s ease-in-out infinite;
+        }
+
+        @keyframes vk-glow {
+            0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+            50% { transform: translate(-20%, -20%); opacity: 0.6; }
+        }
+
+        .vitakreis-calculator .vk-result-label {
+            font-size: 13px;
+            opacity: 0.95;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vitakreis-calculator .vk-result-price {
+            font-size: 38px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .vitakreis-calculator .vk-result-original {
+            font-size: 16px;
+            opacity: 0.8;
+            text-decoration: line-through;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vitakreis-calculator .vk-result-breakdown {
+            display: flex;
+            justify-content: space-around;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            font-size: 13px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vitakreis-calculator .vk-breakdown-item {
+            text-align: center;
+        }
+
+        .vitakreis-calculator .vk-breakdown-label {
+            opacity: 0.9;
+            margin-bottom: 3px;
+            font-size: 12px;
+        }
+
+        .vitakreis-calculator .vk-breakdown-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .vitakreis-calculator .vk-cta-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #889e88 0%, #6f856f 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(136, 158, 136, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vitakreis-calculator .vk-cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .vitakreis-calculator .vk-cta-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .vitakreis-calculator .vk-cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(136, 158, 136, 0.5);
+        }
+
+        .vitakreis-calculator .vk-cta-button:active {
+            transform: translateY(0);
+        }
+
+        /* Desktop Layout ab 768px */
+        @media (min-width: 768px) {
+            .vitakreis-calculator {
+                max-width: 1200px;
+            }
+
+            .vitakreis-calculator .vk-desktop-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 20px;
+            }
+
+            .vitakreis-calculator .vk-result-box {
+                margin-top: 0;
+                margin-bottom: 16px;
+            }
+
+            .vitakreis-calculator .vk-insurance-section {
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
 
 <div class="vitakreis-calculator">
     <div class="vk-header">
         <h1>Vitakreis Kostenrechner</h1>
-        <p>Transparente Preise f&uuml;r individuelle Alltagshilfe</p>
+        <p>Transparente Preise für individuelle Alltagshilfe</p>
     </div>
 
     <div class="vk-content">
         <div class="vk-desktop-grid">
+            <!-- Spalte 1: Eingaben -->
             <div class="vk-left-column">
                 <div class="vk-tarif-indicator">
                     <div class="vk-tarif-header">
                         <div class="vk-tarif-name-group">
-                            <span class="vk-tarif-name" id="vkTarifName">Tarif S &#11088;</span>
+                            <span class="vk-tarif-name" id="vkTarifName">Tarif S ⭐</span>
                             <span class="vk-tarif-info" id="vkTarifInfo">Bis 8 Std./Monat</span>
                         </div>
-                        <div class="vk-tarif-rate" id="vkTarifRate">34,50&euro;</div>
+                        <div class="vk-tarif-rate" id="vkTarifRate">34,50€</div>
                     </div>
 
                     <div class="vk-tarif-progress">
@@ -1104,9 +1177,9 @@
                     </div>
 
                     <div class="vk-tarif-labels">
-                        <div class="vk-tarif-label" id="vkLabel1">34,50&euro;/Std.</div>
-                        <div class="vk-tarif-label" id="vkLabel2">29,50&euro;/Std.</div>
-                        <div class="vk-tarif-label" id="vkLabel3">27,50&euro;/Std.</div>
+                        <div class="vk-tarif-label" id="vkLabel1">34,50€/Std.</div>
+                        <div class="vk-tarif-label" id="vkLabel2">29,50€/Std.</div>
+                        <div class="vk-tarif-label" id="vkLabel3">27,50€/Std.</div>
                     </div>
                 </div>
 
@@ -1119,20 +1192,22 @@
                 <div class="vk-input-group">
                     <label class="vk-checkbox-group">
                         <input type="checkbox" id="vkWeekend" value="5">
-                        <span class="vk-checkbox-label">Wochenende/Feiertage <strong>+5&euro;/Std.</strong></span>
+                        <span class="vk-checkbox-label">Wochenende/Feiertage <strong>+5€/Std.</strong></span>
                     </label>
                 </div>
             </div>
 
-            <div class="vk-right-column">
+            <!-- Spalte 2: Ergebnis -->
+            <div class="vk-middle-column">
                 <div class="vk-result-box">
                     <div class="vk-result-label">Monatliche Kosten</div>
-                    <div class="vk-result-price" id="vkTotalPrice">276,00&euro;</div>
+                    <div class="vk-result-price" id="vkTotalPrice">276,00€</div>
+                    <div class="vk-result-original" id="vkOriginalPrice" style="display: none;">Ursprünglich: 276,00€</div>
 
                     <div class="vk-result-breakdown">
                         <div class="vk-breakdown-item">
                             <div class="vk-breakdown-label">Stundensatz</div>
-                            <div class="vk-breakdown-value" id="vkHourlyRate">34,50&euro;</div>
+                            <div class="vk-breakdown-value" id="vkHourlyRate">34,50€</div>
                         </div>
                         <div class="vk-breakdown-item">
                             <div class="vk-breakdown-label">Stunden/Monat</div>
@@ -1145,9 +1220,45 @@
                     </div>
                 </div>
 
-                <button class="vk-cta-button" onclick="openRequestModal('Anfrage fÃ¼r AngehÃ¶rige')">
+                <button class="vk-cta-button" onclick="alert('Anfrage wird gesendet...')">
                     <span style="position: relative; z-index: 1;">Jetzt unverbindlich anfragen</span>
                 </button>
+            </div>
+
+            <!-- Spalte 3: Krankenkasse -->
+            <div class="vk-right-column">
+                <div class="vk-insurance-section">
+                    <div class="vk-insurance-title">Die Krankenkasse übernimmt unter Umständen anteilig die Kosten:</div>
+                    
+                    <label class="vk-checkbox-group">
+                        <input type="checkbox" id="vkEntlastung" value="131">
+                        <span class="vk-checkbox-label"><strong>131€</strong> Kostenerstattung durch monatlichen Entlastungsbetrag nach § 45b SGB XI (Pflegegrad 1-5)</span>
+                    </label>
+
+                    <label class="vk-checkbox-group">
+                        <input type="checkbox" id="vkPflegegradToggle">
+                        <span class="vk-checkbox-label"><strong>Zusätzlich je nach Pflegegrad:</strong></span>
+                    </label>
+
+                    <div class="vk-pflegegrad-list" id="vkPflegegradList" style="display: none;">
+                        <label class="vk-pflegegrad-item">
+                            <input type="radio" name="pflegegrad" value="796">
+                            <span class="vk-pflegegrad-label">PG 2: bis zu 796 €</span>
+                        </label>
+                        <label class="vk-pflegegrad-item">
+                            <input type="radio" name="pflegegrad" value="1497">
+                            <span class="vk-pflegegrad-label">PG 3: bis zu 1.497 €</span>
+                        </label>
+                        <label class="vk-pflegegrad-item">
+                            <input type="radio" name="pflegegrad" value="1859">
+                            <span class="vk-pflegegrad-label">PG 4: bis zu 1.859 €</span>
+                        </label>
+                        <label class="vk-pflegegrad-item">
+                            <input type="radio" name="pflegegrad" value="2299">
+                            <span class="vk-pflegegrad-label">PG 5: bis zu 2.299 €</span>
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1156,9 +1267,9 @@
 <script>
 (function() {
     const vkTarifs = {
-        s: { name: 'Tarif S \u2B50', rate: 34.50, info: 'Bis 8 Std./Monat', min: 1, max: 8, segment: 1 },
-        m: { name: 'Tarif M \u2B50\u2B50', rate: 29.50, info: '9-25 Std./Monat', min: 9, max: 25, segment: 2 },
-        l: { name: 'Tarif L \u2B50\u2B50\u2B50', rate: 27.50, info: 'Ab 30 Std./M', min: 30, max: 999, segment: 3 }
+        s: { name: 'Tarif S ⭐', rate: 34.50, info: 'Bis 8 Std./Monat', min: 1, max: 8, segment: 1 },
+        m: { name: 'Tarif M ⭐⭐', rate: 29.50, info: '9-25 Std./Monat', min: 9, max: 25, segment: 2 },
+        l: { name: 'Tarif L ⭐⭐⭐', rate: 27.50, info: 'Ab 30 Std./M', min: 30, max: 999, segment: 3 }
     };
 
     function vkGetTarifByHours(hours) {
@@ -1191,6 +1302,8 @@
     function vkCalculate() {
         const hours = parseInt(document.getElementById('vkHoursRange').value);
         const weekendChecked = document.getElementById('vkWeekend').checked;
+        const entlastungChecked = document.getElementById('vkEntlastung').checked;
+        const selectedPflegegrad = document.querySelector('input[name="pflegegrad"]:checked');
 
         const tarif = vkGetTarifByHours(hours);
         let hourlyRate = tarif.rate;
@@ -1199,23 +1312,58 @@
             hourlyRate += 5;
         }
 
-        let total = hourlyRate * hours;
+        let originalTotal = hourlyRate * hours;
+        let total = originalTotal;
 
+        // Berechne maximale Erstattung (max 16,50€ pro Stunde)
+        const maxReimbursementPerHour = 16.50;
+        const maxPossibleReimbursement = maxReimbursementPerHour * hours;
+
+        let totalReimbursement = 0;
+
+        // Entlastungsbetrag
+        if (entlastungChecked) {
+            totalReimbursement += 131;
+        }
+
+        // Pflegegrad-Betrag
+        if (selectedPflegegrad) {
+            totalReimbursement += parseFloat(selectedPflegegrad.value);
+        }
+
+        // Limitiere auf maximale Erstattung
+        const actualReimbursement = Math.min(totalReimbursement, maxPossibleReimbursement, originalTotal);
+        total = Math.max(0, originalTotal - actualReimbursement);
+
+        // Tarif-Ersparnis (unabhängig von Krankenkasse)
         const baseCost = vkTarifs.s.rate * hours;
         const actualCost = tarif.rate * hours;
-        const savings = baseCost - actualCost;
+        const tarifSavings = baseCost - actualCost;
 
         vkUpdateProgressBar(tarif.segment);
 
         document.getElementById('vkTarifName').innerHTML = tarif.name;
         document.getElementById('vkTarifInfo').textContent = tarif.info;
-        document.getElementById('vkTarifRate').innerHTML = vkFormatPrice(tarif.rate) + '&euro;';
-        document.getElementById('vkTotalPrice').innerHTML = vkFormatPrice(total) + '&euro;';
-        document.getElementById('vkHourlyRate').innerHTML = vkFormatPrice(hourlyRate) + '&euro;';
+        document.getElementById('vkTarifRate').innerHTML = vkFormatPrice(tarif.rate) + '€';
+        document.getElementById('vkTotalPrice').innerHTML = vkFormatPrice(total) + '€';
+        document.getElementById('vkHourlyRate').innerHTML = vkFormatPrice(hourlyRate) + '€';
         document.getElementById('vkTotalHours').textContent = hours;
-        document.getElementById('vkSavings').innerHTML = savings > 0 ? vkFormatPrice(savings) + '&euro;' : '-';
+
+        // Zeige Original-Preis wenn Erstattung aktiv ist
+        const originalPriceEl = document.getElementById('vkOriginalPrice');
+        if (actualReimbursement > 0) {
+            originalPriceEl.innerHTML = 'Ursprünglich: ' + vkFormatPrice(originalTotal) + '€';
+            originalPriceEl.style.display = 'block';
+        } else {
+            originalPriceEl.style.display = 'none';
+        }
+
+        // Ersparnis anzeigen (Tarif-Ersparnis + Krankenkasse)
+        const totalSavings = tarifSavings + actualReimbursement;
+        document.getElementById('vkSavings').innerHTML = totalSavings > 0 ? vkFormatPrice(totalSavings) + '€' : '-';
     }
 
+    // Event Listeners
     const vkHoursRange = document.getElementById('vkHoursRange');
     const vkHoursValue = document.getElementById('vkHoursValue');
 
@@ -1225,10 +1373,32 @@
     });
 
     document.getElementById('vkWeekend').addEventListener('change', vkCalculate);
+    document.getElementById('vkEntlastung').addEventListener('change', vkCalculate);
+
+    // Pflegegrad Toggle
+    document.getElementById('vkPflegegradToggle').addEventListener('change', function() {
+        const list = document.getElementById('vkPflegegradList');
+        if (this.checked) {
+            list.style.display = 'block';
+        } else {
+            list.style.display = 'none';
+            // Deselect all radio buttons
+            document.querySelectorAll('input[name="pflegegrad"]').forEach(radio => {
+                radio.checked = false;
+            });
+            vkCalculate();
+        }
+    });
+
+    // Pflegegrad Radio Buttons
+    document.querySelectorAll('input[name="pflegegrad"]').forEach(radio => {
+        radio.addEventListener('change', vkCalculate);
+    });
 
     vkCalculate();
 })();
 </script>
+
 <!-- Vitakreis Kostenrechner - Ende -->  
 
 
