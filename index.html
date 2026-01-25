@@ -2240,7 +2240,7 @@ html, body {
     function openLegalModal() {
         document.body.classList.add('no-scroll'); // Body einfrieren
         document.getElementById('legalModal').classList.add('active');
-        fetch('pix-rechtstexte.html').then(r => r.text()).then(h => document.getElementById('legalContainer').innerHTML = h).catch(e => document.getElementById('legalContainer').innerHTML = "<p>Fehler beim Laden.</p>");
+        fetch('vk-rechtstexte.html').then(r => r.text()).then(h => document.getElementById('legalContainer').innerHTML = h).catch(e => document.getElementById('legalContainer').innerHTML = "<p>Fehler beim Laden.</p>");
     }
     function closeLegalModal() { 
         document.body.classList.remove('no-scroll'); // Body freigeben
@@ -2255,7 +2255,7 @@ html, body {
         // Lade-Spinner
         container.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 200px;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #ccc;"></i></div>';
 
-        fetch('pix-kontaktformular.html')
+        fetch('vk-kontaktformular.html')
         .then(r => r.text())
         .then(h => {
             container.innerHTML = h;
@@ -2366,7 +2366,7 @@ html, body {
         const container = document.getElementById('requestContainer');
         container.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 200px;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #ccc;"></i></div>';
 
-        fetch('pix-kontaktformular.html')
+        fetch('vk-kontaktformular.html')
         .then(r => r.text())
         .then(h => {
             container.innerHTML = h;
