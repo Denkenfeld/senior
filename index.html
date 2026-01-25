@@ -18,12 +18,7 @@
 
     
 <style>
-    .flatpickr-calendar {
-        display: none; /* Standardmäßig ausblenden */
-    }
-    .flatpickr-calendar.open {
-        display: block; /* Nur anzeigen wenn Klasse 'open' da ist */
-    }
+    /* Flatpickr display rules removed - Flatpickr manages visibility itself */
 </style>
 
 
@@ -2375,41 +2370,7 @@ if (select && paketName) {
     }
 
 
-    function openRequestModal(paketName) {
-        document.body.classList.add('no-scroll'); 
-        document.getElementById('requestModal').classList.add('active');
-
-        const container = document.getElementById('requestContainer');
-        container.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 200px;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #ccc;"></i></div>';
-
-        fetch('vk-kontaktformular.html')
-        .then(r => r.text())
-        .then(h => {
-            container.innerHTML = h;
-            const select = container.querySelector('select[name="Paket"]');
-            if (select && paketName) {
-                for (let i = 0; i < select.options.length; i++) {
-                    if (select.options[i].value === paketName || select.options[i].text.includes(paketName)) {
-                        select.selectedIndex = i;
-                        break;
-                    }
-                }
-            }
-            const dateInput = container.querySelector('input[name="Datum"]');
-            if (window.flatpickr && dateInput) {
-                flatpickr(dateInput, {
-                    disableMobile: true,
-                    enableTime: false,
-                    dateFormat: "Y-m-d",
-                    locale: "de",
-                    inline: true
-                });
-            }
-        })
-        .catch(err => {
-            container.innerHTML = '<p style="color: red; text-align: center;">Fehler beim Laden des Formulars.</p>';
-        });
-    }
+    
 
     function closeRequestModal() { 
         document.body.classList.remove('no-scroll'); 
