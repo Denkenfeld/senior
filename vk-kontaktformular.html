@@ -127,14 +127,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     (function() {
-        // Flatpickr initialisieren für das Datum-Feld
-        flatpickr("#dateInput", {
-            enableTime: false,
-            dateFormat: "Y-m-d",
-            minDate: "today",
-            locale: "de", 
-            static: true // Sorgt dafür, dass Kalender im Modal richtig positioniert wird
-        });
+
         
         const form = document.getElementById('bookingForm');
         const formContent = document.getElementById('form-content');
