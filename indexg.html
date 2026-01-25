@@ -357,7 +357,7 @@ html, body {
         .btn-b2b { display: inline-block; background: #111; color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none; font-weight: 600; align-self: start; cursor: pointer; }
         
         /* --- FAQ GRID --- */
-        .faq-wrap { padding: 80px 20px 20px 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 40px; align-items: start; }
+        .faq-wrap { padding: 30px 20px 20px 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 40px; align-items: start; }
         .faq-img-container { line-height: 0; margin: 0; padding: 0; }
         .faq-img { width: 100%; border-radius: 20px; height: 100%; min-height: 480px; object-fit: cover; display: block; }
         .faq-content { padding-top: 0; margin-top: 20px; display: flex; flex-direction: column; gap: 15px; }
@@ -467,6 +467,96 @@ html, body {
 }
 
         
+
+    
+    /* Grüner Hintergrund Bereich */
+    .faq-wrap h2 { color: #fff; }
+    .faq-wrap { background: transparent; }
+    .faq-content { background: transparent; }
+    .faq-item { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+    .faq-question { color: #fff; }
+    .faq-answer { color: #e5e7eb; }
+    .faq-answer strong { color: #fff; }
+    footer { background: transparent; color: #e5e7eb; }
+    footer a { color: #10b981; }
+    footer a:hover { color: #34d399; }
+
+        /* --- KONTAKT TIMELINE STYLE MIT SCROLL FILL --- */
+        .contact-timeline {
+            position: relative;
+            padding-left: 40px;
+            max-width: 400px;
+        }
+
+        .contact-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #e3e8e3;
+            z-index: 0;
+        }
+
+        .contact-timeline::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            background: #889e88;
+            height: 0%;
+            transition: height 0.2s linear;
+            z-index: 1;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            padding-left: 0;
+            z-index: 2;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -46px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: #889e88;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #889e88;
+            z-index: 3;
+        }
+
+        .timeline-item strong {
+            display: block;
+            color: #889e88;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-item div {
+            color: #5d4e37;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .timeline-item a {
+            color: #5d4e37;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .timeline-item a:hover {
+            color: #889e88;
+        }
 
     </style>
 </head>
@@ -1147,7 +1237,85 @@ html, body {
                 padding-right: 20px !important;
             }
         }
-</style>
+
+        /* --- KONTAKT TIMELINE STYLE MIT SCROLL FILL --- */
+        .contact-timeline {
+            position: relative;
+            padding-left: 40px;
+            max-width: 400px;
+        }
+
+        .contact-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #e3e8e3;
+            z-index: 0;
+        }
+
+        .contact-timeline::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            background: #889e88;
+            height: 0%;
+            transition: height 0.2s linear;
+            z-index: 1;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            padding-left: 0;
+            z-index: 2;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -46px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: #889e88;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #889e88;
+            z-index: 3;
+        }
+
+        .timeline-item strong {
+            display: block;
+            color: #889e88;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-item div {
+            color: #5d4e37;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .timeline-item a {
+            color: #5d4e37;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .timeline-item a:hover {
+            color: #889e88;
+        }
+
+    </style>
 </head>
 <body>
 
@@ -1426,7 +1594,85 @@ html, body {
                 .vk-step-dot { left: 50%; top: -38px; transform: translateX(-50%); }
                 .vk-step-item.vk-active .vk-step-dot { transform: translateX(-50%) scale(1.1); }
             }
-        </style>
+        
+        /* --- KONTAKT TIMELINE STYLE MIT SCROLL FILL --- */
+        .contact-timeline {
+            position: relative;
+            padding-left: 40px;
+            max-width: 400px;
+        }
+
+        .contact-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #e3e8e3;
+            z-index: 0;
+        }
+
+        .contact-timeline::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            background: #889e88;
+            height: 0%;
+            transition: height 0.2s linear;
+            z-index: 1;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            padding-left: 0;
+            z-index: 2;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -46px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: #889e88;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #889e88;
+            z-index: 3;
+        }
+
+        .timeline-item strong {
+            display: block;
+            color: #889e88;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-item div {
+            color: #5d4e37;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .timeline-item a {
+            color: #5d4e37;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .timeline-item a:hover {
+            color: #889e88;
+        }
+
+    </style>
 
         <div class="vk-timeline-wrapper">
             <div class="vk-intro-header">
@@ -1524,10 +1770,23 @@ html, body {
     <section class="contact-wrap reveal" id="kontakt">
         <div class="contact-info-block">
             <img src="https://denkenfeld.github.io/senior/21-kontakt.jpg" class="contact-avatar-xxl" alt="Irene">
-            <div class="contact-text">
-                <h3 style="margin-bottom: 15px; font-size: 1.8rem;">Kommen Sie vorbei.</h3>
-                <p><strong>Vitakreis - Alltagsbegleitung Balingen</strong><br>Odenwaldstraße 19, 72336 Balingen<br><br>📞 07433-9970779<br>✉️ <a href="mailto:balingen@vitakreis.de">balingen@vitakreis.de</a></p>
-                <p style="margin-top: 20px; color: #888; font-size: 0.9rem;">Parkplätze direkt vor der Tür<br>Termine nach Vereinbarung</p>
+            <div class="contact-timeline">
+                <div class="timeline-item">
+                    <strong>ADRESSE</strong>
+                    <div>Vitakreis - Alltagsbegleitung Balingen<br>Odenwaldstraße 19<br>72336 Balingen</div>
+                </div>
+                <div class="timeline-item">
+                    <strong>TELEFON</strong>
+                    <div><a href="tel:07433-9970779">07433-9970779</a></div>
+                </div>
+                <div class="timeline-item">
+                    <strong>E-MAIL</strong>
+                    <div><a href="mailto:balingen@vitakreis.de" onclick="event.preventDefault(); openRequestModal('Erstes Kennenlernen'); return false;">balingen@vitakreis.de</a></div>
+                </div>
+                <div class="timeline-item">
+                    <strong>HINWEISE</strong>
+                    <div>Parkplätze direkt vor der Tür<br>Termine nach Vereinbarung</div>
+                </div>
             </div>
         </div>
         <div class="map-separate">
@@ -1541,7 +1800,9 @@ html, body {
         </div>
     </section>
 
-    <section class="faq-wrap reveal">
+    
+<div style="background: linear-gradient(to bottom, #2d5a3d 0%, #1e3a2a 100%); padding: 60px 0 0 0;">
+<section class="faq-wrap reveal">
         <div class="faq-img-container">
             <h2>Häufige Fragen zur Betreuung</h2>
             <img src="https://denkenfeld.github.io/senior/20-fragen.jpg" class="faq-img" alt="Studio Detail" style="margin-top: 35px;">
@@ -1678,6 +1939,8 @@ html, body {
     </div>
 </div>
 
+
+</div>
 <div id="legalModal" class="modal-overlay">
     <div class="modal-content">
         <button class="close-modal" onclick="closeLegalModal()">×</button>
@@ -2008,15 +2271,17 @@ html, body {
         .then(h => {
             container.innerHTML = h;
 
-            // 1. Paket vorauswählen (Such-Logik)
-            const select = container.querySelector('select[name="Paket"]');
-            if (select && paketName) {
-                for (let i = 0; i < select.options.length; i++) {
-                    // Match auf Value oder Text
-                    if (select.options[i].value === paketName || select.options[i].text.includes(paketName)) {
-                        select.selectedIndex = i;
-                        break;
-                    }
+            // 1. Betreff vorauswählen und Optionen anpassen
+            const select = container.querySelector('select[name="Paket"]') || container.querySelector('select');
+            if (select) {
+                // Optionen auf die zwei gewünschten reduzieren
+                select.innerHTML = '<option value="Erstes Kennenlernen">Erstes Kennenlernen</option><option value="Begleitung buchen">Begleitung buchen</option>';
+
+                // Vorauswahl basierend auf Parameter (Standard: "Erstes Kennenlernen")
+                if (paketName === 'Begleitung buchen') {
+                    select.selectedIndex = 1;
+                } else {
+                    select.selectedIndex = 0; // Standard: Erstes Kennenlernen
                 }
             }
 
@@ -2145,6 +2410,29 @@ html, body {
         document.body.classList.remove('no-scroll'); 
         document.getElementById('requestModal').classList.remove('active'); 
     }
+    
+    // --- KONTAKT TIMELINE SCROLL FILL EFFECT ---
+    function updateContactTimelineFill() {
+        const timeline = document.querySelector('.contact-timeline');
+        if (!timeline) return;
+
+        const rect = timeline.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        const visibleTop = Math.max(0, windowHeight - rect.top);
+        const visibleHeight = Math.min(rect.height, visibleTop);
+        const fillPercentage = Math.min(100, Math.max(0, (visibleHeight / rect.height) * 100));
+
+        const style = document.getElementById('contact-timeline-fill-style') || document.createElement('style');
+        style.id = 'contact-timeline-fill-style';
+        style.textContent = `.contact-timeline::after { height: ${fillPercentage}% !important; }`;
+        if (!style.parentElement) document.head.appendChild(style);
+    }
+
+    window.addEventListener('scroll', updateContactTimelineFill);
+    window.addEventListener('resize', updateContactTimelineFill);
+    updateContactTimelineFill();
+
     </script>
 
 </body>
