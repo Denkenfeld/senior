@@ -1099,7 +1099,7 @@ html, body {
         }
     
 
-        /* === MOBILE FIX für Kostenrechner === */
+        /* === MOBILE FIX für Kostenrechner & Timeline === */
         @media (max-width: 768px) {
             .vitakreis-calculator {
                 width: 100% !important;
@@ -1110,6 +1110,26 @@ html, body {
                 padding-left: 0 !important;
                 padding-right: 0 !important;
                 margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+            /* Überschrift mit Padding damit nicht zu breit */
+            .vk-intro-header {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+                max-width: 100% !important;
+            }
+            .vk-intro-header h2 {
+                font-size: 1.6rem !important;
+            }
+            /* Step Items: Cards nicht zu breit, Linie bleibt links */
+            .vk-step-item {
+                padding-left: 60px !important;
+                padding-right: 20px !important;
+                margin-right: 0 !important;
+            }
+            .vk-step-card {
+                width: 100% !important;
+                max-width: 100% !important;
                 margin-right: 0 !important;
             }
         }
@@ -1186,7 +1206,7 @@ html, body {
                     </div>
                 </div>
 
-                <button class="vk-cta-button" onclick="alert('Anfrage wird gesendet...')">
+                <button class="vk-cta-button" onclick="document.getElementById('contactModal').classList.add('active'); document.body.classList.add('no-scroll');">
                     <span style="position: relative; z-index: 1;">Jetzt unverbindlich anfragen</span>
                 </button>
             </div>
