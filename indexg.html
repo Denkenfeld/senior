@@ -421,25 +421,27 @@ html, body {
             .review-widget { max-width: 100%; }
 
             /* === MOBILE FIXES === */
-            /* FIX 2: Wrapper keine seitlichen Paddings */
             .wrapper { padding-left: 0 !important; padding-right: 0 !important; }
 
-            /* FIX 3: Pricing Section - KOMPLETT BREIT (0px Padding) */
+            /* Pricing Section */
             .pricing-section { margin-left: 0 !important; margin-right: 0 !important; border-radius: 0; padding-left: 0 !important; padding-right: 0 !important; }
 
-            /* FIX 4: Steps Section (Ihr Weg zur Entlastung) - KOMPLETT BREIT (0px Padding) */
+            /* Steps Section */
             .steps-section { padding-left: 0 !important; padding-right: 0 !important; margin-left: 0 !important; margin-right: 0 !important; }
 
-            /* FIX 5: FAQ Überschrift Zeilenumbruch */
+            /* FAQ */
             .faq-content h2 { font-size: 1.8rem !important; line-height: 1.3 !important; word-wrap: break-word !important; overflow-wrap: break-word !important; }
 
-            /* FIX 6: CTA Section (Gemeinsam statt einsam) */
+            /* CTA Section */
             .cta-section { margin-left: 0 !important; margin-right: 0 !important; padding-left: 20px !important; padding-right: 20px !important; max-width: 100% !important; }
 
-            /* FIX 7: Job Accordion */
+            /* Job Accordion */
             .job-accordion { margin-left: 0 !important; margin-right: 0 !important; padding-left: 15px !important; padding-right: 15px !important; }
             .job-card { margin-left: 0 !important; margin-right: 0 !important; }
             .job-section { padding-left: 15px !important; padding-right: 15px !important; }
+
+            /* Kostenrechner Container */
+            #investition { margin-left: 0 !important; margin-right: 0 !important; }
         }
 
         .call-fab { position: fixed; bottom: 30px; right: 30px; z-index: 1000; background: #111; color: white; height: 60px; border-radius: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-decoration: none; overflow: hidden; padding: 0 25px; width: auto; transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -597,7 +599,7 @@ html, body {
         </div>
     </div>
     <!-- Kostenrechner & Timeline -->
-    <div class="reveal" id="investition" style="margin: 60px 20px;">
+    <div class="reveal" id="investition" style="margin: 60px 0;">
         <!-- Vitakreis Kostenrechner - Start -->
 
     <style>
@@ -1095,7 +1097,23 @@ html, body {
                 margin-top: 0;
             }
         }
-    </style>
+    
+
+        /* === MOBILE FIX für Kostenrechner === */
+        @media (max-width: 768px) {
+            .vitakreis-calculator {
+                width: 100% !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+            }
+            .vk-timeline-wrapper {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+        }
+</style>
 </head>
 <body>
 
