@@ -2261,18 +2261,18 @@ html, body {
             container.innerHTML = h;
 
             // 1. Betreff vorauswählen und Optionen anpassen
-            const select = container.querySelector('select[name="Paket"]') || container.querySelector('select');
-            if (select) {
-                // Optionen auf die zwei gewünschten reduzieren
-                select.innerHTML = '<option value="Erstes Kennenlernen">Erstes Kennenlernen</option><option value="Begleitung buchen">Begleitung buchen</option>';
+            const select = container.querySelector('select[name="Paket"]');
+if (select && paketName) {
+    for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value === paketName || select.options[i].text.includes(paketName)) {
+            select.selectedIndex = i;
+            break;
+        }
+    }
+}
 
-                // Vorauswahl basierend auf Parameter (Standard: "Erstes Kennenlernen")
-                if (paketName === 'Begleitung buchen') {
-                    select.selectedIndex = 1;
-                } else {
-                    select.selectedIndex = 0; // Standard: Erstes Kennenlernen
-                }
-            }
+
+
 
             // 2. Flatpickr Kalender aktivieren (statisch im Modal)
             const dateInput = container.querySelector('input[name="Datum"]');
