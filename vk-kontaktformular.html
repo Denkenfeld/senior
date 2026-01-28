@@ -12,7 +12,6 @@
         }
 
         /* --- FIX: Breite für Datepicker erzwingen --- */
-        /* Wir sprechen die ID direkt an, das überschreibt alles andere */
         #dateInput, 
         .flatpickr-input, 
         .flatpickr-mobile,
@@ -45,26 +44,70 @@
             padding-right: 40px;
         }
         #submitBtn {
-            width: 100%; background-color: #d4c4a8; color: #4a4a4a; border: none; padding: 16px;
+            width: 100%; background-color: #7AB87D; color: white; border: none; padding: 16px;
             border-radius: 15px; font-size: 1.1rem; font-weight: 700; cursor: pointer; text-transform: uppercase;
+        }
+        #submitBtn:hover {
+            background-color: #68a56b;
         }
        
         /* Message Container muss relative sein, damit der X-Button positioniert werden kann */
         #success-message {
             display: none; text-align: center; padding: 40px 0; position: relative;
         }
-        .check-icon { font-size: 50px; color: #d4c4a8; margin-bottom: 20px; display: block; }
-        .disclaimer { text-align: center; font-size: 0.8rem; color: #999; margin-top: 12px; }
-        /* Style für den X-Button */
-        .close-success-btn {
-            position: absolute; top: -10px; right: 0;
-            background: none; border: none; font-size: 2rem; color: #ccc; cursor: pointer;
-            line-height: 1; padding: 5px 10px;
+        .check-icon { font-size: 50px; color: #7AB87D; margin-bottom: 20px; display: block; }
+        
+        /* Datenschutzhinweis & Disclaimer im gleichen Stil */
+        .privacy-notice, .disclaimer { 
+            text-align: center; font-size: 0.8rem; color: #999; margin-top: 12px; 
         }
-        .close-success-btn:hover { color: #333; }
+        .privacy-notice a { color: #999; text-decoration: underline; }
+        .privacy-notice a:hover { color: #666; }
+        
+        /* Animierter Close Button mit Countdown-Kreis */
+        .close-success-btn {
+            position: absolute; 
+            top: 10px; 
+            right: 10px;
+            background: none; 
+            border: none; 
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+        }
+        .close-success-btn:hover .close-x {
+            color: #333;
+        }
+        .close-x {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #999;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring-circle {
+            stroke: #7AB87D;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 113;
+            stroke-dashoffset: 113;
+            animation: countdown 10s linear forwards;
+        }
+        @keyframes countdown {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
     </style>
     <div id="form-content">
-        <div class="form-header"><h2>Betreuung anfragen</h2></div>
+        <div class="form-header"><h2>Vitakreis kontaktieren</h2></div>
         <form id="bookingForm">
             <!-- WICHTIG: Captcha deaktiviert (false) -->
             <input type="hidden" name="_captcha" value="false"> 
@@ -110,11 +153,21 @@
                 <textarea name="Nachricht" placeholder="Ihre Nachricht / Wünsche..."></textarea>
             </div>
             <button type="submit" id="submitBtn">Anfrage senden</button>
+            
+            <div class="privacy-notice">
+                Mit dem Absenden stimmen Sie der Verarbeitung Ihrer Daten zur Bearbeitung Ihrer Anfrage zu. Details in unserer <a href="/datenschutz" target="_blank">Datenschutzerklärung</a>.
+            </div>
+            
             <div class="disclaimer">Das Erstgespräch ist unverbindlich und kostenlos.</div>
         </form>
     </div>
     <div id="success-message">
-        <button class="close-success-btn" onclick="if (typeof closeRequestModal === 'function') closeRequestModal()">×</button>
+        <button class="close-success-btn" onclick="closeSuccessMessage()">
+            <svg class="progress-ring" width="40" height="40">
+                <circle class="progress-ring-circle" cx="20" cy="20" r="18"></circle>
+            </svg>
+            <span class="close-x">×</span>
+        </button>
         <span class="check-icon">✓</span>
         <h3>Vielen Dank!</h3>
         <p style="font-size: 1.1rem; color: #4a4a4a; line-height: 1.6;">
@@ -126,6 +179,12 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
+    function closeSuccessMessage() {
+        if (typeof closeRequestModal === 'function') {
+            closeRequestModal();
+        }
+    }
+
     (function() {
         // Flatpickr initialisieren für das Datum-Feld
         flatpickr("#dateInput", {
