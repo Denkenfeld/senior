@@ -2414,5 +2414,80 @@ if (select && paketName) {
 
     </script>
 
+
+
+
+
+<script>
+    
+// Homepage-Button Management nach Formular-Versand
+(function() {
+    function updateButtonState() {
+        const sentTime = localStorage.getItem('vk_message_sent');
+        if (!sentTime) return;
+        
+        const elapsed = Date.now() - parseInt(sentTime);
+        const oneMinute = 60 * 1000;
+        
+        if (elapsed < oneMinute) {
+            // Finde alle relevanten Buttons
+            const ctaButtons = document.querySelectorAll('.vk-cta-button');
+            
+            ctaButtons.forEach(button => {
+                // Button deaktivieren
+                button.disabled = true;
+                button.style.background = '#c8e6c9';
+                button.style.cursor = 'not-allowed';
+                button.style.opacity = '0.7';
+                button.innerHTML = '<span style="position: relative; z-index: 1;">Nachricht gesendet</span>';
+                
+                // Klick-Event blockieren
+                button.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                };
+            });
+            
+            // Nach Ablauf der Zeit wieder aktivieren
+            setTimeout(function() {
+                localStorage.removeItem('vk_message_sent');
+                ctaButtons.forEach(button => {
+                    button.disabled = false;
+                    button.style.background = '';
+                    button.style.cursor = '';
+                    button.style.opacity = '';
+                    button.innerHTML = '<span style="position: relative; z-index: 1;">Jetzt unverbindlich anfragen</span>';
+                    button.onclick = function() {
+                        openRequestModal('Erstes Kennenlernen');
+                    };
+                });
+            }, oneMinute - elapsed);
+        } else {
+            // Zeit abgelaufen, LocalStorage aufräumen
+            localStorage.removeItem('vk_message_sent');
+        }
+    }
+    
+    // Beim Laden prüfen
+    updateButtonState();
+    
+    // Event-Listener für Formular-Versand
+    window.addEventListener('vk_form_submitted', updateButtonState);
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+    
+
 </body>
 </html>
