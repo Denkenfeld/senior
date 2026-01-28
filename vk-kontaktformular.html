@@ -42,16 +42,11 @@
             padding-right: 40px;
         }
         #submitBtn {
-            width: 100%; background-color: #7AB87D; color: white; border: none; padding: 16px;
+            width: 100%; background-color: #5FA562; color: white; border: none; padding: 16px;
             border-radius: 15px; font-size: 1.1rem; font-weight: 700; cursor: pointer; text-transform: uppercase;
             transition: background-color 0.3s ease;
-            opacity: 0.6;
         }
-        #submitBtn.ready {
-            background-color: #5FA562;
-            opacity: 1;
-        }
-        #submitBtn.ready:hover {
+        #submitBtn:hover {
             background-color: #4d8f4f;
         }
        
@@ -92,7 +87,7 @@
         }
     </style>
     <div id="form-content">
-        <div class="form-header"><h2>Betreuung anfragen</h2></div>
+        <div class="form-header"><h2>Vitakreis kontaktieren</h2></div>
         <form id="bookingForm">
             <input type="hidden" name="_captcha" value="false"> 
             <input type="hidden" name="_subject" value="Neue Betreuungs-Anfrage">
@@ -105,19 +100,19 @@
                 <input type="email" name="email" required placeholder="beispiel@email.de" id="emailField"> 
             </div>
             <div class="form-group">
-                <select name="Paket" id="subjectField" required>
-                    <option value="" disabled selected>Gewünschte Unterstützung..</option>
+                <select name="Paket" id="subjectField">
+                    <option value="" disabled selected>Gewünschte Unterstützung</option>
                     <option value="Erstes Kennenlernen">Erstes Kennenlernen</option>
                     <option value="Termin Begleitung">Termin Begleitung</option>
                     <option value="Allgemeine Anfrage">Allgemeine Anfrage</option>
                 </select>
             </div>
             <div class="form-group">
-                <input type="text" id="dateInput" name="Datum" placeholder="Wunschtermin wählen (optional)..." readonly>
+                <input type="text" id="dateInput" name="Datum" placeholder="Wunschtermin wählen..." readonly>
             </div>
             <div class="form-group">
                 <select name="Uhrzeit">
-                    <option value="" disabled selected>Bevorzugte Uhrzeit (optional)...</option>
+                    <option value="" disabled selected>Bevorzugte Uhrzeit...</option>
                     <option value="09:00">09:00 Uhr</option>
                     <option value="10:00">10:00 Uhr</option>
                     <option value="11:00">11:00 Uhr</option>
@@ -173,25 +168,6 @@
         const formContent = document.getElementById('form-content');
         const successMsg = document.getElementById('success-message');
         const btn = document.getElementById('submitBtn');
-        const nameField = document.getElementById('nameField');
-        const emailField = document.getElementById('emailField');
-        const subjectField = document.getElementById('subjectField');
-        
-        function checkFormValidity() {
-            const name = nameField.value.trim();
-            const email = emailField.value.trim();
-            const subject = subjectField.value;
-            
-            if (name && email && subject) {
-                btn.classList.add('ready');
-            } else {
-                btn.classList.remove('ready');
-            }
-        }
-        
-        nameField.addEventListener('input', checkFormValidity);
-        emailField.addEventListener('input', checkFormValidity);
-        subjectField.addEventListener('change', checkFormValidity);
         
         if(form) {
             form.onsubmit = function(e) {
@@ -216,10 +192,7 @@
                         formContent.style.display = 'none';
                         successMsg.style.display = 'block';
                         
-                        // LocalStorage setzen mit Zeitstempel
                         localStorage.setItem('vk_message_sent', Date.now());
-                        
-                        // Event für Homepage feuern
                         window.dispatchEvent(new Event('vk_form_submitted'));
                         
                         setTimeout(function() {
