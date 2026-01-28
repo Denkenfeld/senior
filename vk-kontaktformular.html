@@ -26,15 +26,13 @@
         .form-group input[readonly], .flatpickr-input[readonly] {
             background-color: #fafafa;
             cursor: pointer;
-            opacity: 1; /* Zwingend für iOS */
-            -webkit-text-fill-color: #333; /* Zwingend für iOS Textfarbe */
+            opacity: 1;
+            -webkit-text-fill-color: #333;
         }
        
-        /* Garantiert, dass der Placeholder sichtbar ist */
         ::-webkit-input-placeholder { opacity: 1; color: #888; }
         ::placeholder { opacity: 1; color: #888; }
-        /* ----------------------------------------- */
-        /* Pfeil-Icon NUR noch für Select-Boxen */
+
         .form-group select {
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234a4a4a%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
             background-repeat: no-repeat;
@@ -46,52 +44,37 @@
         #submitBtn {
             width: 100%; background-color: #7AB87D; color: white; border: none; padding: 16px;
             border-radius: 15px; font-size: 1.1rem; font-weight: 700; cursor: pointer; text-transform: uppercase;
+            transition: background-color 0.3s ease;
+            opacity: 0.6;
         }
-        #submitBtn:hover {
-            background-color: #68a56b;
+        #submitBtn.ready {
+            background-color: #5FA562;
+            opacity: 1;
+        }
+        #submitBtn.ready:hover {
+            background-color: #4d8f4f;
         }
        
-        /* Message Container muss relative sein, damit der X-Button positioniert werden kann */
         #success-message {
             display: none; text-align: center; padding: 40px 0; position: relative;
         }
         .check-icon { font-size: 50px; color: #7AB87D; margin-bottom: 20px; display: block; }
         
-        /* Datenschutzhinweis & Disclaimer im gleichen Stil */
         .privacy-notice, .disclaimer { 
             text-align: center; font-size: 0.8rem; color: #999; margin-top: 12px; 
         }
         .privacy-notice a { color: #999; text-decoration: underline; }
         .privacy-notice a:hover { color: #666; }
         
-        /* Animierter Close Button mit Countdown-Kreis */
-        .close-success-btn {
+        /* Countdown-Kreis ohne X */
+        .countdown-indicator {
             position: absolute; 
             top: 10px; 
             right: 10px;
-            background: none; 
-            border: none; 
-            cursor: pointer;
             width: 40px;
             height: 40px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .close-success-btn:hover .close-x {
-            color: #333;
-        }
-        .close-x {
-            position: absolute;
-            font-size: 24px;
-            color: #666;
-            line-height: 1;
-            transition: color 0.2s;
-            z-index: 2;
         }
         .progress-ring {
-            position: absolute;
             transform: rotate(-90deg);
         }
         .progress-ring-circle {
@@ -109,19 +92,17 @@
         }
     </style>
     <div id="form-content">
-        <div class="form-header"><h2>Vitakreis kontaktieren</h2></div>
+        <div class="form-header"><h2>Betreuung anfragen</h2></div>
         <form id="bookingForm">
-            <!-- WICHTIG: Captcha deaktiviert (false) -->
             <input type="hidden" name="_captcha" value="false"> 
             <input type="hidden" name="_subject" value="Neue Betreuungs-Anfrage">
-            <!-- Ersetze mit deiner URL -->
             <input type="hidden" name="_url" value="https://deine-homepage.de/seite.html"> 
             <input type="text" name="_honey" style="display:none">
             <div class="form-group">
-                <input type="text" name="Name" required placeholder="Ihr Name">
+                <input type="text" name="Name" required placeholder="Ihr Name" id="nameField">
             </div>
             <div class="form-group">
-                <input type="email" name="email" required placeholder="beispiel@email.de"> 
+                <input type="email" name="email" required placeholder="beispiel@email.de" id="emailField"> 
             </div>
             <div class="form-group">
                 <select name="Paket" id="subjectField" required>
@@ -129,7 +110,6 @@
                     <option value="Erstes Kennenlernen">Erstes Kennenlernen</option>
                     <option value="Termin Begleitung">Termin Begleitung</option>
                     <option value="Allgemeine Anfrage">Allgemeine Anfrage</option>
-            
                 </select>
             </div>
             <div class="form-group">
@@ -164,12 +144,12 @@
         </form>
     </div>
     <div id="success-message">
-        <button class="close-success-btn" onclick="closeSuccessMessage()">
+        <!-- Nur Countdown-Kreis, kein X -->
+        <div class="countdown-indicator">
             <svg class="progress-ring" width="40" height="40">
                 <circle class="progress-ring-circle" cx="20" cy="20" r="18"></circle>
             </svg>
-            <span class="close-x">×</span>
-        </button>
+        </div>
         <span class="check-icon">✓</span>
         <h3>Vielen Dank!</h3>
         <p style="font-size: 1.1rem; color: #4a4a4a; line-height: 1.6;">
@@ -177,30 +157,42 @@
         </p>
     </div>
 </div>
-<!-- Flatpickr CSS und JS einbinden -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    function closeSuccessMessage() {
-        if (typeof closeRequestModal === 'function') {
-            closeRequestModal();
-        }
-    }
-
     (function() {
-        // Flatpickr initialisieren für das Datum-Feld
         flatpickr("#dateInput", {
             enableTime: false,
             dateFormat: "Y-m-d",
             minDate: "today",
             locale: "de", 
-            static: true // Sorgt dafür, dass Kalender im Modal richtig positioniert wird
+            static: true
         });
         
         const form = document.getElementById('bookingForm');
         const formContent = document.getElementById('form-content');
         const successMsg = document.getElementById('success-message');
         const btn = document.getElementById('submitBtn');
+        const nameField = document.getElementById('nameField');
+        const emailField = document.getElementById('emailField');
+        const subjectField = document.getElementById('subjectField');
+        
+        function checkFormValidity() {
+            const name = nameField.value.trim();
+            const email = emailField.value.trim();
+            const subject = subjectField.value;
+            
+            if (name && email && subject) {
+                btn.classList.add('ready');
+            } else {
+                btn.classList.remove('ready');
+            }
+        }
+        
+        nameField.addEventListener('input', checkFormValidity);
+        emailField.addEventListener('input', checkFormValidity);
+        subjectField.addEventListener('change', checkFormValidity);
+        
         if(form) {
             form.onsubmit = function(e) {
                 e.preventDefault();
@@ -221,10 +213,15 @@
                 .then(data => {
                     console.log('Data:', data); 
                     if (data.success) {
-                        // Success Message anzeigen
                         formContent.style.display = 'none';
                         successMsg.style.display = 'block';
-                        // Timer zum automatischen Schließen nach 5 Sekunden
+                        
+                        // LocalStorage setzen mit Zeitstempel
+                        localStorage.setItem('vk_message_sent', Date.now());
+                        
+                        // Event für Homepage feuern
+                        window.dispatchEvent(new Event('vk_form_submitted'));
+                        
                         setTimeout(function() {
                             if (typeof closeRequestModal === 'function') {
                                 closeRequestModal();
